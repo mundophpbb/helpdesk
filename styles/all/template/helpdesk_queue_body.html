@@ -1,0 +1,302 @@
+<!-- INCLUDE overall_header.html -->
+<h2>{L_HELPDESK_TEAM_QUEUE_TITLE}</h2>
+<p>{L_HELPDESK_TEAM_QUEUE_EXPLAIN}</p>
+
+<div class="panel helpdesk-tabs-panel">
+    <div class="inner">
+        <nav aria-label="Help Desk team queue" class="helpdesk-tabs">
+            <a class="helpdesk-tab<!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_QUEUE}">{L_HELPDESK_QUEUE_SECTION_QUEUE}</a>
+            <a class="helpdesk-tab<!-- IF S_HELPDESK_QUEUE_VIEW_REPORTS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+            <a class="helpdesk-tab<!-- IF S_HELPDESK_QUEUE_VIEW_ALERTS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+        </nav>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-summary">
+    <div class="inner">
+        <div class="helpdesk-team-cards">
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}">
+                <strong>{HELPDESK_QUEUE_TOTAL}</strong>
+                <span>{L_HELPDESK_QUEUE_ALL}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my">
+                <strong>{HELPDESK_QUEUE_MY_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=unassigned">
+                <strong>{HELPDESK_QUEUE_UNASSIGNED_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_UNASSIGNED}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=overdue">
+                <strong>{HELPDESK_QUEUE_OVERDUE_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_OVERDUE}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=staff_reply">
+                <strong>{HELPDESK_QUEUE_STAFF_REPLY_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_STAFF_REPLY}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=reopened">
+                <strong>{HELPDESK_QUEUE_REOPENED_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_REOPENED}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=critical">
+                <strong>{HELPDESK_QUEUE_CRITICAL_COUNT}</strong>
+                <span>{L_HELPDESK_CRITICALITY_CRITICAL}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=attention">
+                <strong>{HELPDESK_QUEUE_ATTENTION_COUNT}</strong>
+                <span>{L_HELPDESK_CRITICALITY_ATTENTION}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE -->
+<div class="panel helpdesk-tabs-panel helpdesk-tabs-panel-secondary">
+    <div class="inner">
+        <nav aria-label="Help Desk quick scopes" class="helpdesk-tabs helpdesk-tabs-secondary">
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'all' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=all">{L_HELPDESK_QUEUE_ALL}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'my' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my">{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'unassigned' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=unassigned">{L_HELPDESK_QUEUE_UNASSIGNED}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=overdue">{L_HELPDESK_QUEUE_OVERDUE}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'staff_reply' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=staff_reply">{L_HELPDESK_QUEUE_STAFF_REPLY}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'critical' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=critical">{L_HELPDESK_CRITICALITY_CRITICAL}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_high' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=priority_high">{L_HELPDESK_PRIORITY_HIGH}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_critical' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=priority_critical">{L_HELPDESK_PRIORITY_CRITICAL}</a>
+        </nav>
+    </div>
+</div>
+<div class="panel bg2 helpdesk-team-summary helpdesk-team-summary-secondary">
+    <div class="inner">
+        <h3>{L_HELPDESK_TEAM_QUEUE_MY_PANEL_TITLE}</h3>
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_MY_PANEL_EXPLAIN}</p>
+        <div class="helpdesk-team-cards helpdesk-team-cards-my">
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my">
+                <strong>{HELPDESK_QUEUE_MY_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my_overdue">
+                <strong>{HELPDESK_QUEUE_MY_OVERDUE_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_OVERDUE}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my_staff_reply">
+                <strong>{HELPDESK_QUEUE_MY_STAFF_REPLY_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_STAFF_REPLY}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my_critical">
+                <strong>{HELPDESK_QUEUE_MY_CRITICAL_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_CRITICAL}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-filter-box">
+    <div class="inner">
+        <form method="get" action="{U_HELPDESK_TEAM_QUEUE}">
+            <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+            <div class="helpdesk-team-filter-grid">
+                <div class="helpdesk-filter-field">
+                    <label for="helpdesk-team-forum">{L_FORUM}</label>
+                    <select id="helpdesk-team-forum" name="forum_id">
+                        <option value="0">{L_ALL_FORUMS}</option>
+                        <!-- BEGIN helpdesk_queue_forum_options -->
+                        <option value="{helpdesk_queue_forum_options.VALUE}"<!-- IF helpdesk_queue_forum_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_queue_forum_options.LABEL}</option>
+                        <!-- END helpdesk_queue_forum_options -->
+                    </select>
+                </div>
+                <div class="helpdesk-filter-field">
+                    <label for="helpdesk-team-status">{L_HELPDESK_STATUS}</label>
+                    <select id="helpdesk-team-status" name="status_key">
+                        <!-- BEGIN helpdesk_queue_status_options -->
+                        <option value="{helpdesk_queue_status_options.VALUE}"<!-- IF helpdesk_queue_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_queue_status_options.LABEL}</option>
+                        <!-- END helpdesk_queue_status_options -->
+                    </select>
+                </div>
+                <div class="helpdesk-filter-field">
+                    <label for="helpdesk-team-department">{L_HELPDESK_DEPARTMENT}</label>
+                    <select id="helpdesk-team-department" name="department_key">
+                        <!-- BEGIN helpdesk_queue_department_options -->
+                        <option value="{helpdesk_queue_department_options.VALUE}"<!-- IF helpdesk_queue_department_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_queue_department_options.LABEL}</option>
+                        <!-- END helpdesk_queue_department_options -->
+                    </select>
+                </div>
+                <div class="helpdesk-filter-field">
+                    <label for="helpdesk-team-priority">{L_HELPDESK_PRIORITY}</label>
+                    <select id="helpdesk-team-priority" name="priority_key">
+                        <!-- BEGIN helpdesk_queue_priority_options -->
+                        <option value="{helpdesk_queue_priority_options.VALUE}"<!-- IF helpdesk_queue_priority_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_queue_priority_options.LABEL}</option>
+                        <!-- END helpdesk_queue_priority_options -->
+                    </select>
+                </div>
+                <div class="helpdesk-filter-field">
+                    <label for="helpdesk-team-assigned">{L_HELPDESK_ASSIGNED_TO}</label>
+                    <input type="text" id="helpdesk-team-assigned" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                </div>
+                <div class="helpdesk-filter-field">
+                    <label for="helpdesk-team-scope">{L_HELPDESK_TEAM_QUEUE_SCOPE}</label>
+                    <select id="helpdesk-team-scope" name="scope">
+                        <option value="all"<!-- IF HELPDESK_FILTER_SCOPE eq 'all' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_ALL}</option>
+                        <option value="my"<!-- IF HELPDESK_FILTER_SCOPE eq 'my' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}</option>
+                        <option value="my_overdue"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_overdue' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_OVERDUE}</option>
+                        <option value="my_staff_reply"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_staff_reply' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_STAFF_REPLY}</option>
+                        <option value="my_critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_CRITICAL}</option>
+                        <option value="unassigned"<!-- IF HELPDESK_FILTER_SCOPE eq 'unassigned' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_UNASSIGNED}</option>
+                        <option value="overdue"<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_OVERDUE}</option>
+                        <option value="stale"<!-- IF HELPDESK_FILTER_SCOPE eq 'stale' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_STALE}</option>
+                        <option value="staff_reply"<!-- IF HELPDESK_FILTER_SCOPE eq 'staff_reply' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_STAFF_REPLY}</option>
+                        <option value="reopened"<!-- IF HELPDESK_FILTER_SCOPE eq 'reopened' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_REOPENED}</option>
+                        <option value="critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_CRITICALITY_CRITICAL}</option>
+                        <option value="attention"<!-- IF HELPDESK_FILTER_SCOPE eq 'attention' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_CRITICALITY_ATTENTION}</option>
+                        <option value="priority_high"<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_high' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_PRIORITY_HIGH}</option>
+                        <option value="priority_critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_PRIORITY_CRITICAL}</option>
+                    </select>
+                </div>
+            </div>
+            <fieldset class="submit-buttons helpdesk-team-filter-actions">
+                <input class="button1" type="submit" value="{L_SUBMIT}" />
+                <a class="button2" href="{U_HELPDESK_TEAM_QUEUE_RESET}">{L_RESET}</a>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<div class="panel bg1 helpdesk-team-table-box">
+    <div class="inner">
+        <h3>{L_HELPDESK_TEAM_QUEUE_RESULTS}</h3>
+        <!-- IF S_HELPDESK_QUEUE_HAS_RESULTS -->
+        <div class="forumbg forumbg-table helpdesk-team-table-wrap">
+            <table class="table1 responsive helpdesk-team-table">
+                <thead>
+                    <tr>
+                        <th>{L_TOPIC}</th>
+                        <th>{L_FORUM}</th>
+                        <th>{L_HELPDESK_STATUS}</th>
+                        <th>{L_HELPDESK_PRIORITY}</th>
+                        <th>{L_HELPDESK_DEPARTMENT}</th>
+                        <th>{L_HELPDESK_ASSIGNED_TO}</th>
+                        <th>{L_HELPDESK_TEAM_QUEUE_ALERTS}</th>
+                        <th>{L_HELPDESK_LAST_UPDATE}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- BEGIN helpdesk_queue_rows -->
+                    <tr>
+                        <td><a href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a></td>
+                        <td>{helpdesk_queue_rows.FORUM_NAME}</td>
+                        <td><span class="helpdesk-badge {helpdesk_queue_rows.STATUS_CLASS}">{helpdesk_queue_rows.STATUS_LABEL}</span></td>
+                        <td><span class="helpdesk-badge {helpdesk_queue_rows.PRIORITY_CLASS}">{helpdesk_queue_rows.PRIORITY_LABEL}</span></td>
+                        <td>{helpdesk_queue_rows.DEPARTMENT_LABEL}</td>
+                        <td>{helpdesk_queue_rows.ASSIGNED_TO}</td>
+                        <td>{helpdesk_queue_rows.ALERT_TEXT}</td>
+                        <td>{helpdesk_queue_rows.UPDATED_AT}</td>
+                    </tr>
+                    <!-- END helpdesk_queue_rows -->
+                </tbody>
+            </table>
+        </div>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_FILTER_NO_RESULTS}</p>
+        <!-- ENDIF -->
+    </div>
+</div>
+<!-- ENDIF -->
+
+<!-- IF S_HELPDESK_QUEUE_VIEW_REPORTS -->
+<div class="panel bg2 helpdesk-team-report-box">
+    <div class="inner">
+        <h3>{L_HELPDESK_REPORTS_TITLE}</h3>
+        <p class="helpdesk-note">{L_HELPDESK_REPORTS_EXPLAIN}</p>
+        <!-- IF S_HELPDESK_REPORT_HAS_DATA -->
+        <div class="helpdesk-team-cards helpdesk-team-cards-report">
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_TOTAL}</strong><span>{L_HELPDESK_REPORT_TOTAL}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_ACTIVE}</strong><span>{L_HELPDESK_REPORT_ACTIVE}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_RESOLVED}</strong><span>{L_HELPDESK_REPORT_RESOLVED}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_CLOSED}</strong><span>{L_HELPDESK_REPORT_CLOSED}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_UNASSIGNED}</strong><span>{L_HELPDESK_REPORT_UNASSIGNED}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_FIRST_REPLY}</strong><span>{L_HELPDESK_REPORT_FIRST_REPLY}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_AVG_AGE}</strong><span>{L_HELPDESK_REPORT_AVG_AGE}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_AVG_IDLE}</strong><span>{L_HELPDESK_REPORT_AVG_IDLE}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_UPDATED_24H}</strong><span>{L_HELPDESK_REPORT_UPDATED_24H}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_CREATED_24H}</strong><span>{L_HELPDESK_REPORT_CREATED_24H}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_OVERDUE}</strong><span>{L_HELPDESK_REPORT_OVERDUE}</span></div>
+            <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_REPORT_STAFF_REPLY}</strong><span>{L_HELPDESK_REPORT_STAFF_REPLY}</span></div>
+        </div>
+        <div class="helpdesk-report-grid">
+            <div class="helpdesk-report-panel">
+                <h4>{L_HELPDESK_REPORT_BY_STATUS}</h4>
+                <ul class="helpdesk-report-list">
+                    <!-- BEGIN helpdesk_report_status_rows -->
+                    <li><span class="helpdesk-report-main"><span class="helpdesk-badge {helpdesk_report_status_rows.CLASS}">{helpdesk_report_status_rows.LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_status_rows.COUNT} &middot; {helpdesk_report_status_rows.PERCENT}</span></li>
+                    <!-- END helpdesk_report_status_rows -->
+                </ul>
+            </div>
+            <div class="helpdesk-report-panel">
+                <h4>{L_HELPDESK_REPORT_BY_DEPARTMENT}</h4>
+                <ul class="helpdesk-report-list">
+                    <!-- BEGIN helpdesk_report_department_rows -->
+                    <li><span class="helpdesk-report-main">{helpdesk_report_department_rows.LABEL}</span><span class="helpdesk-report-meta">{helpdesk_report_department_rows.COUNT} &middot; {helpdesk_report_department_rows.PERCENT}</span></li>
+                    <!-- END helpdesk_report_department_rows -->
+                </ul>
+            </div>
+            <div class="helpdesk-report-panel">
+                <h4>{L_HELPDESK_REPORT_BY_PRIORITY}</h4>
+                <ul class="helpdesk-report-list">
+                    <!-- BEGIN helpdesk_report_priority_rows -->
+                    <li><span class="helpdesk-report-main"><span class="helpdesk-badge {helpdesk_report_priority_rows.CLASS}">{helpdesk_report_priority_rows.LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_priority_rows.COUNT} &middot; {helpdesk_report_priority_rows.PERCENT}</span></li>
+                    <!-- END helpdesk_report_priority_rows -->
+                </ul>
+            </div>
+            <div class="helpdesk-report-panel">
+                <h4>{L_HELPDESK_REPORT_BY_ASSIGNEE}</h4>
+                <ul class="helpdesk-report-list">
+                    <!-- BEGIN helpdesk_report_assignee_rows -->
+                    <li><span class="helpdesk-report-main">{helpdesk_report_assignee_rows.LABEL}</span><span class="helpdesk-report-meta">{helpdesk_report_assignee_rows.COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_assignee_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_assignee_rows.CRITICAL_COUNT}</span></li>
+                    <!-- END helpdesk_report_assignee_rows -->
+                </ul>
+            </div>
+        </div>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_FILTER_NO_RESULTS}</p>
+        <!-- ENDIF -->
+    </div>
+</div>
+<!-- ENDIF -->
+
+<!-- IF S_HELPDESK_QUEUE_VIEW_ALERTS -->
+<!-- IF S_HELPDESK_ALERTS_ENABLED -->
+<div class="panel bg2 helpdesk-team-alerts-box">
+    <div class="inner">
+        <h3>{L_HELPDESK_TEAM_ALERTS_TITLE}</h3>
+        <p class="helpdesk-note">{HELPDESK_TEAM_ALERTS_EXPLAIN_TEXT}</p>
+        <!-- IF .helpdesk_recent_alerts -->
+        <ul class="helpdesk-team-alert-list">
+            <!-- BEGIN helpdesk_recent_alerts -->
+            <li>
+                <span class="helpdesk-history-type {helpdesk_recent_alerts.ACTION_CLASS}">{helpdesk_recent_alerts.ACTION_LABEL}</span>
+                <div class="helpdesk-history-body">
+                    <a href="{helpdesk_recent_alerts.U_TOPIC}">{helpdesk_recent_alerts.TOPIC_TITLE}</a>
+                    <span class="helpdesk-history-status">{helpdesk_recent_alerts.ALERT_TEXT}</span>
+                    <!-- IF helpdesk_recent_alerts.ALERT_REASON -->
+                    <span class="helpdesk-history-reason">{L_HELPDESK_CHANGE_REASON}{L_COLON} {helpdesk_recent_alerts.ALERT_REASON}</span>
+                    <!-- ENDIF -->
+                    <span class="helpdesk-history-meta">{helpdesk_recent_alerts.FORUM_NAME} &middot; {helpdesk_recent_alerts.ALERT_USERNAME} &middot; {helpdesk_recent_alerts.ALERT_TIME}</span>
+                </div>
+            </li>
+            <!-- END helpdesk_recent_alerts -->
+        </ul>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_ALERTS_EMPTY}</p>
+        <!-- ENDIF -->
+    </div>
+</div>
+<!-- ELSE -->
+<div class="panel bg2 helpdesk-team-alerts-box">
+    <div class="inner">
+        <p class="helpdesk-note">{L_ACP_HELPDESK_ENABLE_ALERTS_EXPLAIN}</p>
+    </div>
+</div>
+<!-- ENDIF -->
+<!-- ENDIF -->
+
+<!-- INCLUDE overall_footer.html -->

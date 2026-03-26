@@ -1,0 +1,3 @@
+mundophpbb_helpdesk_queue_controller:
+    path: /helpdesk/queue
+    defaults: { _controller: mundophpbb.helpdesk.controller.queue:display }

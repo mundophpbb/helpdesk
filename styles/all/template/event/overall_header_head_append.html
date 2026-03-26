@@ -1,0 +1,703 @@
+{% INCLUDECSS '@mundophpbb_helpdesk/helpdesk.css' %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var metaBlocks = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-topic-meta-row[data-helpdesk-meta="1"]'));
+    if (!metaBlocks.length) {
+        return;
+    }
+
+    function getText(container, selector) {
+        var node = container.querySelector(selector);
+        return node ? node.textContent.replace(/\s+/g, ' ').trim() : '';
+    }
+
+    function normalize(value) {
+        return (value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
+    var items = metaBlocks.map(function (meta) {
+        var row = meta.closest('li.row, tr, .row');
+        return {
+            row: row || meta,
+            topicId: meta.getAttribute('data-helpdesk-topic-id') || '',
+            status: getText(meta, '.helpdesk-badge-status'),
+            statusKey: meta.getAttribute('data-helpdesk-status-key') || '',
+            statusTone: meta.getAttribute('data-helpdesk-status-tone') || '',
+            category: getText(meta, '.helpdesk-tag-category'),
+            department: getText(meta, '.helpdesk-tag-department'),
+            assigned: getText(meta, '.helpdesk-tag-assigned .helpdesk-value'),
+            createdTs: parseInt(meta.getAttribute('data-helpdesk-created-ts') || '0', 10),
+            updatedTs: parseInt(meta.getAttribute('data-helpdesk-updated-ts') || '0', 10),
+            lastActivityTs: parseInt(meta.getAttribute('data-helpdesk-last-activity-ts') || '0', 10),
+            replyCount: parseInt(meta.getAttribute('data-helpdesk-reply-count') || '0', 10),
+            priorityKey: meta.getAttribute('data-helpdesk-priority-key') || 'normal',
+            topicPosterId: parseInt(meta.getAttribute('data-helpdesk-topic-poster-id') || '0', 10),
+            lastPosterId: parseInt(meta.getAttribute('data-helpdesk-last-poster-id') || '0', 10),
+            reopenCount: parseInt(meta.getAttribute('data-helpdesk-reopen-count') || '0', 10),
+            criticalityKey: meta.getAttribute('data-helpdesk-criticality-key') || ''
+        };
+    }).filter(function (item) {
+        return !!item.row;
+    });
+
+    if (!items.length) {
+        return;
+    }
+
+    function uniqueValues(field) {
+        var seen = {};
+        var values = [];
+
+        items.forEach(function (item) {
+            var value = (item[field] || '').trim();
+            if (value && !seen[value]) {
+                seen[value] = true;
+                values.push(value);
+            }
+        });
+
+        return values;
+    }
+
+    var nowTs = Math.floor(Date.now() / 1000);
+    var slaHours = parseInt('{HELPDESK_SLA_HOURS}', 10) || 24;
+    var staleHours = parseInt('{HELPDESK_STALE_HOURS}', 10) || 72;
+    var oldHours = parseInt('{HELPDESK_OLD_HOURS}', 10) || 168;
+
+    function isActive(item) {
+        return item.statusTone === 'open' || item.statusTone === 'progress' || item.statusTone === 'waiting';
+    }
+
+    function isWithinSla(item) {
+        if (!isActive(item) || !item.createdTs) {
+            return false;
+        }
+        return (nowTs - item.createdTs) <= (slaHours * 3600);
+    }
+
+    function isOverdue(item) {
+        if (!isActive(item) || !item.createdTs) {
+            return false;
+        }
+        return (nowTs - item.createdTs) > (slaHours * 3600);
+    }
+
+    function isStale(item) {
+        if (!isActive(item) || !item.lastActivityTs) {
+            return false;
+        }
+        return (nowTs - item.lastActivityTs) > (staleHours * 3600);
+    }
+
+    function needsFirstReply(item) {
+        return isActive(item) && item.replyCount <= 0;
+    }
+
+    function isVeryOld(item) {
+        if (!isActive(item) || !item.createdTs) {
+            return false;
+        }
+        return (nowTs - item.createdTs) > (oldHours * 3600);
+    }
+
+    function needsStaffReply(item) {
+        return isActive(item) && item.replyCount > 0 && item.topicPosterId > 0 && item.lastPosterId > 0 && item.topicPosterId === item.lastPosterId;
+    }
+
+    function isReopened(item) {
+        return isActive(item) && item.reopenCount > 0;
+    }
+
+    function hasCriticality(item, key) {
+        return isActive(item) && item.criticalityKey === key;
+    }
+
+    function matchesQueue(item, mode) {
+        if (!mode || mode === 'all') {
+            return true;
+        }
+
+        if (mode === 'open') {
+            return isActive(item);
+        }
+
+        if (mode === 'waiting') {
+            return item.statusTone === 'waiting';
+        }
+
+        if (mode === 'unassigned') {
+            return item.assigned === '';
+        }
+
+        if (mode === 'within_sla') {
+            return isWithinSla(item);
+        }
+
+        if (mode === 'overdue') {
+            return isOverdue(item);
+        }
+
+        if (mode === 'stale') {
+            return isStale(item);
+        }
+
+        if (mode === 'first_reply') {
+            return needsFirstReply(item);
+        }
+
+        if (mode === 'very_old') {
+            return isVeryOld(item);
+        }
+
+        if (mode === 'staff_reply') {
+            return needsStaffReply(item);
+        }
+
+        if (mode === 'reopened') {
+            return isReopened(item);
+        }
+
+        if (mode === 'criticality_critical') {
+            return hasCriticality(item, 'critical');
+        }
+
+        if (mode === 'criticality_attention') {
+            return hasCriticality(item, 'attention');
+        }
+
+        if (mode === 'closed') {
+            return item.statusTone === 'closed';
+        }
+
+        return true;
+    }
+
+    var statuses = uniqueValues('status');
+    var categories = uniqueValues('category');
+    var departments = uniqueValues('department');
+    var hasAssignedRows = items.some(function (item) {
+        return item.assigned !== '';
+    });
+
+    var listRoot = items[0].row.parentNode;
+    if (!listRoot || !listRoot.parentNode) {
+        return;
+    }
+
+    <!-- IF S_HELPDESK_CAN_VIEW_TEAM_QUEUE -->
+    var teamPanelLink = document.createElement('div');
+    teamPanelLink.className = 'panel bg2 helpdesk-team-shortcut';
+    teamPanelLink.innerHTML = '<div class="inner"><p class="helpdesk-note helpdesk-team-link-wrap"><a class="button2" href="{U_HELPDESK_TEAM_QUEUE}">{L_HELPDESK_TEAM_QUEUE_LINK}</a></p></div>';
+    listRoot.parentNode.insertBefore(teamPanelLink, listRoot);
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
+    var queueWrapper = document.createElement('div');
+    queueWrapper.className = 'panel bg2 helpdesk-queue-panel';
+    queueWrapper.id = 'helpdesk-queue-panel';
+    queueWrapper.innerHTML =
+        '<div class="inner">' +
+            '<h3>{L_HELPDESK_QUEUE_TITLE}</h3>' +
+            '<p class="helpdesk-note">{L_HELPDESK_QUEUE_EXPLAIN}</p>' +
+            <!-- IF S_HELPDESK_CAN_VIEW_TEAM_QUEUE -->
+            '<p class="helpdesk-note helpdesk-team-link-wrap"><a class="button2" href="{U_HELPDESK_TEAM_QUEUE}">{L_HELPDESK_TEAM_QUEUE_LINK}</a></p>' +
+            <!-- ENDIF -->
+            '<div class="helpdesk-queue-grid">' +
+                '<button type="button" class="helpdesk-queue-card is-active" data-helpdesk-queue="all">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-all"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_ALL}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_ALL_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="open">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-open"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_OPEN}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_OPEN_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="waiting">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-waiting"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_WAITING}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_WAITING_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="unassigned">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-unassigned"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_UNASSIGNED}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_UNASSIGNED_EXPLAIN}</span>' +
+                '</button>' +
+                <!-- IF S_HELPDESK_SLA_ENABLED -->
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="within_sla">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-within-sla"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_WITHIN_SLA}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_WITHIN_SLA_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="overdue">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-overdue"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_OVERDUE}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_OVERDUE_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="stale">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-stale"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_STALE}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_STALE_EXPLAIN}</span>' +
+                '</button>' +
+                <!-- ENDIF -->
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="first_reply">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-first-reply"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_FIRST_REPLY}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_FIRST_REPLY_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="very_old">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-very-old"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_VERY_OLD}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_VERY_OLD_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="staff_reply">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-staff-reply"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_STAFF_REPLY}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_STAFF_REPLY_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="reopened">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-reopened"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_REOPENED}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_REOPENED_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="criticality_critical">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-criticality-critical"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_CRITICALITY_CRITICAL}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_CRITICALITY_CRITICAL_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="criticality_attention">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-criticality-attention"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_CRITICALITY_ATTENTION}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_CRITICALITY_ATTENTION_EXPLAIN}</span>' +
+                '</button>' +
+                '<button type="button" class="helpdesk-queue-card" data-helpdesk-queue="closed">' +
+                    '<span class="helpdesk-queue-count" id="helpdesk-queue-count-closed"></span>' +
+                    '<span class="helpdesk-queue-label">{L_HELPDESK_QUEUE_CLOSED}</span>' +
+                    '<span class="helpdesk-queue-note">{L_HELPDESK_QUEUE_CLOSED_EXPLAIN}</span>' +
+                '</button>' +
+            '</div>' +
+        '</div>';
+    listRoot.parentNode.insertBefore(queueWrapper, listRoot);
+
+    var assigneePanel = null;
+    var assigneeChipsWrap = null;
+    if (hasAssignedRows) {
+        assigneePanel = document.createElement('div');
+        assigneePanel.className = 'panel bg2 helpdesk-assignee-panel';
+        assigneePanel.id = 'helpdesk-assignee-panel';
+        assigneePanel.innerHTML =
+            '<div class="inner">' +
+                '<h3>{L_HELPDESK_QUEUE_BY_ASSIGNEE}</h3>' +
+                '<p class="helpdesk-note">{L_HELPDESK_QUEUE_BY_ASSIGNEE_EXPLAIN}</p>' +
+                '<div class="helpdesk-assignee-chips" id="helpdesk-assignee-chips"></div>' +
+            '</div>';
+        listRoot.parentNode.insertBefore(assigneePanel, listRoot);
+        assigneeChipsWrap = assigneePanel.querySelector('#helpdesk-assignee-chips');
+    }
+    <!-- ENDIF -->
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'panel bg2 helpdesk-filter-panel';
+
+    var fieldsHtml = [
+        '<div class="helpdesk-filter-field">' +
+            '<label for="helpdesk-filter-status">{L_HELPDESK_STATUS}</label>' +
+            '<select id="helpdesk-filter-status" name="helpdesk_filter_status">' +
+                '<option value="">{L_HELPDESK_FILTER_ALL}</option>' +
+            '</select>' +
+        '</div>'
+    ];
+
+    if (categories.length) {
+        fieldsHtml.push(
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-filter-category">{L_HELPDESK_CATEGORY}</label>' +
+                '<select id="helpdesk-filter-category" name="helpdesk_filter_category">' +
+                    '<option value="">{L_HELPDESK_FILTER_ALL}</option>' +
+                '</select>' +
+            '</div>'
+        );
+    }
+
+    if (departments.length) {
+        fieldsHtml.push(
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-filter-department">{L_HELPDESK_DEPARTMENT}</label>' +
+                '<select id="helpdesk-filter-department" name="helpdesk_filter_department">' +
+                    '<option value="">{L_HELPDESK_FILTER_ALL}</option>' +
+                '</select>' +
+            '</div>'
+        );
+    }
+
+    if (hasAssignedRows) {
+        fieldsHtml.push(
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-filter-assignment">{L_HELPDESK_ASSIGNED}</label>' +
+                '<select id="helpdesk-filter-assignment" name="helpdesk_filter_assignment">' +
+                    '<option value="">{L_HELPDESK_FILTER_ALL}</option>' +
+                    '<option value="assigned">{L_HELPDESK_FILTER_ASSIGNED}</option>' +
+                    '<option value="unassigned">{L_HELPDESK_FILTER_UNASSIGNED}</option>' +
+                '</select>' +
+            '</div>'
+        );
+        fieldsHtml.push(
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-filter-assignee">{L_HELPDESK_ASSIGNED_TO}</label>' +
+                '<input type="text" id="helpdesk-filter-assignee" name="helpdesk_filter_assignee" value="" placeholder="{L_HELPDESK_FILTER_ASSIGNEE_PLACEHOLDER}" />' +
+            '</div>'
+        );
+    }
+
+    wrapper.innerHTML =
+        '<div class="inner">' +
+            '<h3>{L_HELPDESK_FILTER_TITLE}</h3>' +
+            '<div class="helpdesk-filter-grid">' + fieldsHtml.join('') + '</div>' +
+            '<div class="helpdesk-filter-actions">' +
+                '<button type="button" class="button2" id="helpdesk-filter-reset">{L_HELPDESK_FILTER_CLEAR}</button>' +
+                '<span class="helpdesk-filter-summary" id="helpdesk-filter-summary"></span>' +
+            '</div>' +
+        '</div>';
+
+    listRoot.parentNode.insertBefore(wrapper, listRoot);
+
+    var emptyState = document.createElement('div');
+    emptyState.className = 'panel bg2 helpdesk-filter-empty';
+    emptyState.style.display = 'none';
+    emptyState.innerHTML = '<div class="inner"><p>{L_HELPDESK_FILTER_NO_RESULTS}</p></div>';
+    listRoot.parentNode.insertBefore(emptyState, listRoot);
+
+    <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
+    var bulkStatusOptionsHtml = '<option value="">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_status_options --><option value="{helpdesk_bulk_status_options.VALUE}">{helpdesk_bulk_status_options.LABEL}</option><!-- END helpdesk_bulk_status_options -->';
+    var bulkDepartmentOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><option value="__CLEAR__">{L_HELPDESK_BULK_CLEAR_VALUE}</option><!-- BEGIN helpdesk_bulk_department_options --><option value="{helpdesk_bulk_department_options.VALUE}">{helpdesk_bulk_department_options.LABEL}</option><!-- END helpdesk_bulk_department_options -->';
+    if (statuses.length) {
+        var bulkWrapper = document.createElement('div');
+        bulkWrapper.className = 'panel bg2 helpdesk-bulk-panel';
+        bulkWrapper.id = 'helpdesk-bulk-panel';
+
+        var bulkFieldsHtml =
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-bulk-status">{L_HELPDESK_BULK_STATUS}</label>' +
+                '<select id="helpdesk-bulk-status" name="helpdesk_bulk_status">' + bulkStatusOptionsHtml + '</select>' +
+            '</div>';
+
+        <!-- IF S_HELPDESK_BULK_DEPARTMENT_ENABLED -->
+        bulkFieldsHtml +=
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-bulk-department">{L_HELPDESK_BULK_DEPARTMENT}</label>' +
+                '<select id="helpdesk-bulk-department" name="helpdesk_bulk_department">' + bulkDepartmentOptionsHtml + '</select>' +
+            '</div>';
+        <!-- ENDIF -->
+
+        <!-- IF S_HELPDESK_BULK_ASSIGNMENT_ENABLED -->
+        bulkFieldsHtml +=
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-bulk-assignment-action">{L_HELPDESK_BULK_ASSIGNMENT}</label>' +
+                '<select id="helpdesk-bulk-assignment-action" name="helpdesk_bulk_assignment_action">' +
+                    '<option value="keep">{L_HELPDESK_BULK_KEEP_CURRENT}</option>' +
+                    '<option value="set">{L_HELPDESK_BULK_ASSIGNMENT_SET}</option>' +
+                    '<option value="clear">{L_HELPDESK_BULK_ASSIGNMENT_CLEAR}</option>' +
+                '</select>' +
+            '</div>' +
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-bulk-assigned-to">{L_HELPDESK_BULK_ASSIGNEE}</label>' +
+                '<input type="text" id="helpdesk-bulk-assigned-to" name="helpdesk_bulk_assigned_to" value="" placeholder="{L_HELPDESK_BULK_ASSIGNEE_PLACEHOLDER}" />' +
+            '</div>';
+        <!-- ENDIF -->
+
+        bulkWrapper.innerHTML =
+            '<div class="inner">' +
+                '<h3>{L_HELPDESK_BULK_TITLE}</h3>' +
+                '<form method="post" action="" id="helpdesk-bulk-form">' +
+                    '<div class="helpdesk-bulk-grid">' + bulkFieldsHtml + '</div>' +
+                    '<div class="helpdesk-bulk-actions">' +
+                        '<button type="button" class="button2" id="helpdesk-bulk-select-all">{L_HELPDESK_BULK_SELECT_ALL}</button> ' +
+                        '<button type="button" class="button2" id="helpdesk-bulk-clear">{L_HELPDESK_BULK_CLEAR_SELECTION}</button> ' +
+                        '<input type="submit" class="button1" name="helpdesk_bulk_apply" value="{L_HELPDESK_BULK_APPLY}" />' +
+                    '</div>' +
+                    '<div class="helpdesk-bulk-summary" id="helpdesk-bulk-summary"></div>' +
+                    '{HELPDESK_BULK_FORM_TOKEN}' +
+                '</form>' +
+            '</div>';
+
+        listRoot.parentNode.insertBefore(bulkWrapper, wrapper.nextSibling);
+
+        var bulkForm = bulkWrapper.querySelector('#helpdesk-bulk-form');
+        var bulkStatus = bulkWrapper.querySelector('#helpdesk-bulk-status');
+        var bulkDepartment = bulkWrapper.querySelector('#helpdesk-bulk-department');
+        var bulkAssignmentAction = bulkWrapper.querySelector('#helpdesk-bulk-assignment-action');
+        var bulkAssignedTo = bulkWrapper.querySelector('#helpdesk-bulk-assigned-to');
+        var bulkSummary = bulkWrapper.querySelector('#helpdesk-bulk-summary');
+        var selectAllButton = bulkWrapper.querySelector('#helpdesk-bulk-select-all');
+        var clearButton = bulkWrapper.querySelector('#helpdesk-bulk-clear');
+        var bulkChecks = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-bulk-check'));
+
+        function visibleChecks() {
+            return bulkChecks.filter(function (check) {
+                var row = check.closest('li.row, tr, .row');
+                return row && row.style.display !== 'none';
+            });
+        }
+
+        function updateBulkSummary() {
+            var checkedCount = bulkChecks.filter(function (check) { return check.checked; }).length;
+            bulkSummary.textContent = checkedCount + ' {L_HELPDESK_BULK_SELECTED_COUNT}';
+        }
+
+        bulkChecks.forEach(function (check) {
+            check.addEventListener('change', updateBulkSummary);
+        });
+
+        selectAllButton.addEventListener('click', function () {
+            visibleChecks().forEach(function (check) {
+                check.checked = true;
+            });
+            updateBulkSummary();
+        });
+
+        clearButton.addEventListener('click', function () {
+            bulkChecks.forEach(function (check) {
+                check.checked = false;
+            });
+            updateBulkSummary();
+        });
+
+        bulkForm.addEventListener('submit', function (e) {
+            var checked = bulkChecks.filter(function (check) { return check.checked; });
+            var hasStatusChange = bulkStatus && bulkStatus.value !== '';
+            var hasDepartmentChange = bulkDepartment && bulkDepartment.value !== '__NO_CHANGE__';
+            var hasAssignmentChange = bulkAssignmentAction && ((bulkAssignmentAction.value === 'set' && bulkAssignedTo && normalize(bulkAssignedTo.value) !== '') || bulkAssignmentAction.value === 'clear');
+
+            if (!checked.length) {
+                e.preventDefault();
+                alert('{L_HELPDESK_BULK_NO_SELECTION}');
+                return;
+            }
+
+            if (!hasStatusChange && !hasDepartmentChange && !hasAssignmentChange) {
+                e.preventDefault();
+                alert('{L_HELPDESK_BULK_NOTHING_TO_APPLY}');
+                return;
+            }
+
+            if (bulkAssignmentAction && bulkAssignmentAction.value === 'set' && (!bulkAssignedTo || normalize(bulkAssignedTo.value) === '')) {
+                e.preventDefault();
+                alert('{L_HELPDESK_BULK_ASSIGNEE_REQUIRED}');
+                return;
+            }
+
+            bulkForm.querySelectorAll('input[name="helpdesk_bulk_topic_ids[]"]').forEach(function (node) {
+                node.parentNode.removeChild(node);
+            });
+
+            checked.forEach(function (check) {
+                var hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'helpdesk_bulk_topic_ids[]';
+                hidden.value = check.value;
+                bulkForm.appendChild(hidden);
+            });
+        });
+
+        updateBulkSummary();
+    }
+    <!-- ENDIF -->
+
+    function appendOptions(select, values) {
+        if (!select) {
+            return;
+        }
+
+        values.forEach(function (value) {
+            var option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            select.appendChild(option);
+        });
+    }
+
+    var statusSelect = wrapper.querySelector('#helpdesk-filter-status');
+    var categorySelect = wrapper.querySelector('#helpdesk-filter-category');
+    var departmentSelect = wrapper.querySelector('#helpdesk-filter-department');
+    var assignmentSelect = wrapper.querySelector('#helpdesk-filter-assignment');
+    var assigneeInput = wrapper.querySelector('#helpdesk-filter-assignee');
+    var summaryNode = wrapper.querySelector('#helpdesk-filter-summary');
+    var currentQueueFilter = 'all';
+
+    appendOptions(statusSelect, statuses);
+    appendOptions(categorySelect, categories);
+    appendOptions(departmentSelect, departments);
+
+    <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
+    var queueCards = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-queue-card[data-helpdesk-queue]'));
+    var queueCounters = {
+        all: document.getElementById('helpdesk-queue-count-all'),
+        open: document.getElementById('helpdesk-queue-count-open'),
+        waiting: document.getElementById('helpdesk-queue-count-waiting'),
+        unassigned: document.getElementById('helpdesk-queue-count-unassigned'),
+        within_sla: document.getElementById('helpdesk-queue-count-within-sla'),
+        overdue: document.getElementById('helpdesk-queue-count-overdue'),
+        stale: document.getElementById('helpdesk-queue-count-stale'),
+        first_reply: document.getElementById('helpdesk-queue-count-first-reply'),
+        very_old: document.getElementById('helpdesk-queue-count-very-old'),
+        staff_reply: document.getElementById('helpdesk-queue-count-staff-reply'),
+        reopened: document.getElementById('helpdesk-queue-count-reopened'),
+        criticality_critical: document.getElementById('helpdesk-queue-count-criticality-critical'),
+        criticality_attention: document.getElementById('helpdesk-queue-count-criticality-attention'),
+        closed: document.getElementById('helpdesk-queue-count-closed')
+    };
+
+    Object.keys(queueCounters).forEach(function (key) {
+        if (queueCounters[key]) {
+            queueCounters[key].textContent = items.filter(function (item) {
+                return matchesQueue(item, key);
+            }).length;
+        }
+    });
+
+    function setQueueFilter(mode) {
+        currentQueueFilter = mode || 'all';
+        queueCards.forEach(function (card) {
+            card.classList.toggle('is-active', card.getAttribute('data-helpdesk-queue') === currentQueueFilter);
+        });
+        applyFilters();
+    }
+
+    queueCards.forEach(function (card) {
+        card.addEventListener('click', function () {
+            setQueueFilter(card.getAttribute('data-helpdesk-queue') || 'all');
+        });
+    });
+
+    function renderAssigneeChips() {
+        if (!assigneeChipsWrap) {
+            return;
+        }
+
+        var counts = {};
+        items.forEach(function (item) {
+            if (!item.assigned || !isActive(item)) {
+                return;
+            }
+            counts[item.assigned] = (counts[item.assigned] || 0) + 1;
+        });
+
+        var entries = Object.keys(counts).sort(function (a, b) {
+            if (counts[b] !== counts[a]) {
+                return counts[b] - counts[a];
+            }
+            return a.localeCompare(b);
+        });
+
+        if (!entries.length) {
+            assigneePanel.style.display = 'none';
+            return;
+        }
+
+        assigneePanel.style.display = '';
+        assigneeChipsWrap.innerHTML = '';
+
+        var activeAssignedCount = items.filter(function (item) { return item.assigned && isActive(item); }).length;
+        var allChip = document.createElement('button');
+        allChip.type = 'button';
+        allChip.className = 'helpdesk-assignee-chip is-active';
+        allChip.setAttribute('data-helpdesk-assignee-chip', '');
+        allChip.innerHTML = '<span class="helpdesk-assignee-name">{L_HELPDESK_FILTER_ALL}</span><span class="helpdesk-assignee-count">' + activeAssignedCount + '</span>';
+        assigneeChipsWrap.appendChild(allChip);
+
+        entries.forEach(function (name) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'helpdesk-assignee-chip';
+            chip.setAttribute('data-helpdesk-assignee-chip', name);
+            chip.innerHTML = '<span class="helpdesk-assignee-name"></span><span class="helpdesk-assignee-count"></span>';
+            chip.querySelector('.helpdesk-assignee-name').textContent = name;
+            chip.querySelector('.helpdesk-assignee-count').textContent = counts[name];
+            assigneeChipsWrap.appendChild(chip);
+        });
+
+        Array.prototype.slice.call(assigneeChipsWrap.querySelectorAll('.helpdesk-assignee-chip')).forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                if (!assigneeInput) {
+                    return;
+                }
+                assigneeInput.value = chip.getAttribute('data-helpdesk-assignee-chip') || '';
+                if (assignmentSelect) {
+                    assignmentSelect.value = assigneeInput.value ? 'assigned' : '';
+                }
+                applyFilters();
+            });
+        });
+    }
+    <!-- ENDIF -->
+
+    function applyFilters() {
+        var statusValue = normalize(statusSelect ? statusSelect.value : '');
+        var categoryValue = normalize(categorySelect ? categorySelect.value : '');
+        var departmentValue = normalize(departmentSelect ? departmentSelect.value : '');
+        var assignmentValue = normalize(assignmentSelect ? assignmentSelect.value : '');
+        var assigneeValue = normalize(assigneeInput ? assigneeInput.value : '');
+        var visibleCount = 0;
+
+        items.forEach(function (item) {
+            var matchesStatus = !statusValue || normalize(item.status) === statusValue;
+            var matchesCategory = !categoryValue || normalize(item.category) === categoryValue;
+            var matchesDepartment = !departmentValue || normalize(item.department) === departmentValue;
+            var matchesAssignment = !assignmentValue || (assignmentValue === 'assigned' ? item.assigned !== '' : item.assigned === '');
+            var matchesAssignee = !assigneeValue || normalize(item.assigned).indexOf(assigneeValue) !== -1;
+            var visible = matchesStatus && matchesCategory && matchesDepartment && matchesAssignment && matchesAssignee && matchesQueue(item, currentQueueFilter);
+
+            item.row.style.display = visible ? '' : 'none';
+            if (visible) {
+                visibleCount++;
+            }
+        });
+
+        emptyState.style.display = visibleCount === 0 ? '' : 'none';
+        summaryNode.textContent = visibleCount + ' / ' + items.length + ' {L_HELPDESK_FILTER_RESULTS}';
+
+        <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
+        if (assigneeChipsWrap) {
+            Array.prototype.slice.call(assigneeChipsWrap.querySelectorAll('.helpdesk-assignee-chip')).forEach(function (chip) {
+                var chipValue = normalize(chip.getAttribute('data-helpdesk-assignee-chip') || '');
+                chip.classList.toggle('is-active', chipValue === normalize(assigneeInput ? assigneeInput.value : ''));
+            });
+        }
+        <!-- ENDIF -->
+    }
+
+    wrapper.addEventListener('change', applyFilters);
+    if (assigneeInput) {
+        assigneeInput.addEventListener('input', applyFilters);
+    }
+
+    var resetButton = wrapper.querySelector('#helpdesk-filter-reset');
+    resetButton.addEventListener('click', function () {
+        if (statusSelect) {
+            statusSelect.value = '';
+        }
+        if (categorySelect) {
+            categorySelect.value = '';
+        }
+        if (departmentSelect) {
+            departmentSelect.value = '';
+        }
+        if (assignmentSelect) {
+            assignmentSelect.value = '';
+        }
+        if (assigneeInput) {
+            assigneeInput.value = '';
+        }
+        <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
+        setQueueFilter('all');
+        <!-- ELSE -->
+        applyFilters();
+        <!-- ENDIF -->
+    });
+
+    <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
+    renderAssigneeChips();
+    <!-- ENDIF -->
+    applyFilters();
+});
+</script>
