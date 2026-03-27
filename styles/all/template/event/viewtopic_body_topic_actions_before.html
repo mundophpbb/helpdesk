@@ -50,6 +50,16 @@
                         </select>
                     </div>
                     <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_CAN_MANAGE_PRIORITY -->
+                    <div class="helpdesk-manage-field">
+                        <label for="helpdesk_manage_priority">{L_HELPDESK_PRIORITY}{L_COLON}</label>
+                        <select name="helpdesk_manage_priority" id="helpdesk_manage_priority">
+                            <!-- BEGIN helpdesk_manage_priority_options -->
+                            <option value="{helpdesk_manage_priority_options.VALUE}"<!-- IF helpdesk_manage_priority_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_manage_priority_options.LABEL}</option>
+                            <!-- END helpdesk_manage_priority_options -->
+                        </select>
+                    </div>
+                    <!-- ENDIF -->
                     <!-- IF S_HELPDESK_CAN_MANAGE_DEPARTMENT -->
                     <div class="helpdesk-manage-field">
                         <label for="helpdesk_manage_department">{L_HELPDESK_DEPARTMENT}{L_COLON}</label>

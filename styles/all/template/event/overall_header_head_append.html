@@ -369,6 +369,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
     var bulkStatusOptionsHtml = '<option value="">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_status_options --><option value="{helpdesk_bulk_status_options.VALUE}">{helpdesk_bulk_status_options.LABEL}</option><!-- END helpdesk_bulk_status_options -->';
+    var bulkPriorityOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_priority_options --><option value="{helpdesk_bulk_priority_options.VALUE}">{helpdesk_bulk_priority_options.LABEL}</option><!-- END helpdesk_bulk_priority_options -->';
     var bulkDepartmentOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><option value="__CLEAR__">{L_HELPDESK_BULK_CLEAR_VALUE}</option><!-- BEGIN helpdesk_bulk_department_options --><option value="{helpdesk_bulk_department_options.VALUE}">{helpdesk_bulk_department_options.LABEL}</option><!-- END helpdesk_bulk_department_options -->';
     if (statuses.length) {
         var bulkWrapper = document.createElement('div');
@@ -380,6 +381,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<label for="helpdesk-bulk-status">{L_HELPDESK_BULK_STATUS}</label>' +
                 '<select id="helpdesk-bulk-status" name="helpdesk_bulk_status">' + bulkStatusOptionsHtml + '</select>' +
             '</div>';
+
+        <!-- IF S_HELPDESK_BULK_PRIORITY_ENABLED -->
+        bulkFieldsHtml +=
+            '<div class="helpdesk-filter-field">' +
+                '<label for="helpdesk-bulk-priority">{L_HELPDESK_BULK_PRIORITY}</label>' +
+                '<select id="helpdesk-bulk-priority" name="helpdesk_bulk_priority">' + bulkPriorityOptionsHtml + '</select>' +
+            '</div>';
+        <!-- ENDIF -->
 
         <!-- IF S_HELPDESK_BULK_DEPARTMENT_ENABLED -->
         bulkFieldsHtml +=
@@ -424,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var bulkForm = bulkWrapper.querySelector('#helpdesk-bulk-form');
         var bulkStatus = bulkWrapper.querySelector('#helpdesk-bulk-status');
+        var bulkPriority = bulkWrapper.querySelector('#helpdesk-bulk-priority');
         var bulkDepartment = bulkWrapper.querySelector('#helpdesk-bulk-department');
         var bulkAssignmentAction = bulkWrapper.querySelector('#helpdesk-bulk-assignment-action');
         var bulkAssignedTo = bulkWrapper.querySelector('#helpdesk-bulk-assigned-to');
@@ -465,6 +475,7 @@ document.addEventListener('DOMContentLoaded', function () {
         bulkForm.addEventListener('submit', function (e) {
             var checked = bulkChecks.filter(function (check) { return check.checked; });
             var hasStatusChange = bulkStatus && bulkStatus.value !== '';
+            var hasPriorityChange = bulkPriority && bulkPriority.value !== '__NO_CHANGE__';
             var hasDepartmentChange = bulkDepartment && bulkDepartment.value !== '__NO_CHANGE__';
             var hasAssignmentChange = bulkAssignmentAction && ((bulkAssignmentAction.value === 'set' && bulkAssignedTo && normalize(bulkAssignedTo.value) !== '') || bulkAssignmentAction.value === 'clear');
 
@@ -474,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            if (!hasStatusChange && !hasDepartmentChange && !hasAssignmentChange) {
+            if (!hasStatusChange && !hasPriorityChange && !hasDepartmentChange && !hasAssignmentChange) {
                 e.preventDefault();
                 alert('{L_HELPDESK_BULK_NOTHING_TO_APPLY}');
                 return;

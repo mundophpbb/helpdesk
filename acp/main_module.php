@@ -41,8 +41,15 @@ class main_module
         $department_status = $this->configured_optional_status($config, 'mundophpbb_helpdesk_department_status', $parsed_statuses);
         $email_subject_prefix = isset($config['mundophpbb_helpdesk_email_subject_prefix']) ? (string) $config['mundophpbb_helpdesk_email_subject_prefix'] : '[Help Desk]';
         $department_rule_definitions = isset($config['mundophpbb_helpdesk_department_rule_definitions']) ? (string) $config['mundophpbb_helpdesk_department_rule_definitions'] : '';
+        $department_priority_rule_definitions = isset($config['mundophpbb_helpdesk_department_priority_rule_definitions']) ? (string) $config['mundophpbb_helpdesk_department_priority_rule_definitions'] : '';
         $department_sla_definitions = isset($config['mundophpbb_helpdesk_department_sla_definitions']) ? (string) $config['mundophpbb_helpdesk_department_sla_definitions'] : '';
+        $priority_sla_definitions = isset($config['mundophpbb_helpdesk_priority_sla_definitions']) ? (string) $config['mundophpbb_helpdesk_priority_sla_definitions'] : '';
+        $department_priority_sla_definitions = isset($config['mundophpbb_helpdesk_department_priority_sla_definitions']) ? (string) $config['mundophpbb_helpdesk_department_priority_sla_definitions'] : '';
+        $department_priority_queue_definitions = isset($config['mundophpbb_helpdesk_department_priority_queue_definitions']) ? (string) $config['mundophpbb_helpdesk_department_priority_queue_definitions'] : '';
+        $assignee_queue_definitions = isset($config['mundophpbb_helpdesk_assignee_queue_definitions']) ? (string) $config['mundophpbb_helpdesk_assignee_queue_definitions'] : '';
         $priority_definitions = $this->configured_priority_definitions($config);
+        $priority_high_status = $this->configured_optional_status($config, 'mundophpbb_helpdesk_priority_high_status', $parsed_statuses);
+        $priority_critical_status = $this->configured_optional_status($config, 'mundophpbb_helpdesk_priority_critical_status', $parsed_statuses);
 
         if ($request->is_set_post('submit'))
         {
@@ -115,18 +122,35 @@ class main_module
             {
                 $department_status = '';
             }
+            $priority_high_status = trim($request->variable('mundophpbb_helpdesk_priority_high_status', '', true));
+            if ($priority_high_status !== '' && !array_key_exists($priority_high_status, $parsed_statuses))
+            {
+                $priority_high_status = '';
+            }
+            $priority_critical_status = trim($request->variable('mundophpbb_helpdesk_priority_critical_status', '', true));
+            if ($priority_critical_status !== '' && !array_key_exists($priority_critical_status, $parsed_statuses))
+            {
+                $priority_critical_status = '';
+            }
             $config->set('mundophpbb_helpdesk_team_reply_status', $team_reply_status);
             $config->set('mundophpbb_helpdesk_user_reply_status', $user_reply_status);
             $config->set('mundophpbb_helpdesk_assign_status', $assign_status);
             $config->set('mundophpbb_helpdesk_unassign_status', $unassign_status);
             $config->set('mundophpbb_helpdesk_department_status', $department_status);
+            $config->set('mundophpbb_helpdesk_priority_high_status', $priority_high_status);
+            $config->set('mundophpbb_helpdesk_priority_critical_status', $priority_critical_status);
             $config->set('mundophpbb_helpdesk_email_notify_enable', $request->variable('mundophpbb_helpdesk_email_notify_enable', 0));
             $config->set('mundophpbb_helpdesk_email_notify_author', $request->variable('mundophpbb_helpdesk_email_notify_author', 1));
             $config->set('mundophpbb_helpdesk_email_notify_assignee', $request->variable('mundophpbb_helpdesk_email_notify_assignee', 1));
             $config->set('mundophpbb_helpdesk_email_notify_user_reply', $request->variable('mundophpbb_helpdesk_email_notify_user_reply', 1));
             $config->set('mundophpbb_helpdesk_email_subject_prefix', trim($request->variable('mundophpbb_helpdesk_email_subject_prefix', '[Help Desk]', true)));
             $config->set('mundophpbb_helpdesk_department_rule_definitions', trim($request->variable('mundophpbb_helpdesk_department_rule_definitions', '', true)));
+            $config->set('mundophpbb_helpdesk_department_priority_rule_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_rule_definitions', '', true)));
             $config->set('mundophpbb_helpdesk_department_sla_definitions', trim($request->variable('mundophpbb_helpdesk_department_sla_definitions', '', true)));
+            $config->set('mundophpbb_helpdesk_priority_sla_definitions', trim($request->variable('mundophpbb_helpdesk_priority_sla_definitions', '', true)));
+            $config->set('mundophpbb_helpdesk_department_priority_sla_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_sla_definitions', '', true)));
+            $config->set('mundophpbb_helpdesk_department_priority_queue_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_queue_definitions', '', true)));
+            $config->set('mundophpbb_helpdesk_assignee_queue_definitions', trim($request->variable('mundophpbb_helpdesk_assignee_queue_definitions', '', true)));
             $config->set('mundophpbb_helpdesk_priority_definitions', trim($request->variable('mundophpbb_helpdesk_priority_definitions', '', true)));
             $config->set('mundophpbb_helpdesk_categories', trim($request->variable('mundophpbb_helpdesk_categories', '', true)));
             $config->set('mundophpbb_helpdesk_departments', trim($request->variable('mundophpbb_helpdesk_departments', '', true)));
@@ -170,6 +194,16 @@ class main_module
                 'LABEL' => $label,
                 'S_SELECTED' => $department_status === $key,
             ]);
+            $template->assign_block_vars('helpdesk_priority_high_status_options', [
+                'VALUE' => $key,
+                'LABEL' => $label,
+                'S_SELECTED' => $priority_high_status === $key,
+            ]);
+            $template->assign_block_vars('helpdesk_priority_critical_status_options', [
+                'VALUE' => $key,
+                'LABEL' => $label,
+                'S_SELECTED' => $priority_critical_status === $key,
+            ]);
         }
 
         $template->assign_vars([
@@ -200,13 +234,20 @@ class main_module
             'HELPDESK_ASSIGN_STATUS' => $assign_status,
             'HELPDESK_UNASSIGN_STATUS' => $unassign_status,
             'HELPDESK_DEPARTMENT_STATUS' => $department_status,
+            'HELPDESK_PRIORITY_HIGH_STATUS' => $priority_high_status,
+            'HELPDESK_PRIORITY_CRITICAL_STATUS' => $priority_critical_status,
             'HELPDESK_EMAIL_NOTIFY_ENABLE' => !empty($config['mundophpbb_helpdesk_email_notify_enable']),
             'HELPDESK_EMAIL_NOTIFY_AUTHOR' => !empty($config['mundophpbb_helpdesk_email_notify_author']),
             'HELPDESK_EMAIL_NOTIFY_ASSIGNEE' => !empty($config['mundophpbb_helpdesk_email_notify_assignee']),
             'HELPDESK_EMAIL_NOTIFY_USER_REPLY' => !empty($config['mundophpbb_helpdesk_email_notify_user_reply']),
             'HELPDESK_EMAIL_SUBJECT_PREFIX' => $email_subject_prefix,
             'HELPDESK_DEPARTMENT_RULE_DEFINITIONS' => $department_rule_definitions,
+            'HELPDESK_DEPARTMENT_PRIORITY_RULE_DEFINITIONS' => $department_priority_rule_definitions,
             'HELPDESK_DEPARTMENT_SLA_DEFINITIONS' => $department_sla_definitions,
+            'HELPDESK_PRIORITY_SLA_DEFINITIONS' => $priority_sla_definitions,
+            'HELPDESK_DEPARTMENT_PRIORITY_SLA_DEFINITIONS' => $department_priority_sla_definitions,
+            'HELPDESK_DEPARTMENT_PRIORITY_QUEUE_DEFINITIONS' => $department_priority_queue_definitions,
+            'HELPDESK_ASSIGNEE_QUEUE_DEFINITIONS' => $assignee_queue_definitions,
             'HELPDESK_STATUS_DEFINITIONS' => $status_definitions,
             'HELPDESK_PRIORITY_DEFINITIONS' => $priority_definitions,
             'HELPDESK_CATEGORIES' => $this->configured_list($config, 'mundophpbb_helpdesk_categories', [

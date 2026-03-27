@@ -2,6 +2,14 @@
 <h2>{L_HELPDESK_TEAM_QUEUE_TITLE}</h2>
 <p>{L_HELPDESK_TEAM_QUEUE_EXPLAIN}</p>
 
+<!-- IF S_HELPDESK_QUEUE_NOTICE -->
+<div class="panel bg3 helpdesk-team-notice-box">
+    <div class="inner">
+        <p class="helpdesk-note helpdesk-note-strong">{HELPDESK_QUEUE_NOTICE_TEXT}</p>
+    </div>
+</div>
+<!-- ENDIF -->
+
 <div class="panel helpdesk-tabs-panel">
     <div class="inner">
         <nav aria-label="Help Desk team queue" class="helpdesk-tabs">
@@ -43,6 +51,18 @@
                 <strong>{HELPDESK_QUEUE_CRITICAL_COUNT}</strong>
                 <span>{L_HELPDESK_CRITICALITY_CRITICAL}</span>
             </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=prioritized">
+                <strong>{HELPDESK_QUEUE_PRIORITIZED_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_PRIORITIZED}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=overloaded">
+                <strong>{HELPDESK_QUEUE_OVERLOADED_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_OVERLOADED}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=redistribute">
+                <strong>{HELPDESK_QUEUE_REDISTRIBUTION_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_REDISTRIBUTE}</span>
+            </a>
             <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=attention">
                 <strong>{HELPDESK_QUEUE_ATTENTION_COUNT}</strong>
                 <span>{L_HELPDESK_CRITICALITY_ATTENTION}</span>
@@ -61,6 +81,9 @@
             <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=overdue">{L_HELPDESK_QUEUE_OVERDUE}</a>
             <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'staff_reply' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=staff_reply">{L_HELPDESK_QUEUE_STAFF_REPLY}</a>
             <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'critical' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=critical">{L_HELPDESK_CRITICALITY_CRITICAL}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'prioritized' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=prioritized">{L_HELPDESK_QUEUE_PRIORITIZED}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'overloaded' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=overloaded">{L_HELPDESK_QUEUE_OVERLOADED}</a>
+            <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'redistribute' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=redistribute">{L_HELPDESK_QUEUE_REDISTRIBUTE}</a>
             <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_high' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=priority_high">{L_HELPDESK_PRIORITY_HIGH}</a>
             <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_critical' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=priority_critical">{L_HELPDESK_PRIORITY_CRITICAL}</a>
         </nav>
@@ -87,7 +110,127 @@
                 <strong>{HELPDESK_QUEUE_MY_CRITICAL_COUNT}</strong>
                 <span>{L_HELPDESK_TEAM_QUEUE_MY_CRITICAL}</span>
             </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my_prioritized">
+                <strong>{HELPDESK_QUEUE_MY_PRIORITIZED_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_PRIORITIZED}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE}&amp;scope=my_alerts">
+                <strong>{HELPDESK_QUEUE_MY_ALERTS_COUNT}</strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_ALERTS}</span>
+            </a>
+            <div class="helpdesk-team-card helpdesk-team-card-workload">
+                <strong><span class="helpdesk-badge {HELPDESK_QUEUE_MY_LOAD_CLASS}">{HELPDESK_QUEUE_MY_LOAD_LABEL}</span></strong>
+                <span>{L_HELPDESK_TEAM_QUEUE_MY_LOAD} &middot; {HELPDESK_QUEUE_MY_LOAD_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {HELPDESK_QUEUE_MY_LOAD_SCORE}</span>
+            </div>
         </div>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-load-box">
+    <div class="inner">
+        <h3>{L_HELPDESK_TEAM_QUEUE_BALANCE_TITLE}</h3>
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_BALANCE_EXPLAIN}</p>
+        <!-- IF S_HELPDESK_ASSIGNEE_LOAD_HAS_DATA -->
+        <div class="helpdesk-team-load-grid">
+            <!-- BEGIN helpdesk_assignee_load_rows -->
+            <div class="helpdesk-team-load-card">
+                <div class="helpdesk-team-load-head">
+                    <strong>{helpdesk_assignee_load_rows.LABEL}</strong>
+                    <span class="helpdesk-badge {helpdesk_assignee_load_rows.WORKLOAD_CLASS}">{helpdesk_assignee_load_rows.WORKLOAD_LABEL}</span>
+                </div>
+                <div class="helpdesk-team-load-meta">
+                    <span>{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_assignee_load_rows.ACTIVE_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_assignee_load_rows.OVERDUE_COUNT}</span>
+                    <span>{L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_assignee_load_rows.CRITICAL_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_assignee_load_rows.SCORE}</span>
+                </div>
+            </div>
+            <!-- END helpdesk_assignee_load_rows -->
+        </div>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_LOAD_EMPTY}</p>
+        <!-- ENDIF -->
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-redistribution-box">
+    <div class="inner">
+        <h3>{L_HELPDESK_TEAM_QUEUE_REDISTRIBUTION_TITLE}</h3>
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_REDISTRIBUTION_EXPLAIN}</p>
+        <!-- IF S_HELPDESK_REDIS_HAS_DATA -->
+        <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN -->
+        <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" id="helpdesk-redistribution-bulk-form" class="helpdesk-redistribution-bulk-form">
+            <input type="hidden" name="helpdesk_queue_action" value="apply_redistribution_bulk" />
+            <input type="hidden" name="qview" value="queue" />
+            <input type="hidden" name="scope" value="redistribute" />
+            {S_FORM_TOKEN}
+            <div class="helpdesk-redistribution-bulk-bar">
+                <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_BULK_EXPLAIN}<!-- IF HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT --> <span class="helpdesk-note-strong">({HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT} {L_HELPDESK_REDISTRIBUTION_SMART_READY})</span><!-- ENDIF --></p>
+                <div class="helpdesk-redistribution-bulk-actions">
+                    <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
+                    <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
+                    <button class="button button-secondary" type="submit">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
+                </div>
+            </div>
+        </form>
+        <!-- ENDIF -->
+        <div class="helpdesk-team-load-grid">
+            <!-- BEGIN helpdesk_redistribution_rows -->
+            <div class="helpdesk-team-load-card helpdesk-redistribution-card">
+                <div class="helpdesk-team-load-head">
+                    <div class="helpdesk-redistribution-head-main">
+                        <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN -->
+                        <label class="helpdesk-redistribution-check">
+                            <input type="checkbox" name="redistribution_items[]" value="{helpdesk_redistribution_rows.SELECTION_VALUE}" form="helpdesk-redistribution-bulk-form" <!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->data-helpdesk-smart="1" checked="checked"<!-- ELSE -->data-helpdesk-smart="0"<!-- ENDIF --> />
+                            <span>{L_HELPDESK_REDISTRIBUTION_SELECT}</span>
+                        </label>
+                        <!-- ENDIF -->
+                        <strong><a href="{helpdesk_redistribution_rows.U_TOPIC}">{helpdesk_redistribution_rows.TOPIC_TITLE}</a></strong>
+                    </div>
+                    <span class="helpdesk-badge {helpdesk_redistribution_rows.PRIORITY_CLASS}">{helpdesk_redistribution_rows.PRIORITY_LABEL}</span>
+                    <!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->
+                    <span class="helpdesk-badge helpdesk-smart-pick-badge">{L_HELPDESK_REDISTRIBUTION_SMART_BADGE}</span>
+                    <!-- ENDIF -->
+                </div>
+                <div class="helpdesk-team-load-meta">
+                    <span>{L_HELPDESK_REDISTRIBUTION_FROM}: {helpdesk_redistribution_rows.SOURCE_LABEL} <span class="helpdesk-badge {helpdesk_redistribution_rows.SOURCE_WORKLOAD_CLASS}">{helpdesk_redistribution_rows.SOURCE_WORKLOAD_LABEL}</span> ({L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_redistribution_rows.SOURCE_SCORE})</span>
+                    <span>{L_HELPDESK_REDISTRIBUTION_TO}: {helpdesk_redistribution_rows.TARGET_LABEL} <span class="helpdesk-badge {helpdesk_redistribution_rows.TARGET_WORKLOAD_CLASS}">{helpdesk_redistribution_rows.TARGET_WORKLOAD_LABEL}</span> ({L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_redistribution_rows.TARGET_SCORE})</span>
+                    <span>{helpdesk_redistribution_rows.DEPARTMENT_LABEL}</span>
+                    <span>{helpdesk_redistribution_rows.SUGGESTION_TEXT}</span>
+                    <!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->
+                    <span class="helpdesk-redistribution-smart-note">{helpdesk_redistribution_rows.SMART_REASON_TEXT}</span>
+                    <!-- ENDIF -->
+                </div>
+                <div class="helpdesk-redistribution-actions">
+                    <a class="button button-secondary" href="{helpdesk_redistribution_rows.U_TARGET_QUEUE}">{L_HELPDESK_REDISTRIBUTION_VIEW_TARGET}</a>
+                    <!-- IF S_HELPDESK_CAN_QUEUE_ASSIGN -->
+                    <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-redistribution-form">
+                        <input type="hidden" name="helpdesk_queue_action" value="apply_redistribution" />
+                        <input type="hidden" name="topic_id" value="{helpdesk_redistribution_rows.TOPIC_ID}" />
+                        <input type="hidden" name="forum_id" value="{helpdesk_redistribution_rows.FORUM_ID}" />
+                        <input type="hidden" name="target_assignee" value="{helpdesk_redistribution_rows.TARGET_KEY}" />
+                        <input type="hidden" name="qview" value="queue" />
+                        <input type="hidden" name="scope" value="redistribute" />
+                        {S_FORM_TOKEN}
+                        <button class="button button-form" type="submit">{L_HELPDESK_REDISTRIBUTION_APPLY}</button>
+                    </form>
+                    <!-- ENDIF -->
+                </div>
+            </div>
+            <!-- END helpdesk_redistribution_rows -->
+        </div>
+        <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN -->
+        <div class="helpdesk-redistribution-bulk-bar helpdesk-redistribution-bulk-bar-bottom">
+            <div class="helpdesk-redistribution-bulk-actions">
+                <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
+                <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
+                <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
+            </div>
+        </div>
+        <!-- ENDIF -->
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_REDISTRIBUTION_EMPTY}</p>
+        <!-- ENDIF -->
     </div>
 </div>
 
@@ -141,12 +284,17 @@
                         <option value="my_overdue"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_overdue' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_OVERDUE}</option>
                         <option value="my_staff_reply"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_staff_reply' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_STAFF_REPLY}</option>
                         <option value="my_critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_CRITICAL}</option>
+                        <option value="my_prioritized"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_prioritized' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_PRIORITIZED}</option>
+                        <option value="my_alerts"<!-- IF HELPDESK_FILTER_SCOPE eq 'my_alerts' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_TEAM_QUEUE_MY_ALERTS}</option>
                         <option value="unassigned"<!-- IF HELPDESK_FILTER_SCOPE eq 'unassigned' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_UNASSIGNED}</option>
                         <option value="overdue"<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_OVERDUE}</option>
                         <option value="stale"<!-- IF HELPDESK_FILTER_SCOPE eq 'stale' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_STALE}</option>
                         <option value="staff_reply"<!-- IF HELPDESK_FILTER_SCOPE eq 'staff_reply' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_STAFF_REPLY}</option>
                         <option value="reopened"<!-- IF HELPDESK_FILTER_SCOPE eq 'reopened' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_REOPENED}</option>
                         <option value="critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_CRITICALITY_CRITICAL}</option>
+                        <option value="prioritized"<!-- IF HELPDESK_FILTER_SCOPE eq 'prioritized' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_PRIORITIZED}</option>
+                        <option value="overloaded"<!-- IF HELPDESK_FILTER_SCOPE eq 'overloaded' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_OVERLOADED}</option>
+                        <option value="redistribute"<!-- IF HELPDESK_FILTER_SCOPE eq 'redistribute' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_REDISTRIBUTE}</option>
                         <option value="attention"<!-- IF HELPDESK_FILTER_SCOPE eq 'attention' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_CRITICALITY_ATTENTION}</option>
                         <option value="priority_high"<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_high' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_PRIORITY_HIGH}</option>
                         <option value="priority_critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'priority_critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_PRIORITY_CRITICAL}</option>
@@ -182,12 +330,12 @@
                 <tbody>
                     <!-- BEGIN helpdesk_queue_rows -->
                     <tr>
-                        <td><a href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a></td>
+                        <td><a href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a><!-- IF helpdesk_queue_rows.QUEUE_RULE_LABEL --><div class="helpdesk-topic-meta">{helpdesk_queue_rows.QUEUE_RULE_LABEL} &middot; {L_HELPDESK_QUEUE_PRIORITY_SCORE}: {helpdesk_queue_rows.QUEUE_SCORE}</div><!-- ENDIF --></td>
                         <td>{helpdesk_queue_rows.FORUM_NAME}</td>
                         <td><span class="helpdesk-badge {helpdesk_queue_rows.STATUS_CLASS}">{helpdesk_queue_rows.STATUS_LABEL}</span></td>
                         <td><span class="helpdesk-badge {helpdesk_queue_rows.PRIORITY_CLASS}">{helpdesk_queue_rows.PRIORITY_LABEL}</span></td>
                         <td>{helpdesk_queue_rows.DEPARTMENT_LABEL}</td>
-                        <td>{helpdesk_queue_rows.ASSIGNED_TO}</td>
+                        <td><!-- IF helpdesk_queue_rows.ASSIGNED_TO -->{helpdesk_queue_rows.ASSIGNED_TO}<div class="helpdesk-topic-meta"><span class="helpdesk-badge {helpdesk_queue_rows.WORKLOAD_CLASS}">{helpdesk_queue_rows.WORKLOAD_LABEL}</span> &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_queue_rows.WORKLOAD_SCORE}</div><!-- ELSE -->{helpdesk_queue_rows.ASSIGNED_TO}<!-- ENDIF --></td>
                         <td>{helpdesk_queue_rows.ALERT_TEXT}</td>
                         <td>{helpdesk_queue_rows.UPDATED_AT}</td>
                     </tr>
@@ -251,7 +399,7 @@
                 <h4>{L_HELPDESK_REPORT_BY_ASSIGNEE}</h4>
                 <ul class="helpdesk-report-list">
                     <!-- BEGIN helpdesk_report_assignee_rows -->
-                    <li><span class="helpdesk-report-main">{helpdesk_report_assignee_rows.LABEL}</span><span class="helpdesk-report-meta">{helpdesk_report_assignee_rows.COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_assignee_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_assignee_rows.CRITICAL_COUNT}</span></li>
+                    <li><span class="helpdesk-report-main">{helpdesk_report_assignee_rows.LABEL} <span class="helpdesk-badge {helpdesk_report_assignee_rows.WORKLOAD_CLASS}">{helpdesk_report_assignee_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_assignee_rows.COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_assignee_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_assignee_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_assignee_rows.WORKLOAD_SCORE}</span></li>
                     <!-- END helpdesk_report_assignee_rows -->
                 </ul>
             </div>
@@ -299,4 +447,36 @@
 <!-- ENDIF -->
 <!-- ENDIF -->
 
+
+<!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN and S_HELPDESK_REDIS_HAS_DATA -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var smartButtons = Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-redistribution-select-smart]'));
+    var clearButtons = Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-redistribution-clear]'));
+    var checkboxes = Array.prototype.slice.call(document.querySelectorAll('input[name="redistribution_items[]"]'));
+
+    if (!checkboxes.length) {
+        return;
+    }
+
+    smartButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = checkbox.getAttribute('data-helpdesk-smart') === '1';
+            });
+        });
+    });
+
+    clearButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = false;
+            });
+        });
+    });
+});
+</script>
+<!-- ENDIF -->
+
 <!-- INCLUDE overall_footer.html -->
+

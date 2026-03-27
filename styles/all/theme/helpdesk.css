@@ -806,3 +806,145 @@
 .helpdesk-tabs-panel + .helpdesk-team-alerts-box {
     margin-top: 0;
 }
+
+
+.helpdesk-team-load-box .inner {
+    display: block;
+}
+
+.helpdesk-team-load-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.helpdesk-team-load-card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.helpdesk-team-load-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.helpdesk-team-load-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.helpdesk-team-card-workload strong {
+    display: block;
+}
+
+.helpdesk-workload-idle { background: #d9dde3; color: #2f3d4a; }
+.helpdesk-workload-low { background: #d7f0e2; color: #24543c; }
+.helpdesk-workload-medium { background: #fff1c7; color: #6b4b00; }
+.helpdesk-workload-high { background: #ffd9b3; color: #7a3400; }
+.helpdesk-workload-overload { background: #ffd6d6; color: #8a1f1f; }
+
+.helpdesk-redistribution-card .helpdesk-team-load-head a {
+    text-decoration: none;
+}
+
+.helpdesk-redistribution-card .helpdesk-team-load-meta {
+    gap: 6px 12px;
+}
+
+
+.helpdesk-team-notice-box {
+    margin-bottom: 10px;
+}
+
+.helpdesk-note-strong {
+    font-weight: 600;
+}
+
+.helpdesk-redistribution-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.helpdesk-redistribution-form {
+    margin: 0;
+}
+
+.helpdesk-redistribution-actions .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+}
+
+
+.helpdesk-redistribution-bulk-form {
+    margin: 0 0 10px 0;
+}
+
+.helpdesk-redistribution-bulk-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.35);
+}
+
+.helpdesk-redistribution-bulk-bar-bottom {
+    margin-top: 10px;
+    justify-content: flex-end;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.helpdesk-redistribution-head-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.helpdesk-redistribution-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    color: #666;
+}
+
+.helpdesk-redistribution-check input {
+    margin: 0;
+}
+
+
+.helpdesk-redistribution-bulk-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.helpdesk-smart-pick-badge {
+    background: #d7f0e2;
+    color: #24543c;
+}
+
+.helpdesk-redistribution-smart-note {
+    font-weight: 600;
+    color: #24543c;
+}

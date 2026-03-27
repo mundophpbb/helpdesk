@@ -301,9 +301,10 @@ class listener implements EventSubscriberInterface
         }
 
         $can_manage_status = $this->status_enabled() && $this->can_manage_status($forum_id);
+        $can_manage_priority = $this->priority_enabled() && $this->can_manage_priority($forum_id);
         $can_manage_department = $this->department_enabled() && $this->can_manage_department($forum_id);
         $can_manage_assignment = $this->assignment_enabled() && $this->can_manage_assignment($forum_id);
-        $can_manage_panel = $can_manage_status || $can_manage_department || $can_manage_assignment;
+        $can_manage_panel = $can_manage_status || $can_manage_priority || $can_manage_department || $can_manage_assignment;
 
         if ($can_manage_panel)
         {
@@ -351,9 +352,11 @@ class listener implements EventSubscriberInterface
             'HELPDESK_CRITICALITY_CLASS' => $criticality['class'],
             'HELPDESK_UPDATED_AT' => !empty($meta['updated_time']) ? $this->user->format_date((int) $meta['updated_time']) : '',
             'S_HELPDESK_CAN_MANAGE_STATUS' => $can_manage_status,
+            'S_HELPDESK_CAN_MANAGE_PRIORITY' => $can_manage_priority,
             'S_HELPDESK_CAN_MANAGE_DEPARTMENT' => $can_manage_department,
             'S_HELPDESK_CAN_MANAGE_ASSIGNMENT' => $can_manage_assignment,
             'S_HELPDESK_CAN_MANAGE_PANEL' => $can_manage_panel,
+            'HELPDESK_MANAGE_PRIORITY_VALUE' => isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal',
             'HELPDESK_ASSIGNED_TO_VALUE' => $assigned_to,
             'HELPDESK_CHANGE_REASON_VALUE' => '',
             'HELPDESK_MANAGE_FORM_TOKEN' => $this->build_form_token_fields('mundophpbb_helpdesk_topic_manage'),
@@ -369,6 +372,18 @@ class listener implements EventSubscriberInterface
                     'VALUE' => $key,
                     'LABEL' => $this->status_label_from_definition($definition),
                     'S_SELECTED' => $meta['status_key'] === $key,
+                ]);
+            }
+        }
+
+        if ($can_manage_priority)
+        {
+            foreach ($this->priority_definitions() as $key => $definition)
+            {
+                $this->template->assign_block_vars('helpdesk_manage_priority_options', [
+                    'VALUE' => $key,
+                    'LABEL' => $this->priority_label_from_definition($definition),
+                    'S_SELECTED' => (isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal') === $key,
                 ]);
             }
         }
@@ -416,6 +431,11 @@ class listener implements EventSubscriberInterface
             : $old_status;
         $explicit_status_change = $new_status !== $old_status;
 
+        $old_priority = isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal';
+        $new_priority = ($this->priority_enabled() && $this->can_manage_priority($forum_id))
+            ? $this->normalize_priority($this->request->variable('helpdesk_manage_priority', $old_priority, true))
+            : $old_priority;
+
         $old_department = $this->extract_department_key($meta);
         $new_department = ($this->department_enabled() && $this->can_manage_department($forum_id))
             ? $this->sanitize_option_key($this->request->variable('helpdesk_manage_department', $old_department, true), $this->department_options(), true)
@@ -433,7 +453,7 @@ class listener implements EventSubscriberInterface
             $auto_status = '';
             if ($new_department !== $old_department)
             {
-                $auto_status = $this->resolve_department_rule_status($new_department, 'department_change', $this->operation_department_status());
+                $auto_status = $this->resolve_department_priority_rule_status($new_department, $new_priority, 'department_change', $this->operation_department_status());
                 if ($auto_status !== '')
                 {
                     $status_reason = $change_reason !== '' ? $change_reason : $this->user->lang('HELPDESK_AUTO_REASON_DEPARTMENT');
@@ -443,12 +463,21 @@ class listener implements EventSubscriberInterface
             if ($auto_status === '' && $new_assigned_to !== $old_assigned_to)
             {
                 $auto_status = $new_assigned_to !== ''
-                    ? $this->resolve_department_rule_status($new_department, 'assign', $this->operation_assign_status())
-                    : $this->resolve_department_rule_status($new_department, 'unassign', $this->operation_unassign_status());
+                    ? $this->resolve_department_priority_rule_status($new_department, $new_priority, 'assign', $this->operation_assign_status())
+                    : $this->resolve_department_priority_rule_status($new_department, $new_priority, 'unassign', $this->operation_unassign_status());
 
                 if ($auto_status !== '')
                 {
                     $status_reason = $change_reason !== '' ? $change_reason : $this->user->lang($new_assigned_to !== '' ? 'HELPDESK_AUTO_REASON_ASSIGN' : 'HELPDESK_AUTO_REASON_UNASSIGN');
+                }
+            }
+
+            if ($auto_status === '' && $new_priority !== $old_priority)
+            {
+                $auto_status = $this->priority_change_status($new_priority, $new_department);
+                if ($auto_status !== '')
+                {
+                    $status_reason = $change_reason !== '' ? $change_reason : $this->priority_change_reason_key($new_priority);
                 }
             }
 
@@ -466,6 +495,12 @@ class listener implements EventSubscriberInterface
         if ($new_status !== $old_status)
         {
             $sql_ary['status_key'] = $new_status;
+            $has_changes = true;
+        }
+
+        if ($new_priority !== $old_priority)
+        {
+            $sql_ary['priority_key'] = $new_priority;
             $has_changes = true;
         }
 
@@ -497,6 +532,11 @@ class listener implements EventSubscriberInterface
             $this->apply_closed_topic_lock($topic_id, $new_status, $old_status);
         }
 
+        if ($new_priority !== $old_priority)
+        {
+            $this->insert_priority_log($topic_id, $forum_id, $old_priority, $new_priority, $change_reason);
+        }
+
         if ($new_department !== $old_department)
         {
             $this->insert_department_log($topic_id, $forum_id, $old_department, $new_department, $change_reason);
@@ -509,10 +549,11 @@ class listener implements EventSubscriberInterface
 
         $new_meta = $meta;
         $new_meta['status_key'] = $new_status;
+        $new_meta['priority_key'] = $new_priority;
         $new_meta['department_key'] = $new_department;
         $new_meta['assigned_to'] = $new_assigned_to;
         $new_meta['updated_time'] = $sql_ary['updated_time'];
-        $changes = $this->build_notification_changes($old_status, $new_status, $old_department, $new_department, $old_assigned_to, $new_assigned_to, $status_reason, $change_reason);
+        $changes = $this->build_notification_changes($old_status, $new_status, $old_priority, $new_priority, $old_department, $new_department, $old_assigned_to, $new_assigned_to, $status_reason, $change_reason);
         $this->send_ticket_email_notifications($topic_id, $forum_id, $meta, $new_meta, $changes, $this->email_notify_author_enabled(), $this->email_notify_assignee_enabled());
 
         unset($this->topic_cache[$topic_id]);
@@ -588,6 +629,27 @@ class listener implements EventSubscriberInterface
         $this->db->sql_query('INSERT INTO ' . $this->logs_table() . ' ' . $this->db->sql_build_array('INSERT', $sql_ary));
     }
 
+    protected function insert_priority_log($topic_id, $forum_id, $old_priority, $new_priority, $reason = '')
+    {
+        $sql_ary = [
+            'log_id' => $this->next_log_id(),
+            'topic_id' => (int) $topic_id,
+            'forum_id' => (int) $forum_id,
+            'user_id' => (int) $this->user->data['user_id'],
+            'action_key' => 'priority_change',
+            'old_value' => (string) $old_priority,
+            'new_value' => (string) $new_priority,
+            'log_time' => time(),
+        ];
+
+        if ($this->logs_support_reason())
+        {
+            $sql_ary['reason_text'] = (string) $reason;
+        }
+
+        $this->db->sql_query('INSERT INTO ' . $this->logs_table() . ' ' . $this->db->sql_build_array('INSERT', $sql_ary));
+    }
+
     protected function next_log_id()
     {
         $sql = 'SELECT MAX(log_id) AS max_log_id
@@ -617,7 +679,7 @@ class listener implements EventSubscriberInterface
             LEFT JOIN ' . $this->table_prefix . 'users u
                 ON u.user_id = l.user_id
             WHERE l.topic_id = ' . $topic_id . "
-                AND l.action_key IN ('status_change', 'assignment_change', 'department_change')
+                AND l.action_key IN ('status_change', 'priority_change', 'assignment_change', 'department_change')
             ORDER BY l.log_time DESC";
         $result = $this->db->sql_query_limit($sql, (int) $limit);
 
@@ -645,6 +707,12 @@ class listener implements EventSubscriberInterface
                 {
                     $log_text = sprintf($this->user->lang('HELPDESK_LOG_REASSIGNED'), $old_value, $new_value);
                 }
+            }
+            else if ($action_key === 'priority_change')
+            {
+                $old_meta = $this->priority_meta($old_value);
+                $new_meta = $this->priority_meta($new_value);
+                $log_text = sprintf($this->user->lang('HELPDESK_LOG_PRIORITY_CHANGED'), $old_meta['label'], $new_meta['label']);
             }
             else if ($action_key === 'department_change')
             {
@@ -809,6 +877,14 @@ class listener implements EventSubscriberInterface
         $new_status = $raw_status !== '' ? $this->normalize_status($raw_status) : '';
         $explicit_status_change = $new_status !== '';
 
+        $raw_priority = $this->request->variable('helpdesk_bulk_priority', '__NO_CHANGE__', true);
+        $priority_has_change = $this->priority_enabled() && $raw_priority !== '__NO_CHANGE__';
+        $new_priority = '';
+        if ($priority_has_change)
+        {
+            $new_priority = $this->normalize_priority($raw_priority);
+        }
+
         $raw_department = $this->request->variable('helpdesk_bulk_department', '__NO_CHANGE__', true);
         $department_has_change = $this->department_enabled() && $raw_department !== '__NO_CHANGE__';
         $new_department = '';
@@ -839,7 +915,7 @@ class listener implements EventSubscriberInterface
             $new_assigned_to = $assignee_input;
         }
 
-        if ($new_status === '' && !$department_has_change && !$assignment_has_change)
+        if ($new_status === '' && !$priority_has_change && !$department_has_change && !$assignment_has_change)
         {
             redirect($this->forum_url($forum_id));
         }
@@ -862,6 +938,13 @@ class listener implements EventSubscriberInterface
             $applied_status = $new_status;
             $status_reason = '';
 
+            $old_priority = isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal';
+            if ($priority_has_change && $old_priority !== $new_priority)
+            {
+                $update_sql['priority_key'] = $new_priority;
+                $has_changes = true;
+            }
+
             $old_department = $this->extract_department_key($meta);
             if ($department_has_change && $old_department !== $new_department)
             {
@@ -881,7 +964,7 @@ class listener implements EventSubscriberInterface
             {
                 if ($department_has_change && $old_department !== $new_department)
                 {
-                    $applied_status = $this->resolve_department_rule_status($new_department, 'department_change', $this->operation_department_status());
+                    $applied_status = $this->resolve_department_priority_rule_status($new_department, $priority_has_change ? $new_priority : $old_priority, 'department_change', $this->operation_department_status());
                     if ($applied_status !== '')
                     {
                         $status_reason = $this->user->lang('HELPDESK_AUTO_REASON_DEPARTMENT');
@@ -890,12 +973,23 @@ class listener implements EventSubscriberInterface
 
                 if ($applied_status === '' && $assignment_has_change && $old_assigned_to !== $new_assigned_to)
                 {
+                    $effective_department = $department_has_change ? $new_department : $old_department;
+                    $effective_priority = $priority_has_change ? $new_priority : $old_priority;
                     $applied_status = $new_assigned_to !== ''
-                        ? $this->resolve_department_rule_status($department_has_change ? $new_department : $old_department, 'assign', $this->operation_assign_status())
-                        : $this->resolve_department_rule_status($department_has_change ? $new_department : $old_department, 'unassign', $this->operation_unassign_status());
+                        ? $this->resolve_department_priority_rule_status($effective_department, $effective_priority, 'assign', $this->operation_assign_status())
+                        : $this->resolve_department_priority_rule_status($effective_department, $effective_priority, 'unassign', $this->operation_unassign_status());
                     if ($applied_status !== '')
                     {
                         $status_reason = $this->user->lang($new_assigned_to !== '' ? 'HELPDESK_AUTO_REASON_ASSIGN' : 'HELPDESK_AUTO_REASON_UNASSIGN');
+                    }
+                }
+
+                if ($applied_status === '' && $priority_has_change && $old_priority !== $new_priority)
+                {
+                    $applied_status = $this->priority_change_status($new_priority, $department_has_change ? $new_department : $old_department);
+                    if ($applied_status !== '')
+                    {
+                        $status_reason = $this->user->lang($this->priority_change_reason_key($new_priority));
                     }
                 }
             }
@@ -921,6 +1015,11 @@ class listener implements EventSubscriberInterface
                 $this->apply_closed_topic_lock($topic_id, $applied_status, $old_status);
             }
 
+            if ($priority_has_change && $old_priority !== $new_priority)
+            {
+                $this->insert_priority_log($topic_id, $forum_id, $old_priority, $new_priority, '');
+            }
+
             if ($department_has_change && $old_department !== $new_department)
             {
                 $this->insert_department_log($topic_id, $forum_id, $old_department, $new_department, '');
@@ -933,10 +1032,11 @@ class listener implements EventSubscriberInterface
 
             $new_meta = $meta;
             $new_meta['status_key'] = $applied_status !== '' ? $applied_status : $old_status;
+            $new_meta['priority_key'] = $priority_has_change ? $new_priority : $old_priority;
             $new_meta['department_key'] = $department_has_change ? $new_department : $old_department;
             $new_meta['assigned_to'] = $assignment_has_change ? $new_assigned_to : $old_assigned_to;
             $new_meta['updated_time'] = $update_sql['updated_time'];
-            $changes = $this->build_notification_changes($old_status, $new_meta['status_key'], $old_department, $new_meta['department_key'], $old_assigned_to, $new_meta['assigned_to'], $status_reason, '');
+            $changes = $this->build_notification_changes($old_status, $new_meta['status_key'], $old_priority, $new_meta['priority_key'], $old_department, $new_meta['department_key'], $old_assigned_to, $new_meta['assigned_to'], $status_reason, '');
             $this->send_ticket_email_notifications($topic_id, $forum_id, $meta, $new_meta, $changes, $this->email_notify_author_enabled(), $this->email_notify_assignee_enabled());
 
             unset($this->topic_cache[$topic_id]);
@@ -958,6 +1058,7 @@ class listener implements EventSubscriberInterface
 
         $this->template->assign_vars([
             'S_HELPDESK_CAN_BULK_MANAGE' => $can_bulk_manage,
+            'S_HELPDESK_BULK_PRIORITY_ENABLED' => $can_bulk_manage && $this->priority_enabled(),
             'S_HELPDESK_BULK_DEPARTMENT_ENABLED' => $can_bulk_manage && $this->department_enabled(),
             'S_HELPDESK_BULK_ASSIGNMENT_ENABLED' => $can_bulk_manage && $this->assignment_enabled(),
             'S_HELPDESK_SLA_ENABLED' => $this->sla_enabled(),
@@ -976,6 +1077,14 @@ class listener implements EventSubscriberInterface
                 $this->template->assign_block_vars('helpdesk_bulk_status_options', [
                     'VALUE' => $key,
                     'LABEL' => $this->status_label_from_definition($definition),
+                ]);
+            }
+
+            foreach ($this->priority_definitions() as $key => $definition)
+            {
+                $this->template->assign_block_vars('helpdesk_bulk_priority_options', [
+                    'VALUE' => $key,
+                    'LABEL' => $this->priority_label_from_definition($definition),
                 ]);
             }
 
@@ -1064,7 +1173,7 @@ class listener implements EventSubscriberInterface
 
         if ($is_team_actor)
         {
-            $configured_status = $this->resolve_department_rule_status($this->extract_department_key($meta), 'team_reply', $this->automation_team_reply_status());
+            $configured_status = $this->resolve_department_priority_rule_status($this->extract_department_key($meta), isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal', 'team_reply', $this->automation_team_reply_status());
             if ($configured_status !== '')
             {
                 $new_status = $configured_status;
@@ -1088,7 +1197,7 @@ class listener implements EventSubscriberInterface
             $current_user_id = !empty($this->user->data['user_id']) ? (int) $this->user->data['user_id'] : 0;
             if ($topic_poster_id > 0 && $current_user_id > 0 && $topic_poster_id === $current_user_id)
             {
-                $configured_status = $this->resolve_department_rule_status($this->extract_department_key($meta), 'user_reply', $this->automation_user_reply_status());
+                $configured_status = $this->resolve_department_priority_rule_status($this->extract_department_key($meta), isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal', 'user_reply', $this->automation_user_reply_status());
                 if ($configured_status !== '')
                 {
                     $new_status = $configured_status;
@@ -1133,7 +1242,7 @@ class listener implements EventSubscriberInterface
         $meta['updated_time'] = $update_sql['updated_time'];
         $reply_changes = [];
         $reply_changes[] = ['type' => $is_team_actor ? 'team_reply' : 'user_reply'];
-        $reply_changes = array_merge($reply_changes, $this->build_notification_changes($old_status, $new_status, '', '', $old_assigned_to, $new_assigned_to, $reason, ''));
+        $reply_changes = array_merge($reply_changes, $this->build_notification_changes($old_status, $new_status, isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal', isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal', '', '', $old_assigned_to, $new_assigned_to, $reason, ''));
         $this->send_ticket_email_notifications(
             $topic_id,
             $forum_id,
@@ -1189,6 +1298,112 @@ class listener implements EventSubscriberInterface
     protected function operation_department_status()
     {
         return $this->configured_optional_status(isset($this->config['mundophpbb_helpdesk_department_status']) ? (string) $this->config['mundophpbb_helpdesk_department_status'] : '');
+    }
+
+    protected function operation_priority_high_status()
+    {
+        return $this->configured_optional_status(isset($this->config['mundophpbb_helpdesk_priority_high_status']) ? (string) $this->config['mundophpbb_helpdesk_priority_high_status'] : '');
+    }
+
+    protected function operation_priority_critical_status()
+    {
+        return $this->configured_optional_status(isset($this->config['mundophpbb_helpdesk_priority_critical_status']) ? (string) $this->config['mundophpbb_helpdesk_priority_critical_status'] : '');
+    }
+
+    protected function priority_change_status($priority_key, $department_key = '')
+    {
+        $tone = $this->priority_meta($priority_key)['tone'];
+        if ($tone === 'critical')
+        {
+            return $this->resolve_department_priority_rule_status($department_key, $priority_key, 'priority_critical', $this->operation_priority_critical_status());
+        }
+        if ($tone === 'high')
+        {
+            return $this->resolve_department_priority_rule_status($department_key, $priority_key, 'priority_high', $this->operation_priority_high_status());
+        }
+
+        return '';
+    }
+
+    protected function priority_change_reason_key($priority_key)
+    {
+        $tone = $this->priority_meta($priority_key)['tone'];
+        if ($tone === 'critical')
+        {
+            return 'HELPDESK_AUTO_REASON_PRIORITY_CRITICAL';
+        }
+        if ($tone === 'high')
+        {
+            return 'HELPDESK_AUTO_REASON_PRIORITY_HIGH';
+        }
+
+        return '';
+    }
+
+    protected function department_priority_rule_definitions()
+    {
+        static $definitions = null;
+
+        if ($definitions !== null)
+        {
+            return $definitions;
+        }
+
+        $definitions = [];
+        $raw = isset($this->config['mundophpbb_helpdesk_department_priority_rule_definitions']) ? (string) $this->config['mundophpbb_helpdesk_department_priority_rule_definitions'] : '';
+        $lines = preg_split('/\r\n|\r|\n/', $raw);
+
+        foreach ($lines as $line)
+        {
+            $line = trim((string) $line);
+            if ($line === '')
+            {
+                continue;
+            }
+
+            $parts = array_map('trim', explode('|', $line));
+            $department_key = $this->normalize_option_key(isset($parts[0]) ? $parts[0] : '');
+            $priority_key = $this->normalize_priority(isset($parts[1]) ? $parts[1] : '');
+            if ($department_key === '' || $priority_key === '')
+            {
+                continue;
+            }
+
+            if (!isset($definitions[$department_key]))
+            {
+                $definitions[$department_key] = [];
+            }
+
+            $definitions[$department_key][$priority_key] = [
+                'team_reply' => $this->configured_optional_status(isset($parts[2]) ? $parts[2] : ''),
+                'user_reply' => $this->configured_optional_status(isset($parts[3]) ? $parts[3] : ''),
+                'assign' => $this->configured_optional_status(isset($parts[4]) ? $parts[4] : ''),
+                'unassign' => $this->configured_optional_status(isset($parts[5]) ? $parts[5] : ''),
+                'department_change' => $this->configured_optional_status(isset($parts[6]) ? $parts[6] : ''),
+                'priority_high' => $this->configured_optional_status(isset($parts[7]) ? $parts[7] : ''),
+                'priority_critical' => $this->configured_optional_status(isset($parts[8]) ? $parts[8] : ''),
+            ];
+        }
+
+        return $definitions;
+    }
+
+    protected function resolve_department_priority_rule_status($department_key, $priority_key, $rule_key, $fallback = '')
+    {
+        $department_key = $this->normalize_option_key($department_key);
+        $priority_key = $this->normalize_priority($priority_key);
+        $rule_key = trim((string) $rule_key);
+
+        if ($department_key !== '' && $priority_key !== '' && $rule_key !== '')
+        {
+            $definitions = $this->department_priority_rule_definitions();
+            if (isset($definitions[$department_key][$priority_key][$rule_key]) && $definitions[$department_key][$priority_key][$rule_key] !== '')
+            {
+                return $definitions[$department_key][$priority_key][$rule_key];
+            }
+        }
+
+        return $this->resolve_department_rule_status($department_key, $rule_key, $fallback);
     }
 
     protected function department_rule_definitions()
@@ -1299,7 +1514,7 @@ class listener implements EventSubscriberInterface
         return !empty($row['topic_poster']) ? (int) $row['topic_poster'] : 0;
     }
 
-    protected function build_notification_changes($old_status, $new_status, $old_department, $new_department, $old_assigned_to, $new_assigned_to, $status_reason = '', $change_reason = '')
+    protected function build_notification_changes($old_status, $new_status, $old_priority, $new_priority, $old_department, $new_department, $old_assigned_to, $new_assigned_to, $status_reason = '', $change_reason = '')
     {
         $changes = [];
 
@@ -1310,6 +1525,16 @@ class listener implements EventSubscriberInterface
                 'old' => (string) $old_status,
                 'new' => (string) $new_status,
                 'reason' => (string) $status_reason,
+            ];
+        }
+
+        if ((string) $new_priority !== (string) $old_priority)
+        {
+            $changes[] = [
+                'type' => 'priority',
+                'old' => (string) $old_priority,
+                'new' => (string) $new_priority,
+                'reason' => (string) $change_reason,
             ];
         }
 
@@ -1560,6 +1785,13 @@ class listener implements EventSubscriberInterface
                     ]);
                 break;
 
+                case 'priority':
+                    $lines[] = $this->notification_text($lang, 'line_priority', [
+                        $this->priority_label_for_lang(isset($change['old']) ? $change['old'] : '', $lang),
+                        $this->priority_label_for_lang(isset($change['new']) ? $change['new'] : '', $lang),
+                    ]);
+                break;
+
                 case 'department':
                     $lines[] = $this->notification_text($lang, 'line_department', [
                         $this->value_or_unset_for_lang(isset($change['old']) ? $change['old'] : '', $lang),
@@ -1590,6 +1822,24 @@ class listener implements EventSubscriberInterface
         }
 
         return $lines;
+    }
+
+    protected function priority_label_for_lang($priority_key, $lang)
+    {
+        $definitions = $this->priority_definitions();
+        $resolved_key = $this->normalize_priority($priority_key);
+        if (!isset($definitions[$resolved_key]))
+        {
+            return $resolved_key !== '' ? $resolved_key : $this->notification_text($lang, 'unset_label');
+        }
+
+        $definition = $definitions[$resolved_key];
+        if (strtolower((string) $lang) === 'pt_br')
+        {
+            return !empty($definition['label_pt_br']) ? (string) $definition['label_pt_br'] : $resolved_key;
+        }
+
+        return !empty($definition['label_en']) ? (string) $definition['label_en'] : (!empty($definition['label_pt_br']) ? (string) $definition['label_pt_br'] : $resolved_key);
     }
 
     protected function value_or_unset_for_lang($value, $lang)
@@ -1644,6 +1894,7 @@ class listener implements EventSubscriberInterface
                 'intro_user_reply' => 'O usuário respondeu ao ticket "%s".',
                 'intro_team_reply' => 'A equipe respondeu ao ticket "%s".',
                 'line_status' => 'Status: %1$s → %2$s',
+                'line_priority' => 'Prioridade: %1$s → %2$s',
                 'line_department' => 'Departamento: %1$s → %2$s',
                 'line_assignment' => 'Responsável: %1$s → %2$s',
                 'line_user_reply' => 'Nova resposta do usuário registrada no ticket.',
@@ -1663,6 +1914,7 @@ class listener implements EventSubscriberInterface
                 'intro_user_reply' => 'The user replied to ticket "%s".',
                 'intro_team_reply' => 'The team replied to ticket "%s".',
                 'line_status' => 'Status: %1$s → %2$s',
+                'line_priority' => 'Priority: %1$s → %2$s',
                 'line_department' => 'Department: %1$s → %2$s',
                 'line_assignment' => 'Assignee: %1$s → %2$s',
                 'line_user_reply' => 'A new user reply was posted on the ticket.',
@@ -1737,6 +1989,12 @@ class listener implements EventSubscriberInterface
                     'class' => 'helpdesk-history-type-department',
                 ];
 
+            case 'priority_change':
+                return [
+                    'label' => $this->user->lang('HELPDESK_ACTIVITY_PRIORITY'),
+                    'class' => 'helpdesk-history-type-priority',
+                ];
+
             case 'status_change':
             default:
                 return [
@@ -1783,6 +2041,85 @@ class listener implements EventSubscriberInterface
         return $definitions;
     }
 
+
+
+    protected function department_priority_sla_definitions()
+    {
+        $raw = isset($this->config['mundophpbb_helpdesk_department_priority_sla_definitions']) ? (string) $this->config['mundophpbb_helpdesk_department_priority_sla_definitions'] : '';
+        $lines = preg_split('/\r\n|\r|\n/', $raw);
+        $definitions = [];
+
+        foreach ($lines as $line)
+        {
+            $line = trim((string) $line);
+            if ($line === '')
+            {
+                continue;
+            }
+
+            $parts = array_map('trim', explode('|', $line));
+            if (empty($parts))
+            {
+                continue;
+            }
+
+            $department_key = $this->normalize_option_key(isset($parts[0]) ? $parts[0] : '');
+            $priority_key = $this->normalize_priority(isset($parts[1]) ? $parts[1] : '');
+
+            if ($department_key === '' || $priority_key === '')
+            {
+                continue;
+            }
+
+            $definitions[$department_key . '|' . $priority_key] = [
+                'sla_hours' => $this->parse_positive_int(isset($parts[2]) ? $parts[2] : ''),
+                'stale_hours' => $this->parse_positive_int(isset($parts[3]) ? $parts[3] : ''),
+                'old_hours' => $this->parse_positive_int(isset($parts[4]) ? $parts[4] : ''),
+            ];
+        }
+
+        return $definitions;
+    }
+
+    protected function priority_sla_definitions()
+    {
+        $raw = isset($this->config['mundophpbb_helpdesk_priority_sla_definitions']) ? (string) $this->config['mundophpbb_helpdesk_priority_sla_definitions'] : '';
+        $lines = preg_split('/
+|
+|
+/', $raw);
+        $definitions = [];
+
+        foreach ($lines as $line)
+        {
+            $line = trim((string) $line);
+            if ($line === '')
+            {
+                continue;
+            }
+
+            $parts = array_map('trim', explode('|', $line));
+            if (empty($parts))
+            {
+                continue;
+            }
+
+            $priority_key = $this->normalize_priority(isset($parts[0]) ? $parts[0] : '');
+            if ($priority_key === '')
+            {
+                continue;
+            }
+
+            $definitions[$priority_key] = [
+                'sla_hours' => $this->parse_positive_int(isset($parts[1]) ? $parts[1] : ''),
+                'stale_hours' => $this->parse_positive_int(isset($parts[2]) ? $parts[2] : ''),
+                'old_hours' => $this->parse_positive_int(isset($parts[3]) ? $parts[3] : ''),
+            ];
+        }
+
+        return $definitions;
+    }
+
     protected function parse_positive_int($value)
     {
         $value = trim((string) $value);
@@ -1794,43 +2131,88 @@ class listener implements EventSubscriberInterface
         return max(0, (int) $value);
     }
 
-    protected function effective_sla_hours($department_key = '')
+    
+protected function effective_sla_hours($department_key = '', $priority_key = '')
     {
         $hours = $this->sla_hours();
         $department_key = $this->normalize_option_key($department_key);
-        $definitions = $this->department_sla_definitions();
+        $priority_key = $this->normalize_priority($priority_key);
 
+        $combined_definitions = $this->department_priority_sla_definitions();
+        $combined_key = $department_key . '|' . $priority_key;
+        if ($department_key !== '' && $priority_key !== '' && !empty($combined_definitions[$combined_key]['sla_hours']))
+        {
+            return max(1, (int) $combined_definitions[$combined_key]['sla_hours']);
+        }
+
+        $definitions = $this->department_sla_definitions();
         if ($department_key !== '' && !empty($definitions[$department_key]['sla_hours']))
         {
-            $hours = (int) $definitions[$department_key]['sla_hours'];
+            return max(1, (int) $definitions[$department_key]['sla_hours']);
+        }
+
+        $priority_definitions = $this->priority_sla_definitions();
+        if ($priority_key !== '' && !empty($priority_definitions[$priority_key]['sla_hours']))
+        {
+            return max(1, (int) $priority_definitions[$priority_key]['sla_hours']);
         }
 
         return max(1, (int) $hours);
     }
 
-    protected function effective_stale_hours($department_key = '')
+    
+protected function effective_stale_hours($department_key = '', $priority_key = '')
     {
         $hours = $this->stale_hours();
         $department_key = $this->normalize_option_key($department_key);
-        $definitions = $this->department_sla_definitions();
+        $priority_key = $this->normalize_priority($priority_key);
 
+        $combined_definitions = $this->department_priority_sla_definitions();
+        $combined_key = $department_key . '|' . $priority_key;
+        if ($department_key !== '' && $priority_key !== '' && !empty($combined_definitions[$combined_key]['stale_hours']))
+        {
+            return max(1, (int) $combined_definitions[$combined_key]['stale_hours']);
+        }
+
+        $definitions = $this->department_sla_definitions();
         if ($department_key !== '' && !empty($definitions[$department_key]['stale_hours']))
         {
-            $hours = (int) $definitions[$department_key]['stale_hours'];
+            return max(1, (int) $definitions[$department_key]['stale_hours']);
+        }
+
+        $priority_definitions = $this->priority_sla_definitions();
+        if ($priority_key !== '' && !empty($priority_definitions[$priority_key]['stale_hours']))
+        {
+            return max(1, (int) $priority_definitions[$priority_key]['stale_hours']);
         }
 
         return max(1, (int) $hours);
     }
 
-    protected function effective_old_hours($department_key = '')
+    
+protected function effective_old_hours($department_key = '', $priority_key = '')
     {
         $hours = $this->old_hours();
         $department_key = $this->normalize_option_key($department_key);
-        $definitions = $this->department_sla_definitions();
+        $priority_key = $this->normalize_priority($priority_key);
 
+        $combined_definitions = $this->department_priority_sla_definitions();
+        $combined_key = $department_key . '|' . $priority_key;
+        if ($department_key !== '' && $priority_key !== '' && !empty($combined_definitions[$combined_key]['old_hours']))
+        {
+            return max(1, (int) $combined_definitions[$combined_key]['old_hours']);
+        }
+
+        $definitions = $this->department_sla_definitions();
         if ($department_key !== '' && !empty($definitions[$department_key]['old_hours']))
         {
-            $hours = (int) $definitions[$department_key]['old_hours'];
+            return max(1, (int) $definitions[$department_key]['old_hours']);
+        }
+
+        $priority_definitions = $this->priority_sla_definitions();
+        if ($priority_key !== '' && !empty($priority_definitions[$priority_key]['old_hours']))
+        {
+            return max(1, (int) $priority_definitions[$priority_key]['old_hours']);
         }
 
         return max(1, (int) $hours);
@@ -2052,8 +2434,9 @@ class listener implements EventSubscriberInterface
         }
 
         $department_key = $this->extract_department_key($meta);
+        $priority_key = isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal';
 
-        return (time() - $created_time) > ($this->effective_sla_hours($department_key) * 3600);
+        return (time() - $created_time) > ($this->effective_sla_hours($department_key, $priority_key) * 3600);
     }
 
     protected function is_ticket_stale(array $row, array $meta)
@@ -2065,8 +2448,9 @@ class listener implements EventSubscriberInterface
         }
 
         $department_key = $this->extract_department_key($meta);
+        $priority_key = isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal';
 
-        return (time() - $last_activity) > ($this->effective_stale_hours($department_key) * 3600);
+        return (time() - $last_activity) > ($this->effective_stale_hours($department_key, $priority_key) * 3600);
     }
 
     protected function is_ticket_very_old(array $meta)
@@ -2078,8 +2462,9 @@ class listener implements EventSubscriberInterface
         }
 
         $department_key = $this->extract_department_key($meta);
+        $priority_key = isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal';
 
-        return (time() - $created_time) > ($this->effective_old_hours($department_key) * 3600);
+        return (time() - $created_time) > ($this->effective_old_hours($department_key, $priority_key) * 3600);
     }
 
     protected function team_panel_enabled()
@@ -2170,6 +2555,11 @@ class listener implements EventSubscriberInterface
     }
 
     protected function can_manage_status($forum_id)
+    {
+        return $this->can_manage_topic($forum_id);
+    }
+
+    protected function can_manage_priority($forum_id)
     {
         return $this->can_manage_topic($forum_id);
     }
