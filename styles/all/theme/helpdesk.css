@@ -682,6 +682,20 @@
     line-height: 1.1;
 }
 
+.helpdesk-report-card-link {
+    position: relative;
+}
+
+.helpdesk-report-card-link::after {
+    content: '\203A';
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    font-size: 18px;
+    line-height: 1;
+    opacity: 0.35;
+}
+
 .helpdesk-report-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -721,6 +735,47 @@
 .helpdesk-report-main {
     min-width: 0;
     font-weight: 700;
+}
+
+.helpdesk-report-link {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+.helpdesk-report-link:hover {
+    text-decoration: none;
+}
+
+.helpdesk-alert-ticket-list li {
+    display: block;
+}
+
+.helpdesk-alert-ticket-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.helpdesk-alert-ticket-link {
+    align-items: flex-start;
+}
+
+.helpdesk-alert-ticket-meta,
+.helpdesk-alert-ticket-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.helpdesk-alert-ticket-note {
+    opacity: 0.88;
+    font-size: 0.92em;
 }
 
 .helpdesk-report-meta {
