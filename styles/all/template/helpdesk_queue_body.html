@@ -175,7 +175,13 @@
                     <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
                     <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
                     <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_BALANCED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BALANCED}</a>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_OVERLOAD}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BUTTON}</a>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_CRITICAL}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_BUTTON}</a>
                     <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_bulk">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
+                    <!-- IF S_HELPDESK_QUEUE_HAS_DEPARTMENT_FILTER -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_department">{L_HELPDESK_REDISTRIBUTION_APPLY_DEPARTMENT}</button>
+                    <!-- ENDIF -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_overload">{L_HELPDESK_REDISTRIBUTION_APPLY_OVERLOAD}</button>
                     <button class="button button-primary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_balanced">{L_HELPDESK_REDISTRIBUTION_APPLY_BALANCED}</button>
                 </div>
             </div>
@@ -184,8 +190,8 @@
         <!-- IF S_HELPDESK_QUEUE_PREVIEW -->
         <div class="panel bg1 helpdesk-queue-preview-box">
             <div class="inner">
-                <h4>{L_HELPDESK_REDISTRIBUTION_PREVIEW_TITLE}</h4>
-                <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN}</p>
+                <h4>{HELPDESK_QUEUE_PREVIEW_TITLE}</h4>
+                <p class="helpdesk-note">{HELPDESK_QUEUE_PREVIEW_EXPLAIN}<!-- IF S_HELPDESK_QUEUE_PREVIEW_OVERLOAD_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-up">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_CRITICAL_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-up">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_BADGE}</span><!-- ENDIF --></p>
                 <div class="helpdesk-team-cards helpdesk-team-cards-compact">
                     <div class="helpdesk-team-card">
                         <strong>{HELPDESK_QUEUE_PREVIEW_COUNT}</strong>
@@ -201,20 +207,137 @@
                     </div>
                 </div>
 
+                <!-- IF S_HELPDESK_QUEUE_PREVIEW_COMPARE -->
+                <!-- IF .helpdesk_preview_summary_rows -->
+                <div class="helpdesk-team-cards helpdesk-team-cards-compact helpdesk-preview-summary-cards">
+                    <!-- BEGIN helpdesk_preview_summary_rows -->
+                    <div class="helpdesk-team-card helpdesk-preview-summary-card">
+                        <strong>{helpdesk_preview_summary_rows.VALUE_TEXT}</strong>
+                        <span>{helpdesk_preview_summary_rows.LABEL}</span>
+                        <em>{helpdesk_preview_summary_rows.META_TEXT}</em>
+                        <span class="helpdesk-badge {helpdesk_preview_summary_rows.BADGE_CLASS}">{helpdesk_preview_summary_rows.BADGE_LABEL}</span>
+                    </div>
+                    <!-- END helpdesk_preview_summary_rows -->
+                </div>
+                <!-- ENDIF -->
+
+                <!-- IF .helpdesk_preview_top_impact_rows -->
+                <div class="helpdesk-team-cards helpdesk-team-cards-compact helpdesk-preview-summary-cards">
+                    <!-- BEGIN helpdesk_preview_top_impact_rows -->
+                    <div class="helpdesk-team-card helpdesk-preview-summary-card">
+                        <strong>{helpdesk_preview_top_impact_rows.VALUE_TEXT}</strong>
+                        <span>{helpdesk_preview_top_impact_rows.LABEL}</span>
+                        <em>{helpdesk_preview_top_impact_rows.META_TEXT}</em>
+                        <span class="helpdesk-badge {helpdesk_preview_top_impact_rows.BADGE_CLASS}">{helpdesk_preview_top_impact_rows.BADGE_LABEL}</span>
+                    </div>
+                    <!-- END helpdesk_preview_top_impact_rows -->
+                </div>
+                <!-- ENDIF -->
+
+                <!-- IF .helpdesk_preview_distribution_rows -->
+                <div class="helpdesk-preview-compare-box">
+                    <h5>{L_HELPDESK_REDISTRIBUTION_PREVIEW_COMPARE_TITLE}</h5>
+                    <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_PREVIEW_COMPARE_EXPLAIN}</p>
+                    <div class="helpdesk-preview-distribution-list">
+                        <!-- BEGIN helpdesk_preview_distribution_rows -->
+                        <div class="helpdesk-preview-distribution-row">
+                            <div class="helpdesk-preview-distribution-head">
+                                <strong>{helpdesk_preview_distribution_rows.LABEL}</strong>
+                                <span class="helpdesk-badge {helpdesk_preview_distribution_rows.WORKLOAD_CLASS}">{helpdesk_preview_distribution_rows.DELTA_TEXT}</span>
+                            </div>
+                            <div class="helpdesk-preview-distribution-bars">
+                                <div class="helpdesk-preview-distribution-track">
+                                    <span class="helpdesk-preview-distribution-fill helpdesk-preview-distribution-before" style="width: {helpdesk_preview_distribution_rows.BEFORE_WIDTH}%;"></span>
+                                    <em>{L_HELPDESK_REDISTRIBUTION_PREVIEW_BEFORE}: {helpdesk_preview_distribution_rows.BEFORE_COUNT}</em>
+                                </div>
+                                <div class="helpdesk-preview-distribution-track">
+                                    <span class="helpdesk-preview-distribution-fill helpdesk-preview-distribution-after" style="width: {helpdesk_preview_distribution_rows.AFTER_WIDTH}%;"></span>
+                                    <em>{L_HELPDESK_REDISTRIBUTION_PREVIEW_AFTER}: {helpdesk_preview_distribution_rows.AFTER_COUNT}</em>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- END helpdesk_preview_distribution_rows -->
+                    </div>
+                </div>
+                <!-- ENDIF -->
+
+                <!-- IF .helpdesk_preview_group_rows -->
+                <div class="helpdesk-preview-compare-box">
+                    <h5>{L_HELPDESK_REDISTRIBUTION_PREVIEW_GROUPS_TITLE}</h5>
+                    <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_PREVIEW_GROUPS_EXPLAIN}</p>
+                    <div class="helpdesk-preview-distribution-list">
+                        <!-- BEGIN helpdesk_preview_group_rows -->
+                        <div class="helpdesk-preview-distribution-row">
+                            <div class="helpdesk-preview-distribution-head">
+                                <strong>{helpdesk_preview_group_rows.LABEL}</strong>
+                                <span class="helpdesk-badge {helpdesk_preview_group_rows.WORKLOAD_CLASS}">{helpdesk_preview_group_rows.DELTA_TEXT}</span>
+                            </div>
+                            <div class="helpdesk-team-load-meta">
+                                <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEES}: {helpdesk_preview_group_rows.ASSIGNEE_COUNT}</span>
+                                <span>{L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_preview_group_rows.SCORE_BEFORE} → {helpdesk_preview_group_rows.SCORE_AFTER}</span>
+                                <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_OUT}: {helpdesk_preview_group_rows.MOVE_OUT_COUNT}</span>
+                                <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_IN}: {helpdesk_preview_group_rows.MOVE_IN_COUNT}</span>
+                            </div>
+                        </div>
+                        <!-- END helpdesk_preview_group_rows -->
+                    </div>
+                </div>
+                <!-- IF .helpdesk_preview_department_rows -->
+                <div class="helpdesk-preview-compare-box">
+                    <h5>{L_HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENTS_TITLE}</h5>
+                    <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENTS_EXPLAIN}</p>
+                    <div class="helpdesk-preview-distribution-list">
+                        <!-- BEGIN helpdesk_preview_department_rows -->
+                        <div class="helpdesk-preview-distribution-row">
+                            <div class="helpdesk-preview-distribution-head">
+                                <strong>{helpdesk_preview_department_rows.LABEL}</strong>
+                                <span class="helpdesk-badge {helpdesk_preview_department_rows.BADGE_CLASS}">{helpdesk_preview_department_rows.BADGE_LABEL}</span>
+                            </div>
+                            <div class="helpdesk-team-load-meta">
+                                <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_MOVES}: {helpdesk_preview_department_rows.MOVE_COUNT}</span>
+                                <span>{helpdesk_preview_department_rows.META_TEXT}</span>
+                            </div>
+                        </div>
+                        <!-- END helpdesk_preview_department_rows -->
+                    </div>
+                </div>
+                <!-- ENDIF -->
+                <!-- ENDIF -->
+                <!-- ENDIF -->
+
                 <!-- IF .helpdesk_preview_impact_rows -->
                 <div class="helpdesk-team-load-grid helpdesk-preview-impact-grid">
                     <!-- BEGIN helpdesk_preview_impact_rows -->
                     <div class="helpdesk-team-load-card helpdesk-preview-impact-card">
                         <div class="helpdesk-team-load-head">
-                            <strong>{helpdesk_preview_impact_rows.LABEL}</strong>
+                            <strong><span class="helpdesk-preview-rank">#{helpdesk_preview_impact_rows.IMPACT_ORDER}</span> {helpdesk_preview_impact_rows.LABEL}</strong>
                             <span class="helpdesk-badge {helpdesk_preview_impact_rows.WORKLOAD_AFTER_CLASS}">{helpdesk_preview_impact_rows.WORKLOAD_AFTER_LABEL}</span>
+                        </div>
+                        <div class="helpdesk-preview-impact-bars">
+                            <div class="helpdesk-preview-impact-row">
+                                <span class="helpdesk-preview-impact-label">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BEFORE}</span>
+                                <div class="helpdesk-preview-impact-track">
+                                    <span class="helpdesk-preview-impact-fill helpdesk-preview-impact-before" style="width: {helpdesk_preview_impact_rows.SCORE_BEFORE_WIDTH}%;"></span>
+                                </div>
+                                <span class="helpdesk-preview-impact-value">{helpdesk_preview_impact_rows.SCORE_BEFORE}</span>
+                            </div>
+                            <div class="helpdesk-preview-impact-row">
+                                <span class="helpdesk-preview-impact-label">{L_HELPDESK_REDISTRIBUTION_PREVIEW_AFTER}</span>
+                                <div class="helpdesk-preview-impact-track">
+                                    <span class="helpdesk-preview-impact-fill helpdesk-preview-impact-after" style="width: {helpdesk_preview_impact_rows.SCORE_AFTER_WIDTH}%;"></span>
+                                </div>
+                                <span class="helpdesk-preview-impact-value">{helpdesk_preview_impact_rows.SCORE_AFTER}</span>
+                            </div>
                         </div>
                         <div class="helpdesk-team-load-meta">
                             <span>{L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_preview_impact_rows.SCORE_BEFORE} → {helpdesk_preview_impact_rows.SCORE_AFTER}</span>
+                            <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_DELTA}: <strong class="{helpdesk_preview_impact_rows.DELTA_CLASS}">{helpdesk_preview_impact_rows.SCORE_DELTA_TEXT}</strong></span>
                             <span>{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}: {helpdesk_preview_impact_rows.ACTIVE_BEFORE} → {helpdesk_preview_impact_rows.ACTIVE_AFTER}</span>
+                            <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_ACTIVE_DELTA}: {helpdesk_preview_impact_rows.ACTIVE_DELTA_TEXT}</span>
                             <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_OUT}: {helpdesk_preview_impact_rows.MOVE_OUT_COUNT}</span>
                             <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_IN}: {helpdesk_preview_impact_rows.MOVE_IN_COUNT}</span>
                             <span>{helpdesk_preview_impact_rows.IMPACT_LABEL}</span>
+                            <span class="{helpdesk_preview_impact_rows.DELTA_CLASS}">{helpdesk_preview_impact_rows.DELTA_LABEL}</span>
                         </div>
                     </div>
                     <!-- END helpdesk_preview_impact_rows -->
@@ -306,8 +429,10 @@
         <div class="helpdesk-redistribution-bulk-bar helpdesk-redistribution-bulk-bar-bottom">
             <div class="helpdesk-redistribution-bulk-actions">
                 <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_BALANCED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BALANCED}</a>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_OVERLOAD}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BUTTON}</a>
                 <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
                 <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
+                <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form" name="helpdesk_queue_action" value="apply_redistribution_overload">{L_HELPDESK_REDISTRIBUTION_APPLY_OVERLOAD}</button>
                 <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
             </div>
         </div>

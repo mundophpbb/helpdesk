@@ -106,7 +106,7 @@ class queue_controller
         }
 
         $preview_mode = (string) $this->request->variable('preview', '', true);
-        if (!in_array($preview_mode, ['', 'balanced'], true))
+        if (!in_array($preview_mode, ['', 'balanced', 'overload', 'critical'], true))
         {
             $preview_mode = '';
         }
@@ -134,8 +134,25 @@ class queue_controller
         unset($redistribution_row);
         $smart_redistribution_count = $this->count_smart_redistribution($redistribution);
         $balanced_redistribution_count = $this->count_balanced_redistribution($redistribution);
-        $preview_plan = ($preview_mode === 'balanced') ? $balanced_redistribution : [];
-        $preview_impact = ($preview_mode === 'balanced') ? $this->build_balanced_preview_impact($preview_plan, $assignee_load) : [];
+        $preview_plan = [];
+        if ($preview_mode === 'balanced')
+        {
+            $preview_plan = $balanced_redistribution;
+        }
+        else if ($preview_mode === 'overload')
+        {
+            $preview_plan = $this->build_overload_preview_plan($balanced_redistribution, $assignee_load);
+        }
+        else if ($preview_mode === 'critical')
+        {
+            $preview_plan = $this->build_critical_preview_plan($balanced_redistribution);
+        }
+        $preview_impact = ($preview_mode !== '') ? $this->build_balanced_preview_impact($preview_plan, $assignee_load) : [];
+        $preview_summary = ($preview_mode !== '') ? $this->build_preview_comparison_summary($preview_impact) : [];
+        $preview_distribution = ($preview_mode !== '') ? $this->build_preview_distribution_rows($preview_impact) : [];
+        $preview_top_impacts = ($preview_mode !== '') ? $this->build_preview_top_impact_rows($preview_impact) : [];
+        $preview_groups = ($preview_mode !== '') ? $this->build_preview_group_rows($preview_impact) : [];
+        $preview_departments = ($preview_mode !== '') ? $this->build_preview_department_rows($preview_plan) : [];
 
         foreach ($this->forum_info($forum_ids) as $forum)
         {
@@ -239,6 +256,26 @@ class queue_controller
         {
             $this->template->assign_block_vars('helpdesk_preview_impact_rows', $impact_row);
         }
+        foreach ($preview_summary as $summary_row)
+        {
+            $this->template->assign_block_vars('helpdesk_preview_summary_rows', $summary_row);
+        }
+        foreach ($preview_distribution as $distribution_row)
+        {
+            $this->template->assign_block_vars('helpdesk_preview_distribution_rows', $distribution_row);
+        }
+        foreach ($preview_top_impacts as $top_impact_row)
+        {
+            $this->template->assign_block_vars('helpdesk_preview_top_impact_rows', $top_impact_row);
+        }
+        foreach ($preview_groups as $preview_group_row)
+        {
+            $this->template->assign_block_vars('helpdesk_preview_group_rows', $preview_group_row);
+        }
+        foreach ($preview_departments as $preview_department_row)
+        {
+            $this->template->assign_block_vars('helpdesk_preview_department_rows', $preview_department_row);
+        }
 
         $base_queue_url = $this->helper->route('mundophpbb_helpdesk_queue_controller');
 
@@ -288,7 +325,12 @@ class queue_controller
             'HELPDESK_FILTER_ASSIGNED_TO' => $filters['assigned_to'],
             'U_HELPDESK_TEAM_QUEUE' => $base_queue_url,
             'U_HELPDESK_QUEUE_PREVIEW_BALANCED' => $this->queue_preview_url('balanced'),
+            'U_HELPDESK_QUEUE_PREVIEW_OVERLOAD' => $this->queue_preview_url('overload'),
+            'U_HELPDESK_QUEUE_PREVIEW_CRITICAL' => $this->queue_preview_url('critical'),
             'U_HELPDESK_QUEUE_PREVIEW_CLEAR' => $this->queue_preview_url(''),
+            'HELPDESK_QUEUE_PREVIEW_TITLE' => $this->preview_title($preview_mode),
+            'HELPDESK_QUEUE_PREVIEW_EXPLAIN' => $this->preview_explain($preview_mode),
+            'HELPDESK_QUEUE_PREVIEW_MODE' => $preview_mode,
             'U_HELPDESK_TEAM_QUEUE_RESET' => $base_queue_url,
             'U_HELPDESK_TEAM_QUEUE_QUEUE' => $base_queue_url . '?qview=queue',
             'U_HELPDESK_TEAM_QUEUE_REPORTS' => $base_queue_url . '?qview=reports',
@@ -297,8 +339,13 @@ class queue_controller
             'S_HELPDESK_QUEUE_HAS_RESULTS' => !empty($filtered_rows),
             'S_HELPDESK_ASSIGNEE_LOAD_HAS_DATA' => !empty($assignee_load),
             'S_HELPDESK_REDIS_HAS_DATA' => !empty($redistribution),
-            'S_HELPDESK_QUEUE_PREVIEW' => ($preview_mode === 'balanced' && !empty($preview_plan)),
-            'S_HELPDESK_QUEUE_PREVIEW_EMPTY' => ($preview_mode === 'balanced' && empty($preview_plan)),
+            'S_HELPDESK_QUEUE_PREVIEW' => ($preview_mode !== '' && !empty($preview_plan)),
+            'S_HELPDESK_QUEUE_PREVIEW_EMPTY' => ($preview_mode !== '' && empty($preview_plan)),
+            'S_HELPDESK_QUEUE_PREVIEW_COMPARE' => ($preview_mode !== '' && !empty($preview_impact)),
+            'S_HELPDESK_QUEUE_PREVIEW_OVERLOAD_MODE' => ($preview_mode === 'overload'),
+            'S_HELPDESK_QUEUE_PREVIEW_BALANCED_MODE' => ($preview_mode === 'balanced'),
+            'S_HELPDESK_QUEUE_PREVIEW_CRITICAL_MODE' => ($preview_mode === 'critical'),
+            'S_HELPDESK_QUEUE_HAS_DEPARTMENT_FILTER' => ($filters['department_key'] !== ''),
             'HELPDESK_TEAM_ALERTS_EXPLAIN_TEXT' => sprintf($this->user->lang('HELPDESK_TEAM_ALERTS_EXPLAIN'), $this->alert_hours(), $this->alert_limit()),
             'S_HELPDESK_REPORT_HAS_DATA' => !empty($report['total']),
             'S_HELPDESK_CAN_QUEUE_ASSIGN' => $this->can_assign_any_queue($forum_ids),
@@ -539,7 +586,7 @@ class queue_controller
     protected function handle_queue_post_actions(array $forum_ids)
     {
         $action = $this->request->variable('helpdesk_queue_action', '', true);
-        if (!in_array($action, ['apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced'], true))
+        if (!in_array($action, ['apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced', 'apply_redistribution_overload', 'apply_redistribution_department'], true))
         {
             return;
         }
@@ -607,6 +654,103 @@ class queue_controller
             }
 
             \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_balanced' : 'noop'));
+        }
+
+
+        if ($action === 'apply_redistribution_department')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            if ((string) $filters['department_key'] === '')
+            {
+                edirect($this->queue_redirect_url('invalid'));
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_balanced_redistribution_plan($redistribution, $assignee_load);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_DEPARTMENT')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_overload')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $balanced_plan = $this->build_balanced_redistribution_plan($redistribution, $assignee_load);
+            $plan = $this->build_overload_preview_plan($balanced_plan, $assignee_load);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_BALANCED')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_overload' : 'noop'));
         }
 
         $items = $this->request->variable('redistribution_items', [0 => ''], true);
@@ -788,6 +932,10 @@ protected function queue_preview_url($preview = '')
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_BULK');
             case 'redistributed_balanced':
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_BALANCED');
+            case 'redistributed_overload':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_OVERLOAD');
+            case 'redistributed_department':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_DEPARTMENT');
             case 'noop':
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_NOOP');
             case 'missing':
@@ -1067,6 +1215,7 @@ $suggestions[] = [
     'TARGET_SCORE' => (int) $target['SCORE'],
     'PRIORITY_LABEL' => isset($ticket_row['PRIORITY_LABEL']) ? (string) $ticket_row['PRIORITY_LABEL'] : '',
     'PRIORITY_CLASS' => isset($ticket_row['PRIORITY_CLASS']) ? (string) $ticket_row['PRIORITY_CLASS'] : '',
+    'PRIORITY_TONE' => isset($ticket_row['PRIORITY_TONE']) ? (string) $ticket_row['PRIORITY_TONE'] : 'normal',
     'DEPARTMENT_LABEL' => isset($ticket_row['DEPARTMENT_LABEL']) ? (string) $ticket_row['DEPARTMENT_LABEL'] : '',
     'UPDATED_AT' => isset($ticket_row['UPDATED_AT']) ? (string) $ticket_row['UPDATED_AT'] : '',
     'SUGGESTION_TEXT' => sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_REASON_TEXT'), isset($ticket_row['PRIORITY_LABEL']) ? (string) $ticket_row['PRIORITY_LABEL'] : '', isset($ticket_row['UPDATED_AT']) ? (string) $ticket_row['UPDATED_AT'] : ''),
@@ -1269,6 +1418,285 @@ protected function build_balanced_redistribution_plan(array $suggestions, array 
 }
 
 
+protected function build_overload_preview_plan(array $plan, array $assignee_load)
+{
+    if (empty($plan))
+    {
+        return [];
+    }
+
+    $filtered = [];
+    $per_source = [];
+
+    foreach ($plan as $row)
+    {
+        $source_key = isset($row['SOURCE_KEY']) ? strtolower((string) $row['SOURCE_KEY']) : '';
+        if ($source_key === '' || !isset($assignee_load[$source_key]))
+        {
+            continue;
+        }
+
+        $source_row = $assignee_load[$source_key];
+        $source_class = isset($source_row['WORKLOAD_CLASS']) ? (string) $source_row['WORKLOAD_CLASS'] : 'helpdesk-workload-idle';
+        if (!in_array($source_class, ['helpdesk-workload-high', 'helpdesk-workload-overload'], true))
+        {
+            continue;
+        }
+
+        if (!isset($per_source[$source_key]))
+        {
+            $per_source[$source_key] = 0;
+        }
+
+        if ($per_source[$source_key] >= 3)
+        {
+            continue;
+        }
+
+        $filtered[] = $row;
+        $per_source[$source_key]++;
+
+        if (count($filtered) >= 30)
+        {
+            break;
+        }
+    }
+
+    if (!empty($filtered))
+    {
+        return array_values($filtered);
+    }
+
+    return array_slice(array_values($plan), 0, min(12, count($plan)));
+}
+
+protected function build_critical_preview_plan(array $plan)
+{
+    if (empty($plan))
+    {
+        return [];
+    }
+
+    $filtered = [];
+    foreach ($plan as $row)
+    {
+        $priority_tone = isset($row['PRIORITY_TONE']) ? (string) $row['PRIORITY_TONE'] : 'normal';
+        if ($priority_tone !== 'critical')
+        {
+            continue;
+        }
+
+        $filtered[] = $row;
+    }
+
+    return array_values($filtered);
+}
+
+protected function build_preview_department_rows(array $plan)
+{
+    if (empty($plan))
+    {
+        return [];
+    }
+
+    $groups = [];
+    foreach ($plan as $row)
+    {
+        $label = !empty($row['DEPARTMENT_LABEL']) ? (string) $row['DEPARTMENT_LABEL'] : $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+        $group_key = strtolower(trim($label));
+        if ($group_key === '')
+        {
+            $group_key = '__unset__';
+        }
+
+        if (!isset($groups[$group_key]))
+        {
+            $groups[$group_key] = [
+                'LABEL' => $label,
+                'MOVE_COUNT' => 0,
+                'SMART_COUNT' => 0,
+                'HIGH_COUNT' => 0,
+                'CRITICAL_COUNT' => 0,
+            ];
+        }
+
+        $groups[$group_key]['MOVE_COUNT']++;
+        if (!empty($row['S_SMART_PICK']))
+        {
+            $groups[$group_key]['SMART_COUNT']++;
+        }
+
+        $priority_tone = isset($row['PRIORITY_TONE']) ? (string) $row['PRIORITY_TONE'] : 'normal';
+        if (in_array($priority_tone, ['high', 'critical'], true))
+        {
+            $groups[$group_key]['HIGH_COUNT']++;
+        }
+        if ($priority_tone === 'critical')
+        {
+            $groups[$group_key]['CRITICAL_COUNT']++;
+        }
+    }
+
+    $groups = array_values($groups);
+    usort($groups, function ($a, $b) {
+        if ((int) $a['MOVE_COUNT'] === (int) $b['MOVE_COUNT'])
+        {
+            if ((int) $a['CRITICAL_COUNT'] === (int) $b['CRITICAL_COUNT'])
+            {
+                return strcasecmp((string) $a['LABEL'], (string) $b['LABEL']);
+            }
+
+            return ((int) $a['CRITICAL_COUNT'] > (int) $b['CRITICAL_COUNT']) ? -1 : 1;
+        }
+
+        return ((int) $a['MOVE_COUNT'] > (int) $b['MOVE_COUNT']) ? -1 : 1;
+    });
+
+    $rows = [];
+    foreach ($groups as $group)
+    {
+        $meta = [];
+        if ((int) $group['SMART_COUNT'] > 0)
+        {
+            $meta[] = $group['SMART_COUNT'] . ' ' . $this->user->lang('HELPDESK_REDISTRIBUTION_SMART_BADGE');
+        }
+        if ((int) $group['HIGH_COUNT'] > 0)
+        {
+            $meta[] = $group['HIGH_COUNT'] . ' ' . $this->user->lang('HELPDESK_PRIORITY_HIGH');
+        }
+        if ((int) $group['CRITICAL_COUNT'] > 0)
+        {
+            $meta[] = $group['CRITICAL_COUNT'] . ' ' . $this->user->lang('HELPDESK_PRIORITY_CRITICAL');
+        }
+
+        $rows[] = [
+            'LABEL' => (string) $group['LABEL'],
+            'MOVE_COUNT' => (int) $group['MOVE_COUNT'],
+            'SMART_COUNT' => (int) $group['SMART_COUNT'],
+            'HIGH_COUNT' => (int) $group['HIGH_COUNT'],
+            'CRITICAL_COUNT' => (int) $group['CRITICAL_COUNT'],
+            'META_TEXT' => !empty($meta) ? implode(' • ', $meta) : $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENT_META_EMPTY'),
+            'BADGE_LABEL' => sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_MOVES_TEXT'), (int) $group['MOVE_COUNT']),
+            'BADGE_CLASS' => ((int) $group['CRITICAL_COUNT'] > 0) ? 'helpdesk-preview-delta-up' : (((int) $group['HIGH_COUNT'] > 0) ? 'helpdesk-preview-delta-stable' : 'helpdesk-preview-delta-down'),
+        ];
+    }
+
+    return $rows;
+}
+
+protected function preview_title($preview_mode)
+{
+    if ((string) $preview_mode === 'overload')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_TITLE');
+    }
+
+    if ((string) $preview_mode === 'critical')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_TITLE');
+    }
+
+    return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TITLE');
+}
+
+protected function preview_explain($preview_mode)
+{
+    if ((string) $preview_mode === 'overload')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'critical')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_EXPLAIN');
+    }
+
+    return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN');
+}
+
+protected function build_preview_group_rows(array $impact_rows)
+{
+    if (empty($impact_rows))
+    {
+        return [];
+    }
+
+    $group_labels = [
+        'helpdesk-workload-overload' => $this->user->lang('HELPDESK_WORKLOAD_OVERLOAD'),
+        'helpdesk-workload-high' => $this->user->lang('HELPDESK_WORKLOAD_HIGH'),
+        'helpdesk-workload-medium' => $this->user->lang('HELPDESK_WORKLOAD_MEDIUM'),
+        'helpdesk-workload-low' => $this->user->lang('HELPDESK_WORKLOAD_LOW'),
+        'helpdesk-workload-idle' => $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+    ];
+
+    $groups = [];
+    foreach ($impact_rows as $row)
+    {
+        $group_key = isset($row['WORKLOAD_BEFORE_CLASS']) ? (string) $row['WORKLOAD_BEFORE_CLASS'] : 'helpdesk-workload-idle';
+        if (!isset($group_labels[$group_key]))
+        {
+            $group_key = 'helpdesk-workload-idle';
+        }
+
+        if (!isset($groups[$group_key]))
+        {
+            $groups[$group_key] = [
+                'GROUP_KEY' => $group_key,
+                'LABEL' => $group_labels[$group_key],
+                'ASSIGNEE_COUNT' => 0,
+                'SCORE_BEFORE' => 0,
+                'SCORE_AFTER' => 0,
+                'MOVE_OUT_COUNT' => 0,
+                'MOVE_IN_COUNT' => 0,
+            ];
+        }
+
+        $groups[$group_key]['ASSIGNEE_COUNT']++;
+        $groups[$group_key]['SCORE_BEFORE'] += isset($row['SCORE_BEFORE']) ? (int) $row['SCORE_BEFORE'] : 0;
+        $groups[$group_key]['SCORE_AFTER'] += isset($row['SCORE_AFTER']) ? (int) $row['SCORE_AFTER'] : 0;
+        $groups[$group_key]['MOVE_OUT_COUNT'] += isset($row['MOVE_OUT_COUNT']) ? (int) $row['MOVE_OUT_COUNT'] : 0;
+        $groups[$group_key]['MOVE_IN_COUNT'] += isset($row['MOVE_IN_COUNT']) ? (int) $row['MOVE_IN_COUNT'] : 0;
+    }
+
+    $rows = [];
+    foreach ($groups as $group_key => $group)
+    {
+        $delta = (int) $group['SCORE_AFTER'] - (int) $group['SCORE_BEFORE'];
+        $rows[] = [
+            'LABEL' => (string) $group['LABEL'],
+            'WORKLOAD_CLASS' => (string) $group_key,
+            'ASSIGNEE_COUNT' => (int) $group['ASSIGNEE_COUNT'],
+            'SCORE_BEFORE' => (int) $group['SCORE_BEFORE'],
+            'SCORE_AFTER' => (int) $group['SCORE_AFTER'],
+            'MOVE_OUT_COUNT' => (int) $group['MOVE_OUT_COUNT'],
+            'MOVE_IN_COUNT' => (int) $group['MOVE_IN_COUNT'],
+            'DELTA_TEXT' => $this->signed_number_text($delta),
+            'DELTA_CLASS' => $this->preview_delta_class($delta),
+        ];
+    }
+
+    usort($rows, function ($a, $b) {
+        $deltaA = abs((int) $a['SCORE_AFTER'] - (int) $a['SCORE_BEFORE']);
+        $deltaB = abs((int) $b['SCORE_AFTER'] - (int) $b['SCORE_BEFORE']);
+        if ($deltaA !== $deltaB)
+        {
+            return ($deltaA > $deltaB) ? -1 : 1;
+        }
+
+        $movesA = (int) $a['MOVE_OUT_COUNT'] + (int) $a['MOVE_IN_COUNT'];
+        $movesB = (int) $b['MOVE_OUT_COUNT'] + (int) $b['MOVE_IN_COUNT'];
+        if ($movesA !== $movesB)
+        {
+            return ($movesA > $movesB) ? -1 : 1;
+        }
+
+        return strcasecmp((string) $a['LABEL'], (string) $b['LABEL']);
+    });
+
+    return $rows;
+}
+
+
 protected function build_balanced_preview_impact(array $plan, array $assignee_load)
 {
     if (empty($plan))
@@ -1309,6 +1737,7 @@ protected function build_balanced_preview_impact(array $plan, array $assignee_lo
         }
     }
 
+    $impact_order = 1;
     foreach ($impact as $key => $row)
     {
         $before_count = isset($row['ACTIVE_BEFORE']) ? (int) $row['ACTIVE_BEFORE'] : 0;
@@ -1338,11 +1767,18 @@ protected function build_balanced_preview_impact(array $plan, array $assignee_lo
     }
 
     uasort($impact, function ($a, $b) {
-        $deltaA = ((int) $a['MOVE_OUT_COUNT'] + (int) $a['MOVE_IN_COUNT']);
-        $deltaB = ((int) $b['MOVE_OUT_COUNT'] + (int) $b['MOVE_IN_COUNT']);
-        if ($deltaA !== $deltaB)
+        $scoreDeltaA = abs(((int) $a['MOVE_IN_COUNT']) - ((int) $a['MOVE_OUT_COUNT']));
+        $scoreDeltaB = abs(((int) $b['MOVE_IN_COUNT']) - ((int) $b['MOVE_OUT_COUNT']));
+        if ($scoreDeltaA !== $scoreDeltaB)
         {
-            return ($deltaA > $deltaB) ? -1 : 1;
+            return ($scoreDeltaA > $scoreDeltaB) ? -1 : 1;
+        }
+
+        $movementA = ((int) $a['MOVE_OUT_COUNT'] + (int) $a['MOVE_IN_COUNT']);
+        $movementB = ((int) $b['MOVE_OUT_COUNT'] + (int) $b['MOVE_IN_COUNT']);
+        if ($movementA !== $movementB)
+        {
+            return ($movementA > $movementB) ? -1 : 1;
         }
 
         $scoreA = isset($a['SCORE_BEFORE']) ? (int) $a['SCORE_BEFORE'] : 0;
@@ -1355,7 +1791,116 @@ protected function build_balanced_preview_impact(array $plan, array $assignee_lo
         return strcasecmp((string) $a['LABEL'], (string) $b['LABEL']);
     });
 
+    $max_score = 1;
+    foreach ($impact as $row)
+    {
+        $max_score = max($max_score, (int) $row['SCORE_BEFORE'], (int) $row['SCORE_AFTER']);
+    }
+
+    $impact_order = 1;
+    foreach ($impact as $key => $row)
+    {
+        $score_before = isset($row['SCORE_BEFORE']) ? (int) $row['SCORE_BEFORE'] : 0;
+        $score_after = isset($row['SCORE_AFTER']) ? (int) $row['SCORE_AFTER'] : 0;
+        $active_before = isset($row['ACTIVE_BEFORE']) ? (int) $row['ACTIVE_BEFORE'] : 0;
+        $active_after = isset($row['ACTIVE_AFTER']) ? (int) $row['ACTIVE_AFTER'] : 0;
+        $score_delta = $score_after - $score_before;
+        $active_delta = $active_after - $active_before;
+
+        $impact[$key]['SCORE_DELTA'] = $score_delta;
+        $impact[$key]['SCORE_DELTA_TEXT'] = $this->signed_number_text($score_delta);
+        $impact[$key]['ACTIVE_DELTA'] = $active_delta;
+        $impact[$key]['ACTIVE_DELTA_TEXT'] = $this->signed_number_text($active_delta);
+        $impact[$key]['SCORE_BEFORE_WIDTH'] = max(8, (int) round(($score_before / $max_score) * 100));
+        $impact[$key]['SCORE_AFTER_WIDTH'] = max(8, (int) round(($score_after / $max_score) * 100));
+        $impact[$key]['DELTA_CLASS'] = $this->preview_delta_class($score_delta);
+        $impact[$key]['DELTA_LABEL'] = $this->preview_delta_label($score_delta);
+        $impact[$key]['IMPACT_ORDER'] = $impact_order;
+        $impact_order++;
+    }
+
     return array_values($impact);
+}
+
+protected function build_preview_top_impact_rows(array $impact_rows)
+{
+    if (empty($impact_rows))
+    {
+        return [];
+    }
+
+    $best_relief = null;
+    $highest_load = null;
+    $most_out = null;
+    $most_in = null;
+
+    foreach ($impact_rows as $row)
+    {
+        $score_delta = isset($row['SCORE_DELTA']) ? (int) $row['SCORE_DELTA'] : 0;
+        $move_out = isset($row['MOVE_OUT_COUNT']) ? (int) $row['MOVE_OUT_COUNT'] : 0;
+        $move_in = isset($row['MOVE_IN_COUNT']) ? (int) $row['MOVE_IN_COUNT'] : 0;
+
+        if ($score_delta < 0 && ($best_relief === null || $score_delta < (int) $best_relief['SCORE_DELTA']))
+        {
+            $best_relief = $row;
+        }
+        if ($score_delta > 0 && ($highest_load === null || $score_delta > (int) $highest_load['SCORE_DELTA']))
+        {
+            $highest_load = $row;
+        }
+        if ($move_out > 0 && ($most_out === null || $move_out > (int) $most_out['MOVE_OUT_COUNT']))
+        {
+            $most_out = $row;
+        }
+        if ($move_in > 0 && ($most_in === null || $move_in > (int) $most_in['MOVE_IN_COUNT']))
+        {
+            $most_in = $row;
+        }
+    }
+
+    $rows = [];
+    if ($best_relief !== null)
+    {
+        $rows[] = [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TOP_RELIEF'),
+            'VALUE_TEXT' => (string) $best_relief['LABEL'],
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DELTA') . ': ' . (string) $best_relief['SCORE_DELTA_TEXT'],
+            'BADGE_LABEL' => (string) $best_relief['WORKLOAD_AFTER_LABEL'],
+            'BADGE_CLASS' => 'helpdesk-preview-delta-down',
+        ];
+    }
+    if ($highest_load !== null)
+    {
+        $rows[] = [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TOP_RECEIVING'),
+            'VALUE_TEXT' => (string) $highest_load['LABEL'],
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DELTA') . ': ' . (string) $highest_load['SCORE_DELTA_TEXT'],
+            'BADGE_LABEL' => (string) $highest_load['WORKLOAD_AFTER_LABEL'],
+            'BADGE_CLASS' => 'helpdesk-preview-delta-up',
+        ];
+    }
+    if ($most_out !== null)
+    {
+        $rows[] = [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TOP_MOVE_OUT'),
+            'VALUE_TEXT' => (string) $most_out['LABEL'],
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_OUT') . ': ' . (int) $most_out['MOVE_OUT_COUNT'],
+            'BADGE_LABEL' => (string) $most_out['WORKLOAD_BEFORE_LABEL'],
+            'BADGE_CLASS' => 'helpdesk-preview-delta-stable',
+        ];
+    }
+    if ($most_in !== null)
+    {
+        $rows[] = [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TOP_MOVE_IN'),
+            'VALUE_TEXT' => (string) $most_in['LABEL'],
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_IN') . ': ' . (int) $most_in['MOVE_IN_COUNT'],
+            'BADGE_LABEL' => (string) $most_in['WORKLOAD_AFTER_LABEL'],
+            'BADGE_CLASS' => 'helpdesk-preview-delta-stable',
+        ];
+    }
+
+    return $rows;
 }
 
 protected function preview_impact_base_row($assignee_key, array $assignee_load, $role = 'neutral')
@@ -1387,6 +1932,183 @@ protected function preview_impact_label($direction)
         default:
             return $this->user->lang('HELPDESK_QUEUE_PREVIEW_IMPACT_STABLE');
     }
+}
+
+
+protected function preview_delta_class($delta)
+{
+    if ((int) $delta < 0)
+    {
+        return 'helpdesk-preview-delta-down';
+    }
+    else if ((int) $delta > 0)
+    {
+        return 'helpdesk-preview-delta-up';
+    }
+
+    return 'helpdesk-preview-delta-stable';
+}
+
+protected function preview_delta_label($delta)
+{
+    if ((int) $delta < 0)
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DELTA_DOWN');
+    }
+    else if ((int) $delta > 0)
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DELTA_UP');
+    }
+
+    return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DELTA_STABLE');
+}
+
+protected function signed_number_text($value)
+{
+    $value = (int) $value;
+    if ($value > 0)
+    {
+        return '+' . $value;
+    }
+
+    return (string) $value;
+}
+
+protected function build_preview_comparison_summary(array $impact_rows)
+{
+    if (empty($impact_rows))
+    {
+        return [];
+    }
+
+    $improved = 0;
+    $heavier = 0;
+    $overload_before = 0;
+    $overload_after = 0;
+    $high_before = 0;
+    $high_after = 0;
+
+    foreach ($impact_rows as $row)
+    {
+        $score_before = isset($row['SCORE_BEFORE']) ? (int) $row['SCORE_BEFORE'] : 0;
+        $score_after = isset($row['SCORE_AFTER']) ? (int) $row['SCORE_AFTER'] : 0;
+        $before_meta = $this->workload_meta($score_before);
+        $after_meta = $this->workload_meta($score_after);
+        $before_class = isset($before_meta['class']) ? (string) $before_meta['class'] : 'helpdesk-workload-idle';
+        $after_class = isset($after_meta['class']) ? (string) $after_meta['class'] : 'helpdesk-workload-idle';
+
+        if ($score_after < $score_before)
+        {
+            $improved++;
+        }
+        else if ($score_after > $score_before)
+        {
+            $heavier++;
+        }
+
+        if ($before_class === 'helpdesk-workload-overload')
+        {
+            $overload_before++;
+        }
+        if ($after_class === 'helpdesk-workload-overload')
+        {
+            $overload_after++;
+        }
+        if (in_array($before_class, ['helpdesk-workload-high', 'helpdesk-workload-overload'], true))
+        {
+            $high_before++;
+        }
+        if (in_array($after_class, ['helpdesk-workload-high', 'helpdesk-workload-overload'], true))
+        {
+            $high_after++;
+        }
+    }
+
+    return [
+        [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_IMPROVED'),
+            'VALUE_TEXT' => $improved,
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_AFFECTED_PEOPLE'),
+            'BADGE_LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_BETTER'),
+            'BADGE_CLASS' => 'helpdesk-preview-delta-down',
+        ],
+        [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_HEAVIER'),
+            'VALUE_TEXT' => $heavier,
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_RECEIVING_PEOPLE'),
+            'BADGE_LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_MORE_LOAD'),
+            'BADGE_CLASS' => 'helpdesk-preview-delta-up',
+        ],
+        [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD'),
+            'VALUE_TEXT' => $overload_before . ' → ' . $overload_after,
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_BEFORE_AFTER'),
+            'BADGE_LABEL' => ($overload_after <= $overload_before) ? $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_BETTER') : $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_WORSE'),
+            'BADGE_CLASS' => ($overload_after <= $overload_before) ? 'helpdesk-preview-delta-down' : 'helpdesk-preview-delta-up',
+        ],
+        [
+            'LABEL' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_HIGH_LOAD'),
+            'VALUE_TEXT' => $high_before . ' → ' . $high_after,
+            'META_TEXT' => $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_BEFORE_AFTER'),
+            'BADGE_LABEL' => ($high_after <= $high_before) ? $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_BETTER') : $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_WORSE'),
+            'BADGE_CLASS' => ($high_after <= $high_before) ? 'helpdesk-preview-delta-down' : 'helpdesk-preview-delta-up',
+        ],
+    ];
+}
+
+protected function build_preview_distribution_rows(array $impact_rows)
+{
+    if (empty($impact_rows))
+    {
+        return [];
+    }
+
+    $levels = [
+        'helpdesk-workload-idle' => $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+        'helpdesk-workload-low' => $this->user->lang('HELPDESK_WORKLOAD_LOW'),
+        'helpdesk-workload-medium' => $this->user->lang('HELPDESK_WORKLOAD_MEDIUM'),
+        'helpdesk-workload-high' => $this->user->lang('HELPDESK_WORKLOAD_HIGH'),
+        'helpdesk-workload-overload' => $this->user->lang('HELPDESK_WORKLOAD_OVERLOAD'),
+    ];
+
+    $before = array_fill_keys(array_keys($levels), 0);
+    $after = array_fill_keys(array_keys($levels), 0);
+
+    foreach ($impact_rows as $row)
+    {
+        $before_class = isset($row['WORKLOAD_BEFORE_CLASS']) ? (string) $row['WORKLOAD_BEFORE_CLASS'] : 'helpdesk-workload-idle';
+        $after_class = isset($row['WORKLOAD_AFTER_CLASS']) ? (string) $row['WORKLOAD_AFTER_CLASS'] : 'helpdesk-workload-idle';
+
+        if (isset($before[$before_class]))
+        {
+            $before[$before_class]++;
+        }
+        if (isset($after[$after_class]))
+        {
+            $after[$after_class]++;
+        }
+    }
+
+    $max_count = max(1, max($before), max($after));
+    $rows = [];
+    foreach ($levels as $class => $label)
+    {
+        $before_count = isset($before[$class]) ? (int) $before[$class] : 0;
+        $after_count = isset($after[$class]) ? (int) $after[$class] : 0;
+        $delta = $after_count - $before_count;
+        $rows[] = [
+            'LABEL' => $label,
+            'WORKLOAD_CLASS' => $class,
+            'BEFORE_COUNT' => $before_count,
+            'AFTER_COUNT' => $after_count,
+            'BEFORE_WIDTH' => max(8, (int) round(($before_count / $max_count) * 100)),
+            'AFTER_WIDTH' => max(8, (int) round(($after_count / $max_count) * 100)),
+            'DELTA_TEXT' => $this->signed_number_text($delta),
+            'DELTA_CLASS' => $this->preview_delta_class($delta),
+        ];
+    }
+
+    return $rows;
 }
 
 protected function count_preview_sources(array $impact_rows)
