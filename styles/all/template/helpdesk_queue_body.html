@@ -177,11 +177,40 @@
                     <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_BALANCED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BALANCED}</a>
                     <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_OVERLOAD}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BUTTON}</a>
                     <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_CRITICAL}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_BUTTON}</a>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_PRIORITY_HIGH}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_HIGH_BUTTON}</a>
+                    <!-- IF S_HELPDESK_QUEUE_HAS_PRIORITY_FILTER -->
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_PRIORITY_FILTERED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_PRIORITY_FILTERED_BUTTON}</a>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_QUEUE_HAS_DEPARTMENT_AND_PRIORITY_FILTER -->
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_DEPARTMENT_PRIORITY}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENT_PRIORITY_BUTTON}</a>
+                    <!-- ENDIF -->
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_CLEANUP}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CLEANUP_BUTTON}</a>
+                    <!-- IF S_HELPDESK_QUEUE_HAS_ASSIGNEE_FILTER -->
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_ASSIGNEE}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_BUTTON}</a>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_QUEUE_HAS_ASSIGNEE_AND_PRIORITY_FILTER -->
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_ASSIGNEE_PRIORITY}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_PRIORITY_BUTTON}</a>
+                    <!-- ENDIF -->
                     <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_bulk">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
                     <!-- IF S_HELPDESK_QUEUE_HAS_DEPARTMENT_FILTER -->
                     <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_department">{L_HELPDESK_REDISTRIBUTION_APPLY_DEPARTMENT}</button>
                     <!-- ENDIF -->
                     <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_overload">{L_HELPDESK_REDISTRIBUTION_APPLY_OVERLOAD}</button>
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_critical">{L_HELPDESK_REDISTRIBUTION_APPLY_CRITICAL}</button>
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_priority_high">{L_HELPDESK_REDISTRIBUTION_APPLY_HIGH}</button>
+                    <!-- IF S_HELPDESK_QUEUE_HAS_PRIORITY_FILTER -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_priority_filtered">{L_HELPDESK_REDISTRIBUTION_APPLY_PRIORITY_FILTERED}</button>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_QUEUE_HAS_DEPARTMENT_AND_PRIORITY_FILTER -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_department_priority">{L_HELPDESK_REDISTRIBUTION_APPLY_DEPARTMENT_PRIORITY}</button>
+                    <!-- ENDIF -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_cleanup">{L_HELPDESK_REDISTRIBUTION_APPLY_CLEANUP}</button>
+                    <!-- IF S_HELPDESK_QUEUE_HAS_ASSIGNEE_FILTER -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_assignee">{L_HELPDESK_REDISTRIBUTION_APPLY_ASSIGNEE}</button>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_QUEUE_HAS_ASSIGNEE_AND_PRIORITY_FILTER -->
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_assignee_priority">{L_HELPDESK_REDISTRIBUTION_APPLY_ASSIGNEE_PRIORITY}</button>
+                    <!-- ENDIF -->
                     <button class="button button-primary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_balanced">{L_HELPDESK_REDISTRIBUTION_APPLY_BALANCED}</button>
                 </div>
             </div>
@@ -191,7 +220,7 @@
         <div class="panel bg1 helpdesk-queue-preview-box">
             <div class="inner">
                 <h4>{HELPDESK_QUEUE_PREVIEW_TITLE}</h4>
-                <p class="helpdesk-note">{HELPDESK_QUEUE_PREVIEW_EXPLAIN}<!-- IF S_HELPDESK_QUEUE_PREVIEW_OVERLOAD_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-up">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_CRITICAL_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-up">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_BADGE}</span><!-- ENDIF --></p>
+                <p class="helpdesk-note">{HELPDESK_QUEUE_PREVIEW_EXPLAIN}<!-- IF S_HELPDESK_QUEUE_PREVIEW_OVERLOAD_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-up">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_CRITICAL_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-up">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_PRIORITY_HIGH_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-stable">{L_HELPDESK_REDISTRIBUTION_PREVIEW_HIGH_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_PRIORITY_FILTERED_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-stable">{L_HELPDESK_REDISTRIBUTION_PREVIEW_PRIORITY_FILTERED_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_DEPARTMENT_PRIORITY_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-stable">{L_HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENT_PRIORITY_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_CLEANUP_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-down">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CLEANUP_BADGE}</span><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_PREVIEW_ASSIGNEE_MODE --> <span class="helpdesk-badge helpdesk-preview-delta-stable">{L_HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_BADGE}</span><!-- ENDIF --></p>
                 <div class="helpdesk-team-cards helpdesk-team-cards-compact">
                     <div class="helpdesk-team-card">
                         <strong>{HELPDESK_QUEUE_PREVIEW_COUNT}</strong>
@@ -430,9 +459,15 @@
             <div class="helpdesk-redistribution-bulk-actions">
                 <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_BALANCED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BALANCED}</a>
                     <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_OVERLOAD}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_OVERLOAD_BUTTON}</a>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_CRITICAL}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_BUTTON}</a>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_PRIORITY_HIGH}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_HIGH_BUTTON}</a>
+                    <!-- IF S_HELPDESK_QUEUE_HAS_ASSIGNEE_FILTER --><a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_ASSIGNEE}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_BUTTON}</a><!-- ENDIF -->
                 <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
                 <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
                 <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form" name="helpdesk_queue_action" value="apply_redistribution_overload">{L_HELPDESK_REDISTRIBUTION_APPLY_OVERLOAD}</button>
+                <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form" name="helpdesk_queue_action" value="apply_redistribution_critical">{L_HELPDESK_REDISTRIBUTION_APPLY_CRITICAL}</button>
+                <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form" name="helpdesk_queue_action" value="apply_redistribution_priority_high">{L_HELPDESK_REDISTRIBUTION_APPLY_HIGH}</button>
+                <!-- IF S_HELPDESK_QUEUE_HAS_ASSIGNEE_FILTER --><button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form" name="helpdesk_queue_action" value="apply_redistribution_assignee">{L_HELPDESK_REDISTRIBUTION_APPLY_ASSIGNEE}</button><!-- ENDIF -->
                 <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
             </div>
         </div>

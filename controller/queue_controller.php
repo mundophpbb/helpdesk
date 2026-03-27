@@ -106,7 +106,7 @@ class queue_controller
         }
 
         $preview_mode = (string) $this->request->variable('preview', '', true);
-        if (!in_array($preview_mode, ['', 'balanced', 'overload', 'critical'], true))
+        if (!in_array($preview_mode, ['', 'balanced', 'overload', 'critical', 'priority_high', 'priority_filtered', 'department_priority', 'cleanup', 'assignee', 'assignee_priority'], true))
         {
             $preview_mode = '';
         }
@@ -146,6 +146,30 @@ class queue_controller
         else if ($preview_mode === 'critical')
         {
             $preview_plan = $this->build_critical_preview_plan($balanced_redistribution);
+        }
+        else if ($preview_mode === 'priority_high')
+        {
+            $preview_plan = $this->build_priority_high_preview_plan($balanced_redistribution);
+        }
+        else if ($preview_mode === 'priority_filtered')
+        {
+            $preview_plan = $this->build_filtered_priority_preview_plan($balanced_redistribution, $filters['priority_key']);
+        }
+        else if ($preview_mode === 'department_priority')
+        {
+            $preview_plan = $this->build_department_priority_preview_plan($balanced_redistribution, $filters['department_key'], $filters['priority_key']);
+        }
+        else if ($preview_mode === 'cleanup')
+        {
+            $preview_plan = $this->build_cleanup_preview_plan($balanced_redistribution);
+        }
+        else if ($preview_mode === 'assignee')
+        {
+            $preview_plan = $this->build_assignee_preview_plan($balanced_redistribution, $filters['assigned_to']);
+        }
+        else if ($preview_mode === 'assignee_priority')
+        {
+            $preview_plan = $this->build_assignee_priority_preview_plan($balanced_redistribution, $filters['assigned_to'], $filters['priority_key']);
         }
         $preview_impact = ($preview_mode !== '') ? $this->build_balanced_preview_impact($preview_plan, $assignee_load) : [];
         $preview_summary = ($preview_mode !== '') ? $this->build_preview_comparison_summary($preview_impact) : [];
@@ -327,6 +351,12 @@ class queue_controller
             'U_HELPDESK_QUEUE_PREVIEW_BALANCED' => $this->queue_preview_url('balanced'),
             'U_HELPDESK_QUEUE_PREVIEW_OVERLOAD' => $this->queue_preview_url('overload'),
             'U_HELPDESK_QUEUE_PREVIEW_CRITICAL' => $this->queue_preview_url('critical'),
+            'U_HELPDESK_QUEUE_PREVIEW_PRIORITY_HIGH' => $this->queue_preview_url('priority_high'),
+            'U_HELPDESK_QUEUE_PREVIEW_PRIORITY_FILTERED' => $this->queue_preview_url('priority_filtered'),
+            'U_HELPDESK_QUEUE_PREVIEW_DEPARTMENT_PRIORITY' => $this->queue_preview_url('department_priority'),
+            'U_HELPDESK_QUEUE_PREVIEW_CLEANUP' => $this->queue_preview_url('cleanup'),
+            'U_HELPDESK_QUEUE_PREVIEW_ASSIGNEE' => $this->queue_preview_url('assignee'),
+            'U_HELPDESK_QUEUE_PREVIEW_ASSIGNEE_PRIORITY' => $this->queue_preview_url('assignee_priority'),
             'U_HELPDESK_QUEUE_PREVIEW_CLEAR' => $this->queue_preview_url(''),
             'HELPDESK_QUEUE_PREVIEW_TITLE' => $this->preview_title($preview_mode),
             'HELPDESK_QUEUE_PREVIEW_EXPLAIN' => $this->preview_explain($preview_mode),
@@ -345,7 +375,17 @@ class queue_controller
             'S_HELPDESK_QUEUE_PREVIEW_OVERLOAD_MODE' => ($preview_mode === 'overload'),
             'S_HELPDESK_QUEUE_PREVIEW_BALANCED_MODE' => ($preview_mode === 'balanced'),
             'S_HELPDESK_QUEUE_PREVIEW_CRITICAL_MODE' => ($preview_mode === 'critical'),
+            'S_HELPDESK_QUEUE_PREVIEW_PRIORITY_HIGH_MODE' => ($preview_mode === 'priority_high'),
+            'S_HELPDESK_QUEUE_PREVIEW_PRIORITY_FILTERED_MODE' => ($preview_mode === 'priority_filtered'),
+            'S_HELPDESK_QUEUE_PREVIEW_DEPARTMENT_PRIORITY_MODE' => ($preview_mode === 'department_priority'),
+            'S_HELPDESK_QUEUE_PREVIEW_CLEANUP_MODE' => ($preview_mode === 'cleanup'),
+            'S_HELPDESK_QUEUE_PREVIEW_ASSIGNEE_MODE' => ($preview_mode === 'assignee'),
+            'S_HELPDESK_QUEUE_PREVIEW_ASSIGNEE_PRIORITY_MODE' => ($preview_mode === 'assignee_priority'),
             'S_HELPDESK_QUEUE_HAS_DEPARTMENT_FILTER' => ($filters['department_key'] !== ''),
+            'S_HELPDESK_QUEUE_HAS_PRIORITY_FILTER' => ($filters['priority_key'] !== ''),
+            'S_HELPDESK_QUEUE_HAS_DEPARTMENT_AND_PRIORITY_FILTER' => ($filters['department_key'] !== '' && $filters['priority_key'] !== ''),
+            'S_HELPDESK_QUEUE_HAS_ASSIGNEE_FILTER' => ($filters['assigned_to'] !== ''),
+            'S_HELPDESK_QUEUE_HAS_ASSIGNEE_AND_PRIORITY_FILTER' => ($filters['assigned_to'] !== '' && $filters['priority_key'] !== ''),
             'HELPDESK_TEAM_ALERTS_EXPLAIN_TEXT' => sprintf($this->user->lang('HELPDESK_TEAM_ALERTS_EXPLAIN'), $this->alert_hours(), $this->alert_limit()),
             'S_HELPDESK_REPORT_HAS_DATA' => !empty($report['total']),
             'S_HELPDESK_CAN_QUEUE_ASSIGN' => $this->can_assign_any_queue($forum_ids),
@@ -586,7 +626,7 @@ class queue_controller
     protected function handle_queue_post_actions(array $forum_ids)
     {
         $action = $this->request->variable('helpdesk_queue_action', '', true);
-        if (!in_array($action, ['apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced', 'apply_redistribution_overload', 'apply_redistribution_department'], true))
+        if (!in_array($action, ['apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced', 'apply_redistribution_overload', 'apply_redistribution_department', 'apply_redistribution_critical', 'apply_redistribution_priority_high', 'apply_redistribution_priority_filtered', 'apply_redistribution_department_priority', 'apply_redistribution_cleanup', 'apply_redistribution_assignee', 'apply_redistribution_assignee_priority'], true))
         {
             return;
         }
@@ -681,7 +721,8 @@ class queue_controller
 
             if ((string) $filters['department_key'] === '')
             {
-                edirect($this->queue_redirect_url('invalid'));
+                
+edirect($this->queue_redirect_url('invalid'));
             }
 
             $all_rows = $this->load_ticket_rows($forum_ids);
@@ -704,7 +745,8 @@ class queue_controller
                 }
             }
 
-            edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department' : 'noop'));
+            
+edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department' : 'noop'));
         }
 
         if ($action === 'apply_redistribution_overload')
@@ -752,6 +794,345 @@ class queue_controller
 
             \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_overload' : 'noop'));
         }
+
+
+        if ($action === 'apply_redistribution_critical')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_critical_preview_plan($this->build_balanced_redistribution_plan($redistribution, $assignee_load));
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_CRITICAL')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_critical' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_priority_high')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_priority_high_preview_plan($this->build_balanced_redistribution_plan($redistribution, $assignee_load));
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_HIGH')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_priority_high' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_priority_filtered')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            if ((string) $filters['priority_key'] === '')
+            {
+                \redirect($this->queue_redirect_url('invalid'));
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_filtered_priority_preview_plan($this->build_balanced_redistribution_plan($redistribution, $assignee_load), $filters['priority_key']);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_PRIORITY_FILTERED')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_priority_filtered' : 'noop'));
+        }
+
+
+        if ($action === 'apply_redistribution_department_priority')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            if ((string) $filters['department_key'] === '' || (string) $filters['priority_key'] === '')
+            {
+                \redirect($this->queue_redirect_url('invalid'));
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_department_priority_preview_plan($this->build_balanced_redistribution_plan($redistribution, $assignee_load), $filters['department_key'], $filters['priority_key']);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_DEPARTMENT_PRIORITY')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department_priority' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_cleanup')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_cleanup_preview_plan($this->build_balanced_redistribution_plan($redistribution, $assignee_load));
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_CLEANUP')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_cleanup' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_assignee')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            if ((string) $filters['assigned_to'] === '')
+            {
+                \redirect($this->queue_redirect_url('invalid'));
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_assignee_preview_plan($this->build_balanced_redistribution_plan($redistribution, $assignee_load), $filters['assigned_to']);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_ASSIGNEE')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_assignee' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_assignee_priority')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            if ((string) $filters['assigned_to'] === '' || (string) $filters['priority_key'] === '')
+            {
+                \redirect($this->queue_redirect_url('invalid'));
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $balanced_plan = $this->build_balanced_redistribution_plan($redistribution, $assignee_load);
+            $plan = $this->build_assignee_priority_preview_plan($balanced_plan, $filters['assigned_to'], $filters['priority_key']);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_ASSIGNEE_PRIORITY')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_assignee_priority' : 'noop'));
+        }
+
 
         $items = $this->request->variable('redistribution_items', [0 => ''], true);
         if (!is_array($items))
@@ -936,6 +1317,20 @@ protected function queue_preview_url($preview = '')
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_OVERLOAD');
             case 'redistributed_department':
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_DEPARTMENT');
+            case 'redistributed_critical':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_CRITICAL');
+            case 'redistributed_priority_high':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_HIGH');
+            case 'redistributed_priority_filtered':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_PRIORITY_FILTERED');
+            case 'redistributed_department_priority':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_DEPARTMENT_PRIORITY');
+            case 'redistributed_cleanup':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_CLEANUP');
+            case 'redistributed_assignee':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_ASSIGNEE');
+            case 'redistributed_assignee_priority':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_ASSIGNEE_PRIORITY');
             case 'noop':
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_NOOP');
             case 'missing':
@@ -1492,6 +1887,132 @@ protected function build_critical_preview_plan(array $plan)
     return array_values($filtered);
 }
 
+protected function build_priority_high_preview_plan(array $plan)
+{
+    if (empty($plan))
+    {
+        return [];
+    }
+
+    $filtered = [];
+    foreach ($plan as $row)
+    {
+        $priority_tone = isset($row['PRIORITY_TONE']) ? (string) $row['PRIORITY_TONE'] : 'normal';
+        if (!in_array($priority_tone, ['high', 'critical'], true))
+        {
+            continue;
+        }
+
+        $filtered[] = $row;
+    }
+
+    return array_values($filtered);
+}
+
+protected function build_filtered_priority_preview_plan(array $plan, $priority_key)
+{
+    $priority_key = trim((string) $priority_key);
+    if (empty($plan) || $priority_key === '')
+    {
+        return [];
+    }
+
+    $priority_key = $this->normalize_priority($priority_key);
+    $filtered = [];
+    foreach ($plan as $row)
+    {
+        $row_priority = isset($row['PRIORITY_KEY']) ? $this->normalize_priority((string) $row['PRIORITY_KEY']) : '';
+        if ($row_priority !== $priority_key)
+        {
+            continue;
+        }
+
+        $row['S_PRIORITY_FILTERED_PICK'] = true;
+        $filtered[] = $row;
+    }
+
+    return array_values($filtered);
+}
+
+
+protected function build_department_priority_preview_plan(array $plan, $department_key, $priority_key)
+{
+    $department_key = $this->normalize_option_key($department_key);
+    $priority_key = $this->normalize_priority($priority_key);
+
+    if (empty($plan) || $department_key === '' || $priority_key === '')
+    {
+        return [];
+    }
+
+    $filtered = [];
+    foreach ($plan as $row)
+    {
+        $row_department = isset($row['DEPARTMENT_KEY']) ? $this->normalize_option_key((string) $row['DEPARTMENT_KEY']) : '';
+        $row_priority = isset($row['PRIORITY_KEY']) ? $this->normalize_priority((string) $row['PRIORITY_KEY']) : '';
+
+        if ($row_department !== $department_key || $row_priority !== $priority_key)
+        {
+            continue;
+        }
+
+        $row['S_DEPARTMENT_PRIORITY_PICK'] = true;
+        $filtered[] = $row;
+    }
+
+    return array_values($filtered);
+}
+
+protected function build_cleanup_preview_plan(array $plan)
+{
+    if (empty($plan))
+    {
+        return [];
+    }
+
+    $filtered = [];
+    foreach ($plan as $row)
+    {
+        $priority_tone = isset($row['PRIORITY_TONE']) ? (string) $row['PRIORITY_TONE'] : 'normal';
+        if (!in_array($priority_tone, ['low', 'normal'], true))
+        {
+            continue;
+        }
+
+        $row['S_CLEANUP_PICK'] = true;
+        $filtered[] = $row;
+    }
+
+    return array_values($filtered);
+}
+
+protected function build_assignee_preview_plan(array $plan, $assignee_key)
+{
+    $assignee_key = $this->sanitize_assignee($assignee_key);
+    if (empty($plan) || $assignee_key === '')
+    {
+        return [];
+    }
+
+    $filtered = [];
+    foreach ($plan as $row)
+    {
+        $source_key = isset($row['SOURCE_KEY']) ? $this->sanitize_assignee((string) $row['SOURCE_KEY']) : '';
+        $target_key = isset($row['TARGET_KEY']) ? $this->sanitize_assignee((string) $row['TARGET_KEY']) : '';
+
+        if ($source_key !== $assignee_key && $target_key !== $assignee_key)
+        {
+            continue;
+        }
+
+        $row['S_ASSIGNEE_SOURCE'] = ($source_key === $assignee_key);
+        $row['S_ASSIGNEE_TARGET'] = ($target_key === $assignee_key);
+        $filtered[] = $row;
+    }
+
+    return array_values($filtered);
+}
+
 protected function build_preview_department_rows(array $plan)
 {
     if (empty($plan))
@@ -1596,6 +2117,66 @@ protected function preview_title($preview_mode)
         return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_TITLE');
     }
 
+    if ((string) $preview_mode === 'priority_high')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_HIGH_TITLE');
+    }
+
+    if ((string) $preview_mode === 'priority_filtered')
+    {
+        $priority_key = trim((string) $this->request->variable('priority_key', '', true));
+        if ($priority_key !== '')
+        {
+            $priority_meta = $this->priority_meta($priority_key);
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_PRIORITY_FILTERED_TITLE'), $priority_meta['label']);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TITLE');
+    }
+
+    if ((string) $preview_mode === 'department_priority')
+    {
+        $department_key = $this->normalize_option_key($this->request->variable('department_key', '', true));
+        $priority_key = trim((string) $this->request->variable('priority_key', '', true));
+        if ($department_key !== '' && $priority_key !== '')
+        {
+            $department_label = $this->resolve_option_label($department_key, $this->department_options(), $department_key);
+            $priority_meta = $this->priority_meta($priority_key);
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENT_PRIORITY_TITLE'), $department_label, $priority_meta['label']);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TITLE');
+    }
+
+    if ((string) $preview_mode === 'cleanup')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_CLEANUP_TITLE');
+    }
+
+    if ((string) $preview_mode === 'assignee')
+    {
+        $assignee = $this->sanitize_assignee($this->request->variable('assigned_to', '', true));
+        if ($assignee !== '')
+        {
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_TITLE'), $assignee);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TITLE');
+    }
+
+    if ((string) $preview_mode === 'assignee_priority')
+    {
+        $assignee = $this->sanitize_assignee($this->request->variable('assigned_to', '', true));
+        $priority_key = trim((string) $this->request->variable('priority_key', '', true));
+        if ($assignee !== '' && $priority_key !== '')
+        {
+            $priority_meta = $this->priority_meta($priority_key);
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_PRIORITY_TITLE'), $assignee, $priority_meta['label']);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TITLE');
+    }
+
     return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_TITLE');
 }
 
@@ -1609,6 +2190,66 @@ protected function preview_explain($preview_mode)
     if ((string) $preview_mode === 'critical')
     {
         return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_CRITICAL_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'priority_high')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_HIGH_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'priority_filtered')
+    {
+        $priority_key = trim((string) $this->request->variable('priority_key', '', true));
+        if ($priority_key !== '')
+        {
+            $priority_meta = $this->priority_meta($priority_key);
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_PRIORITY_FILTERED_EXPLAIN'), $priority_meta['label']);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'department_priority')
+    {
+        $department_key = $this->normalize_option_key($this->request->variable('department_key', '', true));
+        $priority_key = trim((string) $this->request->variable('priority_key', '', true));
+        if ($department_key !== '' && $priority_key !== '')
+        {
+            $department_label = $this->resolve_option_label($department_key, $this->department_options(), $department_key);
+            $priority_meta = $this->priority_meta($priority_key);
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_DEPARTMENT_PRIORITY_EXPLAIN'), $department_label, $priority_meta['label']);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'cleanup')
+    {
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_CLEANUP_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'assignee')
+    {
+        $assignee = $this->sanitize_assignee($this->request->variable('assigned_to', '', true));
+        if ($assignee !== '')
+        {
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_EXPLAIN'), $assignee);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN');
+    }
+
+    if ((string) $preview_mode === 'assignee_priority')
+    {
+        $assignee = $this->sanitize_assignee($this->request->variable('assigned_to', '', true));
+        $priority_key = trim((string) $this->request->variable('priority_key', '', true));
+        if ($assignee !== '' && $priority_key !== '')
+        {
+            $priority_meta = $this->priority_meta($priority_key);
+            return sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_ASSIGNEE_PRIORITY_EXPLAIN'), $assignee, $priority_meta['label']);
+        }
+
+        return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN');
     }
 
     return $this->user->lang('HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN');
