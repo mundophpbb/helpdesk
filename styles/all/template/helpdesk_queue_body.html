@@ -160,19 +160,98 @@
         <!-- IF S_HELPDESK_REDIS_HAS_DATA -->
         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN -->
         <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" id="helpdesk-redistribution-bulk-form" class="helpdesk-redistribution-bulk-form">
-            <input type="hidden" name="helpdesk_queue_action" value="apply_redistribution_bulk" />
             <input type="hidden" name="qview" value="queue" />
             <input type="hidden" name="scope" value="redistribute" />
+            <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+            <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+            <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+            <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+            <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
             {S_FORM_TOKEN}
             <div class="helpdesk-redistribution-bulk-bar">
-                <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_BULK_EXPLAIN}<!-- IF HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT --> <span class="helpdesk-note-strong">({HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT} {L_HELPDESK_REDISTRIBUTION_SMART_READY})</span><!-- ENDIF --></p>
+                <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_BULK_EXPLAIN}<!-- IF HELPDESK_QUEUE_REDISTRIBUTION_BALANCED_COUNT --> <span class="helpdesk-note-strong">({HELPDESK_QUEUE_REDISTRIBUTION_BALANCED_COUNT} {L_HELPDESK_REDISTRIBUTION_BALANCED_READY})</span><!-- ELSEIF HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT --> <span class="helpdesk-note-strong">({HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT} {L_HELPDESK_REDISTRIBUTION_SMART_READY})</span><!-- ENDIF --></p>
                 <div class="helpdesk-redistribution-bulk-actions">
+                    <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-balanced="1">{L_HELPDESK_REDISTRIBUTION_SELECT_BALANCED}</button>
                     <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
                     <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
-                    <button class="button button-secondary" type="submit">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_BALANCED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BALANCED}</a>
+                    <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_bulk">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
+                    <button class="button button-primary" type="submit" name="helpdesk_queue_action" value="apply_redistribution_balanced">{L_HELPDESK_REDISTRIBUTION_APPLY_BALANCED}</button>
                 </div>
             </div>
         </form>
+        <!-- ENDIF -->
+        <!-- IF S_HELPDESK_QUEUE_PREVIEW -->
+        <div class="panel bg1 helpdesk-queue-preview-box">
+            <div class="inner">
+                <h4>{L_HELPDESK_REDISTRIBUTION_PREVIEW_TITLE}</h4>
+                <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_PREVIEW_EXPLAIN}</p>
+                <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                    <div class="helpdesk-team-card">
+                        <strong>{HELPDESK_QUEUE_PREVIEW_COUNT}</strong>
+                        <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_MOVES}</span>
+                    </div>
+                    <div class="helpdesk-team-card">
+                        <strong>{HELPDESK_QUEUE_PREVIEW_SOURCE_COUNT}</strong>
+                        <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_SOURCES}</span>
+                    </div>
+                    <div class="helpdesk-team-card">
+                        <strong>{HELPDESK_QUEUE_PREVIEW_TARGET_COUNT}</strong>
+                        <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_TARGETS}</span>
+                    </div>
+                </div>
+
+                <!-- IF .helpdesk_preview_impact_rows -->
+                <div class="helpdesk-team-load-grid helpdesk-preview-impact-grid">
+                    <!-- BEGIN helpdesk_preview_impact_rows -->
+                    <div class="helpdesk-team-load-card helpdesk-preview-impact-card">
+                        <div class="helpdesk-team-load-head">
+                            <strong>{helpdesk_preview_impact_rows.LABEL}</strong>
+                            <span class="helpdesk-badge {helpdesk_preview_impact_rows.WORKLOAD_AFTER_CLASS}">{helpdesk_preview_impact_rows.WORKLOAD_AFTER_LABEL}</span>
+                        </div>
+                        <div class="helpdesk-team-load-meta">
+                            <span>{L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_preview_impact_rows.SCORE_BEFORE} → {helpdesk_preview_impact_rows.SCORE_AFTER}</span>
+                            <span>{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}: {helpdesk_preview_impact_rows.ACTIVE_BEFORE} → {helpdesk_preview_impact_rows.ACTIVE_AFTER}</span>
+                            <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_OUT}: {helpdesk_preview_impact_rows.MOVE_OUT_COUNT}</span>
+                            <span>{L_HELPDESK_REDISTRIBUTION_PREVIEW_IN}: {helpdesk_preview_impact_rows.MOVE_IN_COUNT}</span>
+                            <span>{helpdesk_preview_impact_rows.IMPACT_LABEL}</span>
+                        </div>
+                    </div>
+                    <!-- END helpdesk_preview_impact_rows -->
+                </div>
+                <!-- ENDIF -->
+
+                <!-- IF .helpdesk_redistribution_preview_rows -->
+                <div class="helpdesk-queue-preview-list">
+                    <ul class="topiclist forums">
+                        <!-- BEGIN helpdesk_redistribution_preview_rows -->
+                        <li class="row">
+                            <dl>
+                                <dt>
+                                    <a href="{helpdesk_redistribution_preview_rows.U_TOPIC}">{helpdesk_redistribution_preview_rows.TOPIC_TITLE}</a><br />
+                                    <span>{helpdesk_redistribution_preview_rows.DEPARTMENT_LABEL} • {helpdesk_redistribution_preview_rows.PRIORITY_LABEL}</span>
+                                </dt>
+                                <dd>{helpdesk_redistribution_preview_rows.SOURCE_LABEL} → {helpdesk_redistribution_preview_rows.TARGET_LABEL}</dd>
+                            </dl>
+                        </li>
+                        <!-- END helpdesk_redistribution_preview_rows -->
+                    </ul>
+                </div>
+                <!-- ENDIF -->
+
+                <p class="helpdesk-note">
+                    <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_CLEAR}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_HIDE}</a>
+                </p>
+            </div>
+        </div>
+        <!-- ELSEIF S_HELPDESK_QUEUE_PREVIEW_EMPTY -->
+        <div class="panel bg1 helpdesk-queue-preview-box">
+            <div class="inner">
+                <h4>{L_HELPDESK_REDISTRIBUTION_PREVIEW_TITLE}</h4>
+                <p class="helpdesk-note">{L_HELPDESK_REDISTRIBUTION_PREVIEW_EMPTY}</p>
+                <p><a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_CLEAR}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_HIDE}</a></p>
+            </div>
+        </div>
         <!-- ENDIF -->
         <div class="helpdesk-team-load-grid">
             <!-- BEGIN helpdesk_redistribution_rows -->
@@ -181,14 +260,16 @@
                     <div class="helpdesk-redistribution-head-main">
                         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN -->
                         <label class="helpdesk-redistribution-check">
-                            <input type="checkbox" name="redistribution_items[]" value="{helpdesk_redistribution_rows.SELECTION_VALUE}" form="helpdesk-redistribution-bulk-form" <!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->data-helpdesk-smart="1" checked="checked"<!-- ELSE -->data-helpdesk-smart="0"<!-- ENDIF --> />
+                            <input type="checkbox" name="redistribution_items[]" value="{helpdesk_redistribution_rows.SELECTION_VALUE}" form="helpdesk-redistribution-bulk-form" data-helpdesk-smart="<!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->1<!-- ELSE -->0<!-- ENDIF -->" data-helpdesk-balanced="<!-- IF helpdesk_redistribution_rows.S_BALANCED_PICK -->1<!-- ELSE -->0<!-- ENDIF -->" <!-- IF helpdesk_redistribution_rows.S_BALANCED_PICK -->checked="checked"<!-- ELSEIF helpdesk_redistribution_rows.S_SMART_PICK -->checked="checked"<!-- ENDIF --> />
                             <span>{L_HELPDESK_REDISTRIBUTION_SELECT}</span>
                         </label>
                         <!-- ENDIF -->
                         <strong><a href="{helpdesk_redistribution_rows.U_TOPIC}">{helpdesk_redistribution_rows.TOPIC_TITLE}</a></strong>
                     </div>
                     <span class="helpdesk-badge {helpdesk_redistribution_rows.PRIORITY_CLASS}">{helpdesk_redistribution_rows.PRIORITY_LABEL}</span>
-                    <!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->
+                    <!-- IF helpdesk_redistribution_rows.S_BALANCED_PICK -->
+                    <span class="helpdesk-badge helpdesk-balanced-pick-badge">{L_HELPDESK_REDISTRIBUTION_BALANCED_BADGE}</span>
+                    <!-- ELSEIF helpdesk_redistribution_rows.S_SMART_PICK -->
                     <span class="helpdesk-badge helpdesk-smart-pick-badge">{L_HELPDESK_REDISTRIBUTION_SMART_BADGE}</span>
                     <!-- ENDIF -->
                 </div>
@@ -197,7 +278,9 @@
                     <span>{L_HELPDESK_REDISTRIBUTION_TO}: {helpdesk_redistribution_rows.TARGET_LABEL} <span class="helpdesk-badge {helpdesk_redistribution_rows.TARGET_WORKLOAD_CLASS}">{helpdesk_redistribution_rows.TARGET_WORKLOAD_LABEL}</span> ({L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_redistribution_rows.TARGET_SCORE})</span>
                     <span>{helpdesk_redistribution_rows.DEPARTMENT_LABEL}</span>
                     <span>{helpdesk_redistribution_rows.SUGGESTION_TEXT}</span>
-                    <!-- IF helpdesk_redistribution_rows.S_SMART_PICK -->
+                    <!-- IF helpdesk_redistribution_rows.S_BALANCED_PICK -->
+                    <span class="helpdesk-redistribution-smart-note">{helpdesk_redistribution_rows.BALANCED_REASON_TEXT}</span>
+                    <!-- ELSEIF helpdesk_redistribution_rows.S_SMART_PICK -->
                     <span class="helpdesk-redistribution-smart-note">{helpdesk_redistribution_rows.SMART_REASON_TEXT}</span>
                     <!-- ENDIF -->
                 </div>
@@ -222,6 +305,7 @@
         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN -->
         <div class="helpdesk-redistribution-bulk-bar helpdesk-redistribution-bulk-bar-bottom">
             <div class="helpdesk-redistribution-bulk-actions">
+                <a class="button button-secondary" href="{U_HELPDESK_QUEUE_PREVIEW_BALANCED}">{L_HELPDESK_REDISTRIBUTION_PREVIEW_BALANCED}</a>
                 <button class="button button-secondary" type="button" data-helpdesk-redistribution-select-smart="1">{L_HELPDESK_REDISTRIBUTION_SELECT_SMART}</button>
                 <button class="button button-secondary" type="button" data-helpdesk-redistribution-clear="1">{L_HELPDESK_REDISTRIBUTION_CLEAR_SELECTION}</button>
                 <button class="button button-secondary" type="submit" form="helpdesk-redistribution-bulk-form">{L_HELPDESK_REDISTRIBUTION_APPLY_SELECTED}</button>
@@ -452,6 +536,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var smartButtons = Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-redistribution-select-smart]'));
+    var balancedButtons = Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-redistribution-select-balanced]'));
     var clearButtons = Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-redistribution-clear]'));
     var checkboxes = Array.prototype.slice.call(document.querySelectorAll('input[name="redistribution_items[]"]'));
 
@@ -463,6 +548,14 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function () {
             checkboxes.forEach(function (checkbox) {
                 checkbox.checked = checkbox.getAttribute('data-helpdesk-smart') === '1';
+            });
+        });
+    });
+
+    balancedButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+            checkboxes.forEach(function (checkbox) {
+                checkbox.checked = checkbox.getAttribute('data-helpdesk-balanced') === '1';
             });
         });
     });

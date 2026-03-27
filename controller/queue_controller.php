@@ -105,6 +105,12 @@ class queue_controller
             $filters['scope'] = 'my';
         }
 
+        $preview_mode = (string) $this->request->variable('preview', '', true);
+        if (!in_array($preview_mode, ['', 'balanced'], true))
+        {
+            $preview_mode = '';
+        }
+
         $rows = $this->load_ticket_rows($forum_ids);
         $counts = $this->build_counts($rows);
         $filtered_rows = $this->filter_rows($rows, $filters);
@@ -113,7 +119,23 @@ class queue_controller
         $assignee_load = $this->build_assignee_load($rows);
         $my_workload = $this->current_user_workload($assignee_load);
         $redistribution = $this->build_redistribution_suggestions($rows, $assignee_load);
+        $balanced_redistribution = $this->build_balanced_redistribution_plan($redistribution, $assignee_load);
+        $balanced_index = [];
+        foreach ($balanced_redistribution as $balanced_row)
+        {
+            $balanced_index[isset($balanced_row['CANDIDATE_KEY']) ? (string) $balanced_row['CANDIDATE_KEY'] : ''] = true;
+        }
+        foreach ($redistribution as &$redistribution_row)
+        {
+            $candidate_key = isset($redistribution_row['CANDIDATE_KEY']) ? (string) $redistribution_row['CANDIDATE_KEY'] : '';
+            $redistribution_row['S_BALANCED_PICK'] = ($candidate_key !== '' && isset($balanced_index[$candidate_key]));
+            $redistribution_row['BALANCED_REASON_TEXT'] = !empty($redistribution_row['S_BALANCED_PICK']) ? $this->balanced_redistribution_reason($redistribution_row) : '';
+        }
+        unset($redistribution_row);
         $smart_redistribution_count = $this->count_smart_redistribution($redistribution);
+        $balanced_redistribution_count = $this->count_balanced_redistribution($redistribution);
+        $preview_plan = ($preview_mode === 'balanced') ? $balanced_redistribution : [];
+        $preview_impact = ($preview_mode === 'balanced') ? $this->build_balanced_preview_impact($preview_plan, $assignee_load) : [];
 
         foreach ($this->forum_info($forum_ids) as $forum)
         {
@@ -209,6 +231,14 @@ class queue_controller
         {
             $this->template->assign_block_vars('helpdesk_redistribution_rows', $redistribution_row);
         }
+        foreach ($preview_plan as $preview_row)
+        {
+            $this->template->assign_block_vars('helpdesk_redistribution_preview_rows', $preview_row);
+        }
+        foreach ($preview_impact as $impact_row)
+        {
+            $this->template->assign_block_vars('helpdesk_preview_impact_rows', $impact_row);
+        }
 
         $base_queue_url = $this->helper->route('mundophpbb_helpdesk_queue_controller');
 
@@ -233,6 +263,10 @@ class queue_controller
             'HELPDESK_QUEUE_OVERLOADED_COUNT' => $counts['overloaded'],
             'HELPDESK_QUEUE_REDISTRIBUTION_COUNT' => $counts['redistribute'],
             'HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT' => $smart_redistribution_count,
+            'HELPDESK_QUEUE_REDISTRIBUTION_BALANCED_COUNT' => $balanced_redistribution_count,
+            'HELPDESK_QUEUE_PREVIEW_COUNT' => count($preview_plan),
+            'HELPDESK_QUEUE_PREVIEW_SOURCE_COUNT' => $this->count_preview_sources($preview_impact),
+            'HELPDESK_QUEUE_PREVIEW_TARGET_COUNT' => $this->count_preview_targets($preview_impact),
             'HELPDESK_QUEUE_MY_COUNT' => $counts['my'],
             'HELPDESK_QUEUE_MY_OVERDUE_COUNT' => $counts['my_overdue'],
             'HELPDESK_QUEUE_MY_STAFF_REPLY_COUNT' => $counts['my_staff_reply'],
@@ -247,9 +281,14 @@ class queue_controller
             'HELPDESK_ALERT_HOURS' => $this->alert_hours(),
             'HELPDESK_ALERT_LIMIT' => $this->alert_limit(),
             'HELPDESK_FILTER_SCOPE' => $filters['scope'],
+            'HELPDESK_FILTER_FORUM_ID' => (int) $filters['forum_id'],
+            'HELPDESK_FILTER_STATUS' => $filters['status_key'],
+            'HELPDESK_FILTER_DEPARTMENT' => $filters['department_key'],
             'HELPDESK_FILTER_PRIORITY' => $filters['priority_key'],
             'HELPDESK_FILTER_ASSIGNED_TO' => $filters['assigned_to'],
             'U_HELPDESK_TEAM_QUEUE' => $base_queue_url,
+            'U_HELPDESK_QUEUE_PREVIEW_BALANCED' => $this->queue_preview_url('balanced'),
+            'U_HELPDESK_QUEUE_PREVIEW_CLEAR' => $this->queue_preview_url(''),
             'U_HELPDESK_TEAM_QUEUE_RESET' => $base_queue_url,
             'U_HELPDESK_TEAM_QUEUE_QUEUE' => $base_queue_url . '?qview=queue',
             'U_HELPDESK_TEAM_QUEUE_REPORTS' => $base_queue_url . '?qview=reports',
@@ -258,6 +297,8 @@ class queue_controller
             'S_HELPDESK_QUEUE_HAS_RESULTS' => !empty($filtered_rows),
             'S_HELPDESK_ASSIGNEE_LOAD_HAS_DATA' => !empty($assignee_load),
             'S_HELPDESK_REDIS_HAS_DATA' => !empty($redistribution),
+            'S_HELPDESK_QUEUE_PREVIEW' => ($preview_mode === 'balanced' && !empty($preview_plan)),
+            'S_HELPDESK_QUEUE_PREVIEW_EMPTY' => ($preview_mode === 'balanced' && empty($preview_plan)),
             'HELPDESK_TEAM_ALERTS_EXPLAIN_TEXT' => sprintf($this->user->lang('HELPDESK_TEAM_ALERTS_EXPLAIN'), $this->alert_hours(), $this->alert_limit()),
             'S_HELPDESK_REPORT_HAS_DATA' => !empty($report['total']),
             'S_HELPDESK_CAN_QUEUE_ASSIGN' => $this->can_assign_any_queue($forum_ids),
@@ -498,7 +539,7 @@ class queue_controller
     protected function handle_queue_post_actions(array $forum_ids)
     {
         $action = $this->request->variable('helpdesk_queue_action', '', true);
-        if (!in_array($action, ['apply_redistribution', 'apply_redistribution_bulk'], true))
+        if (!in_array($action, ['apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced'], true))
         {
             return;
         }
@@ -521,6 +562,51 @@ class queue_controller
 
             $updated = $this->apply_queue_redistribution((int) $topic_id, (int) $forum_id, (string) $target_assignee);
             \redirect($this->queue_redirect_url($updated ? 'redistributed' : 'noop'));
+        }
+
+        if ($action === 'apply_redistribution_balanced')
+        {
+            $filters = [
+                'scope' => $this->request->variable('scope', 'redistribute', true),
+                'forum_id' => $this->request->variable('forum_id', 0),
+                'status_key' => $this->request->variable('status_key', '', true),
+                'department_key' => $this->request->variable('department_key', '', true),
+                'priority_key' => $this->request->variable('priority_key', '', true),
+                'mine' => $this->request->variable('mine', 0),
+                'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+            ];
+
+            if (!in_array($filters['scope'], ['all', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            {
+                $filters['scope'] = 'redistribute';
+            }
+
+            if ($filters['mine'])
+            {
+                $filters['scope'] = 'my';
+            }
+
+            $all_rows = $this->load_ticket_rows($forum_ids);
+            $scope_rows = $this->filter_rows($all_rows, $filters);
+            $assignee_load = $this->build_assignee_load($all_rows);
+            $redistribution = $this->build_redistribution_suggestions($scope_rows, $assignee_load);
+            $plan = $this->build_balanced_redistribution_plan($redistribution, $assignee_load);
+
+            $updated_count = 0;
+            foreach ($plan as $plan_row)
+            {
+                if ($this->apply_queue_redistribution(
+                    isset($plan_row['TOPIC_ID']) ? (int) $plan_row['TOPIC_ID'] : 0,
+                    isset($plan_row['FORUM_ID']) ? (int) $plan_row['FORUM_ID'] : 0,
+                    isset($plan_row['TARGET_KEY']) ? (string) $plan_row['TARGET_KEY'] : '',
+                    (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION_BALANCED')
+                ))
+                {
+                    $updated_count++;
+                }
+            }
+
+            \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_balanced' : 'noop'));
         }
 
         $items = $this->request->variable('redistribution_items', [0 => ''], true);
@@ -561,11 +647,12 @@ class queue_controller
         \redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_bulk' : 'noop'));
     }
 
-    protected function apply_queue_redistribution($topic_id, $forum_id, $target_assignee)
+    protected function apply_queue_redistribution($topic_id, $forum_id, $target_assignee, $reason_text = '')
     {
         $topic_id = (int) $topic_id;
         $forum_id = (int) $forum_id;
         $target_assignee = $this->sanitize_assignee($target_assignee);
+        $reason_text = trim((string) $reason_text);
 
         if ($topic_id <= 0 || $forum_id <= 0 || $target_assignee === '')
         {
@@ -614,7 +701,7 @@ class queue_controller
         ];
         if ($this->logs_support_reason())
         {
-            $log_sql['reason_text'] = (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION');
+            $log_sql['reason_text'] = ($reason_text !== '') ? $reason_text : (string) $this->user->lang('HELPDESK_AUTO_REASON_REDISTRIBUTION');
         }
         $this->db->sql_query('INSERT INTO ' . $this->logs_table() . ' ' . $this->db->sql_build_array('INSERT', $log_sql));
 
@@ -655,6 +742,41 @@ class queue_controller
         return $this->helper->route('mundophpbb_helpdesk_queue_controller') . (!empty($pairs) ? '?' . implode('&', $pairs) : '');
     }
 
+
+protected function queue_preview_url($preview = '')
+{
+    $params = [
+        'qview' => (string) $this->request->variable('qview', 'queue', true),
+        'scope' => (string) $this->request->variable('scope', 'redistribute', true),
+        'forum_id' => (int) $this->request->variable('forum_id', 0),
+        'status_key' => (string) $this->request->variable('status_key', '', true),
+        'department_key' => (string) $this->request->variable('department_key', '', true),
+        'priority_key' => (string) $this->request->variable('priority_key', '', true),
+        'assigned_to' => (string) $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
+    ];
+
+    if ((string) $preview !== '')
+    {
+        $params['preview'] = (string) $preview;
+    }
+
+    $pairs = [];
+    foreach ($params as $key => $value)
+    {
+        if ($key === 'forum_id' && (int) $value <= 0)
+        {
+            continue;
+        }
+        if ($key !== 'forum_id' && (string) $value === '' && !in_array($key, ['qview', 'scope'], true))
+        {
+            continue;
+        }
+        $pairs[] = rawurlencode((string) $key) . '=' . rawurlencode((string) $value);
+    }
+
+    return $this->helper->route('mundophpbb_helpdesk_queue_controller') . (!empty($pairs) ? '?' . implode('&', $pairs) : '');
+}
+
     protected function queue_notice_text()
     {
         $notice = (string) $this->request->variable('queue_notice', '', true);
@@ -664,6 +786,8 @@ class queue_controller
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED');
             case 'redistributed_bulk':
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_BULK');
+            case 'redistributed_balanced':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_REDISTRIBUTED_BALANCED');
             case 'noop':
                 return $this->user->lang('HELPDESK_QUEUE_NOTICE_NOOP');
             case 'missing':
@@ -923,6 +1047,7 @@ class queue_controller
                     break;
                 }
 
+                $redistribution_rank = $this->redistribution_rank($ticket_row);
                 $is_smart_pick = $this->is_smart_redistribution_pick($ticket_row, $target);
 $suggestions[] = [
     'TOPIC_ID' => (int) $ticket_row['TOPIC_ID'],
@@ -946,8 +1071,12 @@ $suggestions[] = [
     'UPDATED_AT' => isset($ticket_row['UPDATED_AT']) ? (string) $ticket_row['UPDATED_AT'] : '',
     'SUGGESTION_TEXT' => sprintf($this->user->lang('HELPDESK_REDISTRIBUTION_REASON_TEXT'), isset($ticket_row['PRIORITY_LABEL']) ? (string) $ticket_row['PRIORITY_LABEL'] : '', isset($ticket_row['UPDATED_AT']) ? (string) $ticket_row['UPDATED_AT'] : ''),
     'SELECTION_VALUE' => (int) $ticket_row['TOPIC_ID'] . '|' . (isset($ticket_row['FORUM_ID']) ? (int) $ticket_row['FORUM_ID'] : 0) . '|' . rawurlencode((string) $target['KEY']),
+    'REDISTRIBUTION_RANK' => $redistribution_rank,
+    'CANDIDATE_KEY' => (int) $ticket_row['TOPIC_ID'] . '|' . (isset($ticket_row['FORUM_ID']) ? (int) $ticket_row['FORUM_ID'] : 0) . '|' . (string) $target['KEY'],
     'S_SMART_PICK' => $is_smart_pick,
     'SMART_REASON_TEXT' => $is_smart_pick ? $this->smart_redistribution_reason($ticket_row, $target) : '',
+    'S_BALANCED_PICK' => false,
+    'BALANCED_REASON_TEXT' => '',
 ];
 
 
@@ -976,6 +1105,334 @@ protected function count_smart_redistribution(array $suggestions)
 
     return $count;
 }
+
+
+protected function count_balanced_redistribution(array $suggestions)
+{
+    $count = 0;
+    foreach ($suggestions as $suggestion)
+    {
+        if (!empty($suggestion['S_BALANCED_PICK']))
+        {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
+protected function build_balanced_redistribution_plan(array $suggestions, array $assignee_load)
+{
+    if (empty($suggestions) || empty($assignee_load))
+    {
+        return [];
+    }
+
+    $source_limits = [];
+    $target_capacity = [];
+    foreach ($assignee_load as $assignee_key => $load_row)
+    {
+        $workload_key = isset($load_row['WORKLOAD_KEY']) ? (string) $load_row['WORKLOAD_KEY'] : '';
+        $score = isset($load_row['SCORE']) ? (int) $load_row['SCORE'] : 0;
+
+        if ($workload_key === 'overload')
+        {
+            $source_limits[$assignee_key] = max(2, min(4, (int) ceil(max(0, $score - 12) / 4) + 1));
+        }
+        else if ($workload_key === 'high')
+        {
+            $source_limits[$assignee_key] = 1;
+        }
+
+        $capacity = 0;
+        if ($workload_key === 'idle')
+        {
+            $capacity = 2;
+        }
+        else if ($workload_key === 'low')
+        {
+            $capacity = 1;
+        }
+        else if ($workload_key === 'medium' && $score <= 6)
+        {
+            $capacity = 1;
+        }
+
+        if ($capacity > 0)
+        {
+            $target_capacity[$assignee_key] = $capacity;
+        }
+    }
+
+    if (empty($source_limits) || empty($target_capacity))
+    {
+        return [];
+    }
+
+    usort($suggestions, function ($a, $b) {
+        $smartA = !empty($a['S_SMART_PICK']) ? 1 : 0;
+        $smartB = !empty($b['S_SMART_PICK']) ? 1 : 0;
+        if ($smartA !== $smartB)
+        {
+            return ($smartA > $smartB) ? -1 : 1;
+        }
+
+        $sourceScoreA = isset($a['SOURCE_SCORE']) ? (int) $a['SOURCE_SCORE'] : 0;
+        $sourceScoreB = isset($b['SOURCE_SCORE']) ? (int) $b['SOURCE_SCORE'] : 0;
+        if ($sourceScoreA !== $sourceScoreB)
+        {
+            return ($sourceScoreA > $sourceScoreB) ? -1 : 1;
+        }
+
+        $targetScoreA = isset($a['TARGET_SCORE']) ? (int) $a['TARGET_SCORE'] : 0;
+        $targetScoreB = isset($b['TARGET_SCORE']) ? (int) $b['TARGET_SCORE'] : 0;
+        if ($targetScoreA !== $targetScoreB)
+        {
+            return ($targetScoreA < $targetScoreB) ? -1 : 1;
+        }
+
+        $rankA = isset($a['REDISTRIBUTION_RANK']) ? (int) $a['REDISTRIBUTION_RANK'] : 99;
+        $rankB = isset($b['REDISTRIBUTION_RANK']) ? (int) $b['REDISTRIBUTION_RANK'] : 99;
+        if ($rankA !== $rankB)
+        {
+            return ($rankA < $rankB) ? -1 : 1;
+        }
+
+        $updatedA = isset($a['UPDATED_AT']) ? strtotime((string) $a['UPDATED_AT']) : 0;
+        $updatedB = isset($b['UPDATED_AT']) ? strtotime((string) $b['UPDATED_AT']) : 0;
+        if ($updatedA !== $updatedB)
+        {
+            return ($updatedA < $updatedB) ? -1 : 1;
+        }
+
+        return ((int) $a['TOPIC_ID'] < (int) $b['TOPIC_ID']) ? -1 : 1;
+    });
+
+    $plan = [];
+    $seen_topics = [];
+
+    foreach ([true, false] as $smart_only)
+    {
+        foreach ($suggestions as $suggestion)
+        {
+            $source_key = isset($suggestion['SOURCE_KEY']) ? (string) $suggestion['SOURCE_KEY'] : '';
+            $target_key = isset($suggestion['TARGET_KEY']) ? (string) $suggestion['TARGET_KEY'] : '';
+            $topic_id = isset($suggestion['TOPIC_ID']) ? (int) $suggestion['TOPIC_ID'] : 0;
+            $rank = isset($suggestion['REDISTRIBUTION_RANK']) ? (int) $suggestion['REDISTRIBUTION_RANK'] : 99;
+            $is_smart = !empty($suggestion['S_SMART_PICK']);
+
+            if ($source_key === '' || $target_key === '' || $topic_id <= 0)
+            {
+                continue;
+            }
+
+            if ($smart_only && !$is_smart)
+            {
+                continue;
+            }
+
+            if (!$smart_only)
+            {
+                if ($is_smart || $rank > 1)
+                {
+                    continue;
+                }
+            }
+
+            if (empty($source_limits[$source_key]) || empty($target_capacity[$target_key]) || isset($seen_topics[$topic_id]))
+            {
+                continue;
+            }
+
+            $plan[] = $suggestion;
+            $seen_topics[$topic_id] = true;
+            $source_limits[$source_key]--;
+            $target_capacity[$target_key]--;
+
+            if ($source_limits[$source_key] <= 0)
+            {
+                unset($source_limits[$source_key]);
+            }
+            if ($target_capacity[$target_key] <= 0)
+            {
+                unset($target_capacity[$target_key]);
+            }
+
+            if (empty($source_limits) || empty($target_capacity))
+            {
+                break 2;
+            }
+        }
+    }
+
+    return $plan;
+}
+
+
+protected function build_balanced_preview_impact(array $plan, array $assignee_load)
+{
+    if (empty($plan))
+    {
+        return [];
+    }
+
+    $impact = [];
+    foreach ($plan as $row)
+    {
+        $source_key = isset($row['SOURCE_KEY']) ? (string) $row['SOURCE_KEY'] : '';
+        $target_key = isset($row['TARGET_KEY']) ? (string) $row['TARGET_KEY'] : '';
+
+        if ($source_key !== '')
+        {
+            if (!isset($impact[$source_key]))
+            {
+                $impact[$source_key] = $this->preview_impact_base_row($source_key, $assignee_load, 'source');
+            }
+            else if ($impact[$source_key]['ROLE'] === 'target')
+            {
+                $impact[$source_key]['ROLE'] = 'both';
+            }
+            $impact[$source_key]['MOVE_OUT_COUNT']++;
+        }
+
+        if ($target_key !== '')
+        {
+            if (!isset($impact[$target_key]))
+            {
+                $impact[$target_key] = $this->preview_impact_base_row($target_key, $assignee_load, 'target');
+            }
+            else if ($impact[$target_key]['ROLE'] === 'source')
+            {
+                $impact[$target_key]['ROLE'] = 'both';
+            }
+            $impact[$target_key]['MOVE_IN_COUNT']++;
+        }
+    }
+
+    foreach ($impact as $key => $row)
+    {
+        $before_count = isset($row['ACTIVE_BEFORE']) ? (int) $row['ACTIVE_BEFORE'] : 0;
+        $after_count = max(0, $before_count - (int) $row['MOVE_OUT_COUNT'] + (int) $row['MOVE_IN_COUNT']);
+        $score_before = isset($row['SCORE_BEFORE']) ? (int) $row['SCORE_BEFORE'] : 0;
+        $score_after = max(0, $score_before - (int) $row['MOVE_OUT_COUNT'] + (int) $row['MOVE_IN_COUNT']);
+        $meta_after = $this->workload_meta($score_after);
+        $direction = 'neutral';
+        if ((int) $row['MOVE_OUT_COUNT'] > (int) $row['MOVE_IN_COUNT'])
+        {
+            $direction = 'down';
+        }
+        else if ((int) $row['MOVE_IN_COUNT'] > (int) $row['MOVE_OUT_COUNT'])
+        {
+            $direction = 'up';
+        }
+
+        $impact[$key]['ACTIVE_AFTER'] = $after_count;
+        $impact[$key]['SCORE_AFTER'] = $score_after;
+        $impact[$key]['WORKLOAD_AFTER_LABEL'] = isset($meta_after['label']) ? (string) $meta_after['label'] : '';
+        $impact[$key]['WORKLOAD_AFTER_CLASS'] = isset($meta_after['class']) ? (string) $meta_after['class'] : '';
+        $impact[$key]['S_SOURCE'] = ($row['ROLE'] === 'source');
+        $impact[$key]['S_TARGET'] = ($row['ROLE'] === 'target');
+        $impact[$key]['S_BOTH'] = ($row['ROLE'] === 'both');
+        $impact[$key]['IMPACT_DIRECTION'] = $direction;
+        $impact[$key]['IMPACT_LABEL'] = $this->preview_impact_label($direction);
+    }
+
+    uasort($impact, function ($a, $b) {
+        $deltaA = ((int) $a['MOVE_OUT_COUNT'] + (int) $a['MOVE_IN_COUNT']);
+        $deltaB = ((int) $b['MOVE_OUT_COUNT'] + (int) $b['MOVE_IN_COUNT']);
+        if ($deltaA !== $deltaB)
+        {
+            return ($deltaA > $deltaB) ? -1 : 1;
+        }
+
+        $scoreA = isset($a['SCORE_BEFORE']) ? (int) $a['SCORE_BEFORE'] : 0;
+        $scoreB = isset($b['SCORE_BEFORE']) ? (int) $b['SCORE_BEFORE'] : 0;
+        if ($scoreA !== $scoreB)
+        {
+            return ($scoreA > $scoreB) ? -1 : 1;
+        }
+
+        return strcasecmp((string) $a['LABEL'], (string) $b['LABEL']);
+    });
+
+    return array_values($impact);
+}
+
+protected function preview_impact_base_row($assignee_key, array $assignee_load, $role = 'neutral')
+{
+    $assignee_key = strtolower((string) $assignee_key);
+    $load_row = isset($assignee_load[$assignee_key]) ? $assignee_load[$assignee_key] : [];
+
+    return [
+        'KEY' => $assignee_key,
+        'LABEL' => !empty($load_row['LABEL']) ? (string) $load_row['LABEL'] : (string) $assignee_key,
+        'ROLE' => (string) $role,
+        'ACTIVE_BEFORE' => isset($load_row['ACTIVE_COUNT']) ? (int) $load_row['ACTIVE_COUNT'] : 0,
+        'SCORE_BEFORE' => isset($load_row['SCORE']) ? (int) $load_row['SCORE'] : 0,
+        'WORKLOAD_BEFORE_LABEL' => isset($load_row['WORKLOAD_LABEL']) ? (string) $load_row['WORKLOAD_LABEL'] : $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+        'WORKLOAD_BEFORE_CLASS' => isset($load_row['WORKLOAD_CLASS']) ? (string) $load_row['WORKLOAD_CLASS'] : 'helpdesk-workload-idle',
+        'MOVE_OUT_COUNT' => 0,
+        'MOVE_IN_COUNT' => 0,
+    ];
+}
+
+protected function preview_impact_label($direction)
+{
+    switch ((string) $direction)
+    {
+        case 'down':
+            return $this->user->lang('HELPDESK_QUEUE_PREVIEW_IMPACT_DOWN');
+        case 'up':
+            return $this->user->lang('HELPDESK_QUEUE_PREVIEW_IMPACT_UP');
+        default:
+            return $this->user->lang('HELPDESK_QUEUE_PREVIEW_IMPACT_STABLE');
+    }
+}
+
+protected function count_preview_sources(array $impact_rows)
+{
+    $count = 0;
+    foreach ($impact_rows as $row)
+    {
+        if (!empty($row['MOVE_OUT_COUNT']))
+        {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
+protected function count_preview_targets(array $impact_rows)
+{
+    $count = 0;
+    foreach ($impact_rows as $row)
+    {
+        if (!empty($row['MOVE_IN_COUNT']))
+        {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
+protected function balanced_redistribution_reason(array $suggestion)
+{
+    $source_label = isset($suggestion['SOURCE_LABEL']) ? (string) $suggestion['SOURCE_LABEL'] : '';
+    $target_label = isset($suggestion['TARGET_LABEL']) ? (string) $suggestion['TARGET_LABEL'] : '';
+    $source_workload = isset($suggestion['SOURCE_WORKLOAD_LABEL']) ? (string) $suggestion['SOURCE_WORKLOAD_LABEL'] : '';
+    $target_workload = isset($suggestion['TARGET_WORKLOAD_LABEL']) ? (string) $suggestion['TARGET_WORKLOAD_LABEL'] : '';
+
+    return sprintf(
+        $this->user->lang('HELPDESK_REDISTRIBUTION_BALANCED_REASON_TEXT'),
+        $source_label,
+        $source_workload,
+        $target_label,
+        $target_workload
+    );
+}
+
 
 protected function is_smart_redistribution_pick(array $ticket_row, array $target)
 {
