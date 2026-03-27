@@ -58,104 +58,141 @@ class main_module
                 trigger_error('FORM_INVALID');
             }
 
-            $forums = preg_replace('/[^0-9,\s]/', '', $request->variable('mundophpbb_helpdesk_forums', '', true));
-            $prefix = trim($request->variable('mundophpbb_helpdesk_prefix', '', true));
-            $status_definitions = trim($request->variable('mundophpbb_helpdesk_status_definitions', '', true));
-            $parsed_statuses = $this->parse_status_definitions($status_definitions);
-
-            if (empty($parsed_statuses))
+            if ($section === 'general')
             {
-                $status_definitions = $this->default_status_definitions();
+                $forums = preg_replace('/[^0-9,\s]/', '', $request->variable('mundophpbb_helpdesk_forums', '', true));
+                $prefix = trim($request->variable('mundophpbb_helpdesk_prefix', '', true));
+
+                $config->set('mundophpbb_helpdesk_enable', $request->variable('mundophpbb_helpdesk_enable', 0));
+                $config->set('mundophpbb_helpdesk_forums', trim($forums));
+                $config->set('mundophpbb_helpdesk_prefix', $prefix);
+            }
+            else if ($section === 'workflow')
+            {
+                $default_status = trim($request->variable('mundophpbb_helpdesk_default_status', 'open', true));
+                if (!array_key_exists($default_status, $parsed_statuses))
+                {
+                    $default_status = $this->first_status_key($parsed_statuses, 'open');
+                }
+
+                $config->set('mundophpbb_helpdesk_default_status', $default_status);
+                $config->set('mundophpbb_helpdesk_status_enable', $request->variable('mundophpbb_helpdesk_status_enable', 1));
+                $config->set('mundophpbb_helpdesk_priority_enable', $request->variable('mundophpbb_helpdesk_priority_enable', 1));
+                $config->set('mundophpbb_helpdesk_category_enable', $request->variable('mundophpbb_helpdesk_category_enable', 1));
+                $config->set('mundophpbb_helpdesk_department_enable', $request->variable('mundophpbb_helpdesk_department_enable', 1));
+                $config->set('mundophpbb_helpdesk_assignment_enable', $request->variable('mundophpbb_helpdesk_assignment_enable', 1));
+                $config->set('mundophpbb_helpdesk_team_panel_enable', $request->variable('mundophpbb_helpdesk_team_panel_enable', 1));
+                $config->set('mundophpbb_helpdesk_alerts_enable', $request->variable('mundophpbb_helpdesk_alerts_enable', 1));
+                $config->set('mundophpbb_helpdesk_alert_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_alert_hours', 24)));
+                $config->set('mundophpbb_helpdesk_alert_limit', max(1, (int) $request->variable('mundophpbb_helpdesk_alert_limit', 15)));
+                $config->set('mundophpbb_helpdesk_sla_enable', $request->variable('mundophpbb_helpdesk_sla_enable', 1));
+                $config->set('mundophpbb_helpdesk_sla_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_sla_hours', 24)));
+                $config->set('mundophpbb_helpdesk_stale_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_stale_hours', 72)));
+                $config->set('mundophpbb_helpdesk_old_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_old_hours', 168)));
+            }
+            else if ($section === 'automation')
+            {
+                $config->set('mundophpbb_helpdesk_automation_enable', $request->variable('mundophpbb_helpdesk_automation_enable', 1));
+                $config->set('mundophpbb_helpdesk_auto_lock_closed', $request->variable('mundophpbb_helpdesk_auto_lock_closed', 1));
+                $config->set('mundophpbb_helpdesk_auto_unlock_reopened', $request->variable('mundophpbb_helpdesk_auto_unlock_reopened', 1));
+                $config->set('mundophpbb_helpdesk_auto_assign_team_reply', $request->variable('mundophpbb_helpdesk_auto_assign_team_reply', 0));
+
+                $team_reply_status = trim($request->variable('mundophpbb_helpdesk_team_reply_status', '', true));
+                if ($team_reply_status !== '' && !array_key_exists($team_reply_status, $parsed_statuses))
+                {
+                    $team_reply_status = '';
+                }
+
+                $user_reply_status = trim($request->variable('mundophpbb_helpdesk_user_reply_status', '', true));
+                if ($user_reply_status !== '' && !array_key_exists($user_reply_status, $parsed_statuses))
+                {
+                    $user_reply_status = '';
+                }
+
+                $assign_status = trim($request->variable('mundophpbb_helpdesk_assign_status', '', true));
+                if ($assign_status !== '' && !array_key_exists($assign_status, $parsed_statuses))
+                {
+                    $assign_status = '';
+                }
+
+                $unassign_status = trim($request->variable('mundophpbb_helpdesk_unassign_status', '', true));
+                if ($unassign_status !== '' && !array_key_exists($unassign_status, $parsed_statuses))
+                {
+                    $unassign_status = '';
+                }
+
+                $department_status = trim($request->variable('mundophpbb_helpdesk_department_status', '', true));
+                if ($department_status !== '' && !array_key_exists($department_status, $parsed_statuses))
+                {
+                    $department_status = '';
+                }
+
+                $priority_high_status = trim($request->variable('mundophpbb_helpdesk_priority_high_status', '', true));
+                if ($priority_high_status !== '' && !array_key_exists($priority_high_status, $parsed_statuses))
+                {
+                    $priority_high_status = '';
+                }
+
+                $priority_critical_status = trim($request->variable('mundophpbb_helpdesk_priority_critical_status', '', true));
+                if ($priority_critical_status !== '' && !array_key_exists($priority_critical_status, $parsed_statuses))
+                {
+                    $priority_critical_status = '';
+                }
+
+                $config->set('mundophpbb_helpdesk_team_reply_status', $team_reply_status);
+                $config->set('mundophpbb_helpdesk_user_reply_status', $user_reply_status);
+                $config->set('mundophpbb_helpdesk_assign_status', $assign_status);
+                $config->set('mundophpbb_helpdesk_unassign_status', $unassign_status);
+                $config->set('mundophpbb_helpdesk_department_status', $department_status);
+                $config->set('mundophpbb_helpdesk_priority_high_status', $priority_high_status);
+                $config->set('mundophpbb_helpdesk_priority_critical_status', $priority_critical_status);
+                $config->set('mundophpbb_helpdesk_department_rule_definitions', trim($request->variable('mundophpbb_helpdesk_department_rule_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_department_priority_rule_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_rule_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_department_sla_definitions', trim($request->variable('mundophpbb_helpdesk_department_sla_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_priority_sla_definitions', trim($request->variable('mundophpbb_helpdesk_priority_sla_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_department_priority_sla_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_sla_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_department_priority_queue_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_queue_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_assignee_queue_definitions', trim($request->variable('mundophpbb_helpdesk_assignee_queue_definitions', '', true)));
+            }
+            else if ($section === 'notifications')
+            {
+                $config->set('mundophpbb_helpdesk_email_notify_enable', $request->variable('mundophpbb_helpdesk_email_notify_enable', 0));
+                $config->set('mundophpbb_helpdesk_email_notify_author', $request->variable('mundophpbb_helpdesk_email_notify_author', 1));
+                $config->set('mundophpbb_helpdesk_email_notify_assignee', $request->variable('mundophpbb_helpdesk_email_notify_assignee', 1));
+                $config->set('mundophpbb_helpdesk_email_notify_user_reply', $request->variable('mundophpbb_helpdesk_email_notify_user_reply', 1));
+                $config->set('mundophpbb_helpdesk_email_subject_prefix', trim($request->variable('mundophpbb_helpdesk_email_subject_prefix', '[Help Desk]', true)));
+            }
+            else if ($section === 'lists')
+            {
+                $status_definitions = trim($request->variable('mundophpbb_helpdesk_status_definitions', '', true));
                 $parsed_statuses = $this->parse_status_definitions($status_definitions);
+                if (empty($parsed_statuses))
+                {
+                    $status_definitions = $this->default_status_definitions();
+                    $parsed_statuses = $this->parse_status_definitions($status_definitions);
+                }
+
+                $config->set('mundophpbb_helpdesk_status_definitions', $status_definitions);
+                $config->set('mundophpbb_helpdesk_priority_definitions', trim($request->variable('mundophpbb_helpdesk_priority_definitions', '', true)));
+                $config->set('mundophpbb_helpdesk_categories', trim($request->variable('mundophpbb_helpdesk_categories', '', true)));
+                $config->set('mundophpbb_helpdesk_departments', trim($request->variable('mundophpbb_helpdesk_departments', '', true)));
+
+                $current_default_status = isset($config['mundophpbb_helpdesk_default_status']) ? (string) $config['mundophpbb_helpdesk_default_status'] : 'open';
+                if (!array_key_exists($current_default_status, $parsed_statuses))
+                {
+                    $current_default_status = $this->first_status_key($parsed_statuses, 'open');
+                }
+                $config->set('mundophpbb_helpdesk_default_status', $current_default_status);
+                $config->set('mundophpbb_helpdesk_team_reply_status', $this->configured_reply_status($config, 'mundophpbb_helpdesk_team_reply_status', $parsed_statuses, 'waiting_reply'));
+                $config->set('mundophpbb_helpdesk_user_reply_status', $this->configured_reply_status($config, 'mundophpbb_helpdesk_user_reply_status', $parsed_statuses, 'in_progress'));
+                $config->set('mundophpbb_helpdesk_assign_status', $this->configured_optional_status($config, 'mundophpbb_helpdesk_assign_status', $parsed_statuses));
+                $config->set('mundophpbb_helpdesk_unassign_status', $this->configured_optional_status($config, 'mundophpbb_helpdesk_unassign_status', $parsed_statuses));
+                $config->set('mundophpbb_helpdesk_department_status', $this->configured_optional_status($config, 'mundophpbb_helpdesk_department_status', $parsed_statuses));
+                $config->set('mundophpbb_helpdesk_priority_high_status', $this->configured_optional_status($config, 'mundophpbb_helpdesk_priority_high_status', $parsed_statuses));
+                $config->set('mundophpbb_helpdesk_priority_critical_status', $this->configured_optional_status($config, 'mundophpbb_helpdesk_priority_critical_status', $parsed_statuses));
             }
 
-            $default_status = trim($request->variable('mundophpbb_helpdesk_default_status', 'open', true));
-            if (!array_key_exists($default_status, $parsed_statuses))
-            {
-                $default_status = $this->first_status_key($parsed_statuses, 'open');
-            }
-
-            $config->set('mundophpbb_helpdesk_enable', $request->variable('mundophpbb_helpdesk_enable', 0));
-            $config->set('mundophpbb_helpdesk_forums', trim($forums));
-            $config->set('mundophpbb_helpdesk_prefix', $prefix);
-            $config->set('mundophpbb_helpdesk_status_definitions', $status_definitions);
-            $config->set('mundophpbb_helpdesk_default_status', $default_status);
-            $config->set('mundophpbb_helpdesk_status_enable', $request->variable('mundophpbb_helpdesk_status_enable', 1));
-            $config->set('mundophpbb_helpdesk_priority_enable', $request->variable('mundophpbb_helpdesk_priority_enable', 1));
-            $config->set('mundophpbb_helpdesk_category_enable', $request->variable('mundophpbb_helpdesk_category_enable', 1));
-            $config->set('mundophpbb_helpdesk_department_enable', $request->variable('mundophpbb_helpdesk_department_enable', 1));
-            $config->set('mundophpbb_helpdesk_assignment_enable', $request->variable('mundophpbb_helpdesk_assignment_enable', 1));
-            $config->set('mundophpbb_helpdesk_team_panel_enable', $request->variable('mundophpbb_helpdesk_team_panel_enable', 1));
-            $config->set('mundophpbb_helpdesk_alerts_enable', $request->variable('mundophpbb_helpdesk_alerts_enable', 1));
-            $config->set('mundophpbb_helpdesk_alert_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_alert_hours', 24)));
-            $config->set('mundophpbb_helpdesk_alert_limit', max(1, (int) $request->variable('mundophpbb_helpdesk_alert_limit', 15)));
-            $config->set('mundophpbb_helpdesk_sla_enable', $request->variable('mundophpbb_helpdesk_sla_enable', 1));
-            $config->set('mundophpbb_helpdesk_sla_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_sla_hours', 24)));
-            $config->set('mundophpbb_helpdesk_stale_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_stale_hours', 72)));
-            $config->set('mundophpbb_helpdesk_old_hours', max(1, (int) $request->variable('mundophpbb_helpdesk_old_hours', 168)));
-            $config->set('mundophpbb_helpdesk_automation_enable', $request->variable('mundophpbb_helpdesk_automation_enable', 1));
-            $config->set('mundophpbb_helpdesk_auto_lock_closed', $request->variable('mundophpbb_helpdesk_auto_lock_closed', 1));
-            $config->set('mundophpbb_helpdesk_auto_unlock_reopened', $request->variable('mundophpbb_helpdesk_auto_unlock_reopened', 1));
-            $config->set('mundophpbb_helpdesk_auto_assign_team_reply', $request->variable('mundophpbb_helpdesk_auto_assign_team_reply', 0));
-            $team_reply_status = trim($request->variable('mundophpbb_helpdesk_team_reply_status', '', true));
-            if ($team_reply_status !== '' && !array_key_exists($team_reply_status, $parsed_statuses))
-            {
-                $team_reply_status = '';
-            }
-            $user_reply_status = trim($request->variable('mundophpbb_helpdesk_user_reply_status', '', true));
-            if ($user_reply_status !== '' && !array_key_exists($user_reply_status, $parsed_statuses))
-            {
-                $user_reply_status = '';
-            }
-            $assign_status = trim($request->variable('mundophpbb_helpdesk_assign_status', '', true));
-            if ($assign_status !== '' && !array_key_exists($assign_status, $parsed_statuses))
-            {
-                $assign_status = '';
-            }
-            $unassign_status = trim($request->variable('mundophpbb_helpdesk_unassign_status', '', true));
-            if ($unassign_status !== '' && !array_key_exists($unassign_status, $parsed_statuses))
-            {
-                $unassign_status = '';
-            }
-            $department_status = trim($request->variable('mundophpbb_helpdesk_department_status', '', true));
-            if ($department_status !== '' && !array_key_exists($department_status, $parsed_statuses))
-            {
-                $department_status = '';
-            }
-            $priority_high_status = trim($request->variable('mundophpbb_helpdesk_priority_high_status', '', true));
-            if ($priority_high_status !== '' && !array_key_exists($priority_high_status, $parsed_statuses))
-            {
-                $priority_high_status = '';
-            }
-            $priority_critical_status = trim($request->variable('mundophpbb_helpdesk_priority_critical_status', '', true));
-            if ($priority_critical_status !== '' && !array_key_exists($priority_critical_status, $parsed_statuses))
-            {
-                $priority_critical_status = '';
-            }
-            $config->set('mundophpbb_helpdesk_team_reply_status', $team_reply_status);
-            $config->set('mundophpbb_helpdesk_user_reply_status', $user_reply_status);
-            $config->set('mundophpbb_helpdesk_assign_status', $assign_status);
-            $config->set('mundophpbb_helpdesk_unassign_status', $unassign_status);
-            $config->set('mundophpbb_helpdesk_department_status', $department_status);
-            $config->set('mundophpbb_helpdesk_priority_high_status', $priority_high_status);
-            $config->set('mundophpbb_helpdesk_priority_critical_status', $priority_critical_status);
-            $config->set('mundophpbb_helpdesk_email_notify_enable', $request->variable('mundophpbb_helpdesk_email_notify_enable', 0));
-            $config->set('mundophpbb_helpdesk_email_notify_author', $request->variable('mundophpbb_helpdesk_email_notify_author', 1));
-            $config->set('mundophpbb_helpdesk_email_notify_assignee', $request->variable('mundophpbb_helpdesk_email_notify_assignee', 1));
-            $config->set('mundophpbb_helpdesk_email_notify_user_reply', $request->variable('mundophpbb_helpdesk_email_notify_user_reply', 1));
-            $config->set('mundophpbb_helpdesk_email_subject_prefix', trim($request->variable('mundophpbb_helpdesk_email_subject_prefix', '[Help Desk]', true)));
-            $config->set('mundophpbb_helpdesk_department_rule_definitions', trim($request->variable('mundophpbb_helpdesk_department_rule_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_department_priority_rule_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_rule_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_department_sla_definitions', trim($request->variable('mundophpbb_helpdesk_department_sla_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_priority_sla_definitions', trim($request->variable('mundophpbb_helpdesk_priority_sla_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_department_priority_sla_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_sla_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_department_priority_queue_definitions', trim($request->variable('mundophpbb_helpdesk_department_priority_queue_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_assignee_queue_definitions', trim($request->variable('mundophpbb_helpdesk_assignee_queue_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_priority_definitions', trim($request->variable('mundophpbb_helpdesk_priority_definitions', '', true)));
-            $config->set('mundophpbb_helpdesk_categories', trim($request->variable('mundophpbb_helpdesk_categories', '', true)));
-            $config->set('mundophpbb_helpdesk_departments', trim($request->variable('mundophpbb_helpdesk_departments', '', true)));
-
-            trigger_error($user->lang('CONFIG_UPDATED') . adm_back_link($this->u_action));
+            trigger_error($user->lang('CONFIG_UPDATED') . adm_back_link($this->u_action . '&section=' . $section));
         }
 
         foreach ($this->parse_status_definitions($status_definitions) as $key => $definition)
