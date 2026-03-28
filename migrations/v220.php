@@ -40,6 +40,15 @@ class v220 extends \phpbb\db\migration\migration
         ];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_reason_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_activity_limit']],
+        ];
+    }
+
     public function update_data()
     {
         return [

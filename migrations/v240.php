@@ -18,6 +18,19 @@ class v240 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v220'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_automation_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_auto_lock_closed']],
+            ['config.remove', ['mundophpbb_helpdesk_auto_unlock_reopened']],
+            ['config.remove', ['mundophpbb_helpdesk_auto_assign_team_reply']],
+            ['config.remove', ['mundophpbb_helpdesk_team_reply_status']],
+            ['config.remove', ['mundophpbb_helpdesk_user_reply_status']],
+        ];
+    }
+
     public function update_data()
     {
         return [

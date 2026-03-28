@@ -22,6 +22,18 @@ class v260 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v250'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_email_notify_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_email_notify_author']],
+            ['config.remove', ['mundophpbb_helpdesk_email_notify_assignee']],
+            ['config.remove', ['mundophpbb_helpdesk_email_notify_user_reply']],
+            ['config.remove', ['mundophpbb_helpdesk_email_subject_prefix']],
+        ];
+    }
+
     public function update_data()
     {
         return [

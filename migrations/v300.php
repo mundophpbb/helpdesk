@@ -19,6 +19,15 @@ class v300 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v290'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_priority_high_status']],
+            ['config.remove', ['mundophpbb_helpdesk_priority_critical_status']],
+        ];
+    }
+
     public function update_data()
     {
         return [

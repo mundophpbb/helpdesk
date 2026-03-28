@@ -18,6 +18,14 @@ class v310 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v300'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_priority_sla_definitions']],
+        ];
+    }
+
     public function update_data()
     {
         return [

@@ -1,3 +1,37 @@
+<!-- IF S_HELPDESK_SUBJECT_PREFIX -->
+<span id="helpdesk-subject-prefix-value" style="display:none;">{HELPDESK_SUBJECT_PREFIX}</span>
+<script>
+(function () {
+    function applyHelpdeskSubjectPrefix() {
+        var subjectField = document.querySelector('input[name="subject"]');
+        var prefixNode = document.getElementById('helpdesk-subject-prefix-value');
+        if (!subjectField || !prefixNode) {
+            return;
+        }
+
+        var prefix = (prefixNode.textContent || '').replace(/^\s+|\s+$/g, '');
+        if (!prefix) {
+            return;
+        }
+
+        var currentValue = subjectField.value.replace(/^\s+|\s+$/g, '');
+        if (currentValue !== '') {
+            return;
+        }
+
+        subjectField.value = prefix + ' ';
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyHelpdeskSubjectPrefix);
+        return;
+    }
+
+    applyHelpdeskSubjectPrefix();
+})();
+</script>
+<!-- ENDIF -->
+
 <!-- IF S_HELPDESK_PANEL -->
 <div id="helpdesk-panel" class="panel bg2 helpdesk-posting-panel">
     <div class="inner">

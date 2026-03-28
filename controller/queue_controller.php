@@ -95,7 +95,7 @@ class queue_controller
             'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
         ];
 
-        if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+        if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
         {
             $filters['scope'] = 'all';
         }
@@ -144,8 +144,17 @@ class queue_controller
         $recent_alerts = $this->alerts_enabled() ? $this->load_recent_alerts($forum_ids) : [];
         $history_overview = $this->build_history_overview($recent_alerts);
         $alert_overview = $this->build_alert_overview($filtered_rows);
-        $report = $this->build_report($filtered_rows);
+        $filtered_assignee_load = $this->build_assignee_load($filtered_rows);
+        $department_pressure = $this->build_department_pressure($filtered_rows, $filtered_assignee_load);
+        $forum_backlog = $this->build_forum_backlog($filtered_rows);
+        $forum_department_backlog = $this->build_forum_department_backlog($filtered_rows);
+        $backlog_aging = $this->build_backlog_aging($filtered_rows);
+        $team_productivity = $this->build_team_productivity($filtered_rows, $filtered_assignee_load);
+        $report = $this->build_report($filtered_rows, $filtered_assignee_load, $department_pressure);
         $assignee_load = $this->build_assignee_load($rows);
+        $load_distribution = $this->build_assignee_load_distribution($assignee_load);
+        $executive_summary = $this->build_executive_summary($counts, $alert_overview, $load_distribution, $department_pressure, $forum_backlog, $backlog_aging, $team_productivity);
+        $shift_plan = $this->build_shift_plan($counts, $load_distribution, $backlog_aging, $team_productivity, $department_pressure, $forum_backlog);
         $my_workload = $this->current_user_workload($assignee_load);
         $redistribution = $this->build_redistribution_suggestions($rows, $assignee_load);
         $balanced_redistribution = $this->build_balanced_redistribution_plan($redistribution, $assignee_load);
@@ -365,6 +374,115 @@ class queue_controller
         {
             $this->template->assign_block_vars('helpdesk_report_assignee_rows', $assignee_row);
         }
+        foreach ($report['workload_rows'] as $workload_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_workload_rows', $workload_row);
+        }
+        foreach ($report['workload_relief_rows'] as $relief_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_workload_relief_rows', $relief_row);
+        }
+        foreach ($report['workload_support_rows'] as $support_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_workload_support_rows', $support_row);
+        }
+        foreach ($load_distribution['rows'] as $load_distribution_row)
+        {
+            $this->template->assign_block_vars('helpdesk_load_distribution_rows', $load_distribution_row);
+        }
+        foreach ($load_distribution['relief_rows'] as $relief_row)
+        {
+            $this->template->assign_block_vars('helpdesk_load_distribution_relief_rows', $relief_row);
+        }
+        foreach ($load_distribution['support_rows'] as $support_row)
+        {
+            $this->template->assign_block_vars('helpdesk_load_distribution_support_rows', $support_row);
+        }
+        foreach ($department_pressure['focus_rows'] as $focus_row)
+        {
+            $this->template->assign_block_vars('helpdesk_department_focus_rows', $focus_row);
+        }
+        $department_pressure_index = 0;
+        foreach ($department_pressure['rows'] as $department_pressure_row)
+        {
+            if ($department_pressure_index >= 8)
+            {
+                break;
+            }
+
+            $this->template->assign_block_vars('helpdesk_department_pressure_rows', $department_pressure_row);
+            $department_pressure_index++;
+        }
+        foreach ($forum_backlog['focus_rows'] as $forum_focus_row)
+        {
+            $this->template->assign_block_vars('helpdesk_forum_backlog_focus_rows', $forum_focus_row);
+        }
+        $forum_backlog_index = 0;
+        foreach ($forum_backlog['rows'] as $forum_backlog_row)
+        {
+            if ($forum_backlog_index >= 8)
+            {
+                break;
+            }
+
+            $this->template->assign_block_vars('helpdesk_forum_backlog_rows', $forum_backlog_row);
+            $forum_backlog_index++;
+        }
+        $forum_department_index = 0;
+        foreach ($forum_department_backlog['rows'] as $forum_department_row)
+        {
+            if ($forum_department_index >= 8)
+            {
+                break;
+            }
+
+            $this->template->assign_block_vars('helpdesk_forum_department_backlog_rows', $forum_department_row);
+            $forum_department_index++;
+        }
+        foreach ($backlog_aging['focus_rows'] as $backlog_aging_focus_row)
+        {
+            $this->template->assign_block_vars('helpdesk_backlog_aging_focus_rows', $backlog_aging_focus_row);
+        }
+        foreach ($backlog_aging['rows'] as $backlog_aging_row)
+        {
+            $this->template->assign_block_vars('helpdesk_backlog_aging_rows', $backlog_aging_row);
+        }
+        foreach ($team_productivity['focus_rows'] as $productivity_focus_row)
+        {
+            $this->template->assign_block_vars('helpdesk_team_productivity_focus_rows', $productivity_focus_row);
+        }
+        foreach ($team_productivity['rows'] as $productivity_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_productivity_rows', $productivity_row);
+        }
+        foreach ($team_productivity['assignee_rows'] as $response_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_response_rows', $response_row);
+        }
+        foreach ($executive_summary['focus_rows'] as $executive_focus_row)
+        {
+            $this->template->assign_block_vars('helpdesk_executive_focus_rows', $executive_focus_row);
+        }
+        foreach ($executive_summary['report_rows'] as $executive_report_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_executive_rows', $executive_report_row);
+        }
+        foreach ($shift_plan['focus_rows'] as $shift_focus_row)
+        {
+            $this->template->assign_block_vars('helpdesk_shift_plan_focus_rows', $shift_focus_row);
+        }
+        foreach ($shift_plan['report_rows'] as $shift_report_row)
+        {
+            $this->template->assign_block_vars('helpdesk_report_shift_plan_rows', $shift_report_row);
+        }
+        foreach ($shift_plan['pull_rows'] as $shift_pull_row)
+        {
+            $this->template->assign_block_vars('helpdesk_shift_plan_pull_rows', $shift_pull_row);
+        }
+        foreach ($shift_plan['relief_rows'] as $shift_relief_row)
+        {
+            $this->template->assign_block_vars('helpdesk_shift_plan_relief_rows', $shift_relief_row);
+        }
         $assignee_load_index = 0;
         foreach ($assignee_load as $load_row)
         {
@@ -447,7 +565,9 @@ class queue_controller
             'HELPDESK_QUEUE_OPEN_COUNT' => $counts['open'],
             'HELPDESK_QUEUE_UNASSIGNED_COUNT' => $counts['unassigned'],
             'HELPDESK_QUEUE_OVERDUE_COUNT' => $counts['overdue'],
+            'HELPDESK_QUEUE_AGING_COUNT' => $counts['aging'],
             'HELPDESK_QUEUE_STALE_COUNT' => $counts['stale'],
+            'HELPDESK_QUEUE_VERY_OLD_COUNT' => $counts['very_old'],
             'HELPDESK_QUEUE_REOPENED_COUNT' => $counts['reopened'],
             'HELPDESK_QUEUE_STAFF_REPLY_COUNT' => $counts['staff_reply'],
             'HELPDESK_QUEUE_CRITICAL_COUNT' => $counts['critical'],
@@ -483,6 +603,7 @@ class queue_controller
             'HELPDESK_ALERT_FIRST_REPLY_COUNT' => $alert_overview['first_reply'],
             'HELPDESK_ALERT_OVERDUE_COUNT' => $alert_overview['overdue'],
             'HELPDESK_ALERT_STALE_COUNT' => $alert_overview['stale'],
+            'HELPDESK_ALERT_VERY_OLD_COUNT' => $alert_overview['very_old'],
             'HELPDESK_ALERT_STAFF_REPLY_COUNT' => $alert_overview['staff_reply'],
             'HELPDESK_ALERT_CRITICAL_COUNT' => $alert_overview['critical'],
             'HELPDESK_ALERT_ATTENTION_COUNT' => $alert_overview['attention'],
@@ -498,6 +619,66 @@ class queue_controller
             'HELPDESK_QUEUE_MY_LOAD_CLASS' => $my_workload['class'],
             'HELPDESK_QUEUE_MY_LOAD_SCORE' => $my_workload['score'],
             'HELPDESK_QUEUE_MY_LOAD_COUNT' => $my_workload['active_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_TOTAL_ASSIGNEES' => $load_distribution['total_assignees'],
+            'HELPDESK_LOAD_DISTRIBUTION_RELIEF_COUNT' => $load_distribution['relief_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_SUPPORT_COUNT' => $load_distribution['support_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_STATUS_LABEL' => $load_distribution['status_label'],
+            'HELPDESK_LOAD_DISTRIBUTION_STATUS_TEXT' => $load_distribution['status_text'],
+            'HELPDESK_LOAD_DISTRIBUTION_STATUS_CLASS' => $load_distribution['status_class'],
+            'HELPDESK_LOAD_DISTRIBUTION_OVERLOADED_COUNT' => $load_distribution['overloaded_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_HIGH_COUNT' => $load_distribution['high_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_MEDIUM_COUNT' => $load_distribution['medium_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_LOW_COUNT' => $load_distribution['low_count'],
+            'HELPDESK_LOAD_DISTRIBUTION_IDLE_COUNT' => $load_distribution['idle_count'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_TOTAL' => $department_pressure['total_departments'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_CRITICAL_COUNT' => $department_pressure['critical_count'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_ATTENTION_COUNT' => $department_pressure['attention_count'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_COVERAGE_GAP_COUNT' => $department_pressure['coverage_gap_count'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_STATUS_LABEL' => $department_pressure['status_label'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_STATUS_TEXT' => $department_pressure['status_text'],
+            'HELPDESK_DEPARTMENT_OPERATIONS_STATUS_CLASS' => $department_pressure['status_class'],
+            'HELPDESK_FORUM_BACKLOG_TOTAL' => $forum_backlog['total_forums'],
+            'HELPDESK_FORUM_BACKLOG_CRITICAL_COUNT' => $forum_backlog['critical_count'],
+            'HELPDESK_FORUM_BACKLOG_ATTENTION_COUNT' => $forum_backlog['attention_count'],
+            'HELPDESK_FORUM_BACKLOG_MULTI_DEPARTMENT_COUNT' => $forum_backlog['multi_department_count'],
+            'HELPDESK_FORUM_BACKLOG_STATUS_LABEL' => $forum_backlog['status_label'],
+            'HELPDESK_FORUM_BACKLOG_STATUS_TEXT' => $forum_backlog['status_text'],
+            'HELPDESK_FORUM_BACKLOG_STATUS_CLASS' => $forum_backlog['status_class'],
+            'HELPDESK_BACKLOG_AGING_TOTAL' => $backlog_aging['total_active'],
+            'HELPDESK_BACKLOG_AGING_AGING_COUNT' => $backlog_aging['aging_count'],
+            'HELPDESK_BACKLOG_AGING_STALE_COUNT' => $backlog_aging['stale_count'],
+            'HELPDESK_BACKLOG_AGING_VERY_OLD_COUNT' => $backlog_aging['very_old_count'],
+            'HELPDESK_BACKLOG_AGING_OLDEST_AGE' => $backlog_aging['oldest_age_label'],
+            'HELPDESK_BACKLOG_AGING_OLDEST_IDLE' => $backlog_aging['oldest_idle_label'],
+            'HELPDESK_BACKLOG_AGING_STATUS_LABEL' => $backlog_aging['status_label'],
+            'HELPDESK_BACKLOG_AGING_STATUS_TEXT' => $backlog_aging['status_text'],
+            'HELPDESK_BACKLOG_AGING_STATUS_CLASS' => $backlog_aging['status_class'],
+            'HELPDESK_TEAM_PRODUCTIVITY_TOTAL_ACTIVE' => $team_productivity['total_active'],
+            'HELPDESK_TEAM_PRODUCTIVITY_FIRST_REPLY_COUNT' => $team_productivity['first_reply_count'],
+            'HELPDESK_TEAM_PRODUCTIVITY_STAFF_REPLY_COUNT' => $team_productivity['staff_reply_count'],
+            'HELPDESK_TEAM_PRODUCTIVITY_RECENT_ACTIVITY_COUNT' => $team_productivity['recent_activity_count'],
+            'HELPDESK_TEAM_PRODUCTIVITY_CREATED_24H_COUNT' => $team_productivity['created_24h_count'],
+            'HELPDESK_TEAM_PRODUCTIVITY_RECENT_COMPLETED_COUNT' => $team_productivity['recent_completed_count'],
+            'HELPDESK_TEAM_PRODUCTIVITY_ENGAGED_ASSIGNEES_COUNT' => $team_productivity['engaged_assignees_count'],
+            'HELPDESK_TEAM_PRODUCTIVITY_STATUS_LABEL' => $team_productivity['status_label'],
+            'HELPDESK_TEAM_PRODUCTIVITY_STATUS_TEXT' => $team_productivity['status_text'],
+            'HELPDESK_TEAM_PRODUCTIVITY_STATUS_CLASS' => $team_productivity['status_class'],
+            'HELPDESK_EXECUTIVE_ACTIVE_TOTAL' => $executive_summary['active_total'],
+            'HELPDESK_EXECUTIVE_ALERT_TOTAL' => $executive_summary['alert_total'],
+            'HELPDESK_EXECUTIVE_OVERLOADED_COUNT' => $executive_summary['overloaded_count'],
+            'HELPDESK_EXECUTIVE_ENGAGED_ASSIGNEES_COUNT' => $executive_summary['engaged_assignees_count'],
+            'HELPDESK_EXECUTIVE_STATUS_LABEL' => $executive_summary['status_label'],
+            'HELPDESK_EXECUTIVE_STATUS_TEXT' => $executive_summary['status_text'],
+            'HELPDESK_EXECUTIVE_STATUS_CLASS' => $executive_summary['status_class'],
+            'HELPDESK_SHIFT_PLAN_IMMEDIATE_COUNT' => $shift_plan['immediate_count'],
+            'HELPDESK_SHIFT_PLAN_INTAKE_COUNT' => $shift_plan['intake_count'],
+            'HELPDESK_SHIFT_PLAN_FOLLOW_UP_COUNT' => $shift_plan['follow_up_count'],
+            'HELPDESK_SHIFT_PLAN_REBALANCE_COUNT' => $shift_plan['rebalance_count'],
+            'HELPDESK_SHIFT_PLAN_CAPACITY_COUNT' => $shift_plan['capacity_count'],
+            'HELPDESK_SHIFT_PLAN_CONSTRAINED_COUNT' => $shift_plan['constrained_count'],
+            'HELPDESK_SHIFT_PLAN_STATUS_LABEL' => $shift_plan['status_label'],
+            'HELPDESK_SHIFT_PLAN_STATUS_TEXT' => $shift_plan['status_text'],
+            'HELPDESK_SHIFT_PLAN_STATUS_CLASS' => $shift_plan['status_class'],
             'HELPDESK_QUEUE_USER' => isset($this->user->data['username']) ? (string) $this->user->data['username'] : '',
             'HELPDESK_ALERT_HOURS' => $this->alert_hours(),
             'HELPDESK_ALERT_LIMIT' => $this->alert_limit(),
@@ -529,7 +710,9 @@ class queue_controller
             'U_HELPDESK_TEAM_QUEUE_SCOPE_UNASSIGNED' => $this->queue_scope_url('unassigned'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_NO_REPLY' => $this->queue_scope_url('no_reply'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_OVERDUE' => $this->queue_scope_url('overdue'),
+            'U_HELPDESK_TEAM_QUEUE_SCOPE_AGING' => $this->queue_scope_url('aging'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_STALE' => $this->queue_scope_url('stale'),
+            'U_HELPDESK_TEAM_QUEUE_SCOPE_VERY_OLD' => $this->queue_scope_url('very_old'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_STAFF_REPLY' => $this->queue_scope_url('staff_reply'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_REOPENED' => $this->queue_scope_url('reopened'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_CRITICAL' => $this->queue_scope_url('critical'),
@@ -548,6 +731,9 @@ class queue_controller
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_MY' => $this->queue_scope_url('my', 'personal'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_UNASSIGNED' => $this->queue_scope_url('unassigned', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_OVERDUE' => $this->queue_scope_url('overdue', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
+            'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_AGING' => $this->queue_scope_url('aging', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
+            'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE' => $this->queue_scope_url('stale', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
+            'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_VERY_OLD' => $this->queue_scope_url('very_old', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STAFF_REPLY' => $this->queue_scope_url('staff_reply', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_CRITICAL' => $this->queue_scope_url('critical', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_PRIORITIZED' => $this->queue_scope_url('prioritized', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
@@ -579,6 +765,22 @@ class queue_controller
             'U_HELPDESK_TEAM_QUEUE_REPORTS' => $this->queue_view_url('reports'),
             'U_HELPDESK_TEAM_QUEUE_ALERTS' => $this->queue_view_url('alerts'),
             'U_HELPDESK_TEAM_QUEUE_HISTORY' => $this->queue_view_url('history'),
+            'U_HELPDESK_LOAD_DISTRIBUTION_BALANCE' => $this->queue_view_url('balance'),
+            'U_HELPDESK_LOAD_DISTRIBUTION_OVERLOADED' => $this->queue_scope_url('overloaded', 'balance'),
+            'U_HELPDESK_LOAD_DISTRIBUTION_REDISTRIBUTE' => $this->queue_scope_url('redistribute', 'balance'),
+            'U_HELPDESK_DEPARTMENT_OPERATIONS_BALANCE' => $this->queue_view_url('balance'),
+            'U_HELPDESK_DEPARTMENT_OPERATIONS_REPORTS' => $this->queue_view_url('reports'),
+            'U_HELPDESK_DEPARTMENT_OPERATIONS_TRIAGE' => $this->queue_view_url('triage'),
+            'U_HELPDESK_FORUM_BACKLOG_BALANCE' => $this->queue_view_url('balance'),
+            'U_HELPDESK_FORUM_BACKLOG_REPORTS' => $this->queue_view_url('reports'),
+            'U_HELPDESK_FORUM_BACKLOG_ALERTS' => $this->queue_view_url('alerts'),
+            'U_HELPDESK_TEAM_PRODUCTIVITY_QUEUE' => $this->queue_view_url('queue'),
+            'U_HELPDESK_TEAM_PRODUCTIVITY_REPORTS' => $this->queue_view_url('reports'),
+            'U_HELPDESK_TEAM_PRODUCTIVITY_PERSONAL' => $this->queue_scope_url('my', 'personal'),
+            'U_HELPDESK_SHIFT_PLAN_ALERTS' => $this->queue_view_url('alerts'),
+            'U_HELPDESK_SHIFT_PLAN_TRIAGE' => $this->queue_view_url('triage'),
+            'U_HELPDESK_SHIFT_PLAN_BALANCE' => $this->queue_view_url('balance'),
+            'U_HELPDESK_SHIFT_PLAN_REPORTS' => $this->queue_view_url('reports'),
             'S_HELPDESK_ALERTS_ENABLED' => $this->alerts_enabled(),
             'S_HELPDESK_ALERT_OVERVIEW_HAS_DATA' => ($alert_overview['alert_total'] > 0),
             'S_HELPDESK_HISTORY_HAS_DATA' => ($history_overview['total'] > 0),
@@ -614,6 +816,12 @@ class queue_controller
             'S_HELPDESK_QUEUE_HAS_ASSIGNEE_AND_PRIORITY_FILTER' => ($filters['assigned_to'] !== '' && $filters['priority_key'] !== ''),
             'HELPDESK_TEAM_ALERTS_EXPLAIN_TEXT' => sprintf($this->user->lang('HELPDESK_TEAM_ALERTS_EXPLAIN'), $this->alert_hours(), $this->alert_limit()),
             'S_HELPDESK_REPORT_HAS_DATA' => !empty($report['total']),
+            'HELPDESK_REPORT_WORKLOAD_STATUS_LABEL' => $report['workload_status_label'],
+            'HELPDESK_REPORT_WORKLOAD_STATUS_TEXT' => $report['workload_status_text'],
+            'HELPDESK_REPORT_WORKLOAD_STATUS_CLASS' => $report['workload_status_class'],
+            'HELPDESK_REPORT_DEPARTMENT_STATUS_LABEL' => $report['department_status_label'],
+            'HELPDESK_REPORT_DEPARTMENT_STATUS_TEXT' => $report['department_status_text'],
+            'HELPDESK_REPORT_DEPARTMENT_STATUS_CLASS' => $report['department_status_class'],
             'S_HELPDESK_CAN_QUEUE_ASSIGN' => $this->can_assign_any_queue($forum_ids),
             'S_HELPDESK_CAN_QUEUE_BULK_ASSIGN' => $this->can_assign_any_queue($forum_ids),
             'S_HELPDESK_QUEUE_BULK_PRIORITY_ENABLED' => $this->can_assign_any_queue($forum_ids) && $this->priority_enabled(),
@@ -631,6 +839,9 @@ class queue_controller
             'HELPDESK_REPORT_UPDATED_24H' => $report['updated_24h'],
             'HELPDESK_REPORT_CREATED_24H' => $report['created_24h'],
             'HELPDESK_REPORT_OVERDUE' => $report['overdue'],
+            'HELPDESK_REPORT_AGING' => $report['aging'],
+            'HELPDESK_REPORT_STALE' => $report['stale'],
+            'HELPDESK_REPORT_VERY_OLD' => $report['very_old'],
             'HELPDESK_REPORT_STAFF_REPLY' => $report['staff_reply'],
             'HELPDESK_REPORT_AVG_AGE' => $report['avg_age_label'],
             'HELPDESK_REPORT_AVG_IDLE' => $report['avg_idle_label'],
@@ -645,7 +856,13 @@ class queue_controller
             'U_HELPDESK_REPORT_UPDATED_24H' => $this->queue_report_scope_url('updated_24h'),
             'U_HELPDESK_REPORT_CREATED_24H' => $this->queue_report_scope_url('created_24h'),
             'U_HELPDESK_REPORT_OVERDUE' => $this->queue_report_scope_url('overdue'),
+            'U_HELPDESK_REPORT_AGING' => $this->queue_report_scope_url('aging'),
+            'U_HELPDESK_REPORT_STALE' => $this->queue_report_scope_url('stale'),
+            'U_HELPDESK_REPORT_VERY_OLD' => $this->queue_report_scope_url('very_old'),
             'U_HELPDESK_REPORT_STAFF_REPLY' => $this->queue_report_scope_url('staff_reply'),
+            'U_HELPDESK_BACKLOG_AGING_REPORT' => $this->queue_view_url('reports'),
+            'U_HELPDESK_BACKLOG_AGING_QUEUE' => $this->queue_view_url('queue'),
+            'U_HELPDESK_BACKLOG_AGING_ALERTS' => $this->queue_view_url('alerts'),
         ]);
 
         return $this->helper->render('helpdesk_queue_body.html', $this->user->lang('HELPDESK_TEAM_QUEUE_TITLE'));
@@ -689,6 +906,7 @@ class queue_controller
             $reopen_count = $this->get_reopen_count((int) $row['topic_id']);
             $staff_reply_pending = $this->is_waiting_staff_response($row, $status_meta['tone']);
             $is_overdue = $this->sla_enabled() && $this->is_ticket_overdue($row);
+            $is_aging = $this->sla_enabled() && $this->is_ticket_aging($row);
             $is_stale = $this->sla_enabled() && $this->is_ticket_stale($row);
             $is_very_old = $this->is_ticket_very_old($row);
             $criticality = $this->operational_criticality(
@@ -728,9 +946,17 @@ class queue_controller
             {
                 $alerts[] = $this->user->lang('HELPDESK_QUEUE_OVERDUE');
             }
+            if ($is_aging)
+            {
+                $alerts[] = $this->user->lang('HELPDESK_QUEUE_AGING');
+            }
             if ($is_stale)
             {
                 $alerts[] = $this->user->lang('HELPDESK_QUEUE_STALE');
+            }
+            if ($is_very_old)
+            {
+                $alerts[] = $this->user->lang('HELPDESK_QUEUE_VERY_OLD');
             }
             if ($reply_count <= 0 && $this->is_active_status_tone($status_meta['tone']))
             {
@@ -793,7 +1019,9 @@ class queue_controller
                 'LAST_ACTIVITY_AT' => $this->user->format_date($this->topic_last_activity_time($row)),
                 'IS_UNASSIGNED' => $this->extract_assigned_to($row) === '',
                 'IS_OVERDUE' => $is_overdue,
+                'IS_AGING' => $is_aging,
                 'IS_STALE' => $is_stale,
+                'IS_VERY_OLD' => $is_very_old,
                 'IS_REOPENED' => $reopen_count > 0,
                 'IS_STAFF_REPLY' => $staff_reply_pending,
                 'IS_OPEN' => $this->is_active_status_tone($status_meta['tone']),
@@ -1069,7 +1297,7 @@ class queue_controller
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1115,7 +1343,7 @@ class queue_controller
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1167,7 +1395,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1214,7 +1442,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1259,7 +1487,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1304,7 +1532,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1355,7 +1583,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1405,7 +1633,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1450,7 +1678,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1500,7 +1728,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1656,7 +1884,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
     protected function queue_scope_url($scope = 'all', $view = 'queue')
     {
         $scope = (string) $scope;
-        if (!in_array($scope, ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'stale', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+        if (!in_array($scope, ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
         {
             $scope = 'all';
         }
@@ -1686,7 +1914,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
 
     protected function queue_report_scope_url($scope = 'all', array $extra = [])
     {
-        $valid_scopes = ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'staff_reply'];
+        $valid_scopes = ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'staff_reply'];
         $scope = in_array((string) $scope, $valid_scopes, true) ? (string) $scope : 'all';
 
         return $this->queue_report_filter_url(array_merge([
@@ -1706,7 +1934,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
     protected function queue_assignee_filter_url($assigned_to, $scope = 'all', array $overrides = [], $view = 'queue')
     {
         $assigned_to = $this->sanitize_assignee($assigned_to);
-        $valid_scopes = ['all', 'overdue', 'critical', 'staff_reply', 'attention', 'priority_high', 'priority_critical', 'redistribute'];
+        $valid_scopes = ['all', 'overdue', 'aging', 'stale', 'very_old', 'critical', 'staff_reply', 'attention', 'priority_high', 'priority_critical', 'redistribute'];
         $scope = in_array((string) $scope, $valid_scopes, true) ? (string) $scope : 'all';
 
         $defaults = [
@@ -1967,8 +2195,12 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 return $this->user->lang('HELPDESK_QUEUE_UNASSIGNED');
             case 'overdue':
                 return $this->user->lang('HELPDESK_QUEUE_OVERDUE');
+            case 'aging':
+                return $this->user->lang('HELPDESK_QUEUE_AGING');
             case 'stale':
                 return $this->user->lang('HELPDESK_QUEUE_STALE');
+            case 'very_old':
+                return $this->user->lang('HELPDESK_QUEUE_VERY_OLD');
             case 'reopened':
                 return $this->user->lang('HELPDESK_QUEUE_REOPENED');
             case 'critical':
@@ -2362,7 +2594,9 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
             'active' => 0,
             'unassigned' => 0,
             'overdue' => 0,
+            'aging' => 0,
             'stale' => 0,
+            'very_old' => 0,
             'reopened' => 0,
             'staff_reply' => 0,
             'critical' => 0,
@@ -2395,9 +2629,17 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
             {
                 $counts['overdue']++;
             }
+            if (!empty($row['IS_AGING']))
+            {
+                $counts['aging']++;
+            }
             if (!empty($row['IS_STALE']))
             {
                 $counts['stale']++;
+            }
+            if (!empty($row['IS_VERY_OLD']))
+            {
+                $counts['very_old']++;
             }
             if (!empty($row['IS_REOPENED']))
             {
@@ -3866,7 +4108,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
         return $rank;
     }
 
-    protected function build_report(array $rows)
+    protected function build_report(array $rows, array $assignee_load_map = [], array $department_pressure = [])
     {
         $now = time();
         $report = [
@@ -3879,6 +4121,9 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             'updated_24h' => 0,
             'created_24h' => 0,
             'overdue' => 0,
+            'aging' => 0,
+            'stale' => 0,
+            'very_old' => 0,
             'staff_reply' => 0,
             'avg_age_label' => $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE'),
             'avg_idle_label' => $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE'),
@@ -3886,12 +4131,33 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             'department_rows' => [],
             'assignee_rows' => [],
             'priority_rows' => [],
+            'workload_rows' => [],
+            'workload_relief_rows' => [],
+            'workload_support_rows' => [],
+            'workload_status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_STABLE'),
+            'workload_status_text' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_TEXT_STABLE'),
+            'workload_status_class' => 'stable',
+            'department_status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_STABLE'),
+            'department_status_text' => $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_TEXT_STABLE', 0, 0),
+            'department_status_class' => 'stable',
         ];
 
         if (empty($rows))
         {
             return $report;
         }
+
+        if (empty($assignee_load_map))
+        {
+            $assignee_load_map = $this->build_assignee_load($rows);
+        }
+        if (empty($department_pressure))
+        {
+            $department_pressure = $this->build_department_pressure($rows, $assignee_load_map);
+        }
+        $report['department_status_label'] = isset($department_pressure['status_label']) ? (string) $department_pressure['status_label'] : $report['department_status_label'];
+        $report['department_status_text'] = isset($department_pressure['status_text']) ? (string) $department_pressure['status_text'] : $report['department_status_text'];
+        $report['department_status_class'] = isset($department_pressure['status_class']) ? (string) $department_pressure['status_class'] : $report['department_status_class'];
 
         $status_map = [];
         $department_map = [];
@@ -3900,7 +4166,6 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
         $active_age_total = 0;
         $active_idle_total = 0;
         $active_count_for_average = 0;
-        $assignee_load_map = $this->build_assignee_load($rows);
 
         foreach ($rows as $row)
         {
@@ -3924,6 +4189,18 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 if (!empty($row['IS_OVERDUE']))
                 {
                     $report['overdue']++;
+                }
+                if (!empty($row['IS_AGING']))
+                {
+                    $report['aging']++;
+                }
+                if (!empty($row['IS_STALE']))
+                {
+                    $report['stale']++;
+                }
+                if (!empty($row['IS_VERY_OLD']))
+                {
+                    $report['very_old']++;
                 }
                 if (!empty($row['IS_STAFF_REPLY']))
                 {
@@ -3980,10 +4257,35 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                     'DEPARTMENT_KEY' => $department_key,
                     'LABEL' => $department_label,
                     'COUNT' => 0,
+                    'ACTIVE_COUNT' => 0,
+                    'UNASSIGNED_COUNT' => 0,
+                    'OVERDUE_COUNT' => 0,
+                    'CRITICAL_COUNT' => 0,
+                    'ASSIGNEE_KEYS' => [],
                     'S_AGGREGATED' => false,
                 ];
             }
             $department_map[$department_index]['COUNT']++;
+            if ($is_active)
+            {
+                $department_map[$department_index]['ACTIVE_COUNT']++;
+                if (!empty($row['IS_UNASSIGNED']))
+                {
+                    $department_map[$department_index]['UNASSIGNED_COUNT']++;
+                }
+                if (!empty($row['IS_OVERDUE']))
+                {
+                    $department_map[$department_index]['OVERDUE_COUNT']++;
+                }
+                if (!empty($row['IS_CRITICAL']))
+                {
+                    $department_map[$department_index]['CRITICAL_COUNT']++;
+                }
+                if (!empty($row['ASSIGNED_TO']))
+                {
+                    $department_map[$department_index]['ASSIGNEE_KEYS'][strtolower((string) $row['ASSIGNED_TO'])] = (string) $row['ASSIGNED_TO'];
+                }
+            }
 
             $priority_key = !empty($row['PRIORITY_KEY']) ? (string) $row['PRIORITY_KEY'] : '';
             $priority_label = !empty($row['PRIORITY_LABEL']) ? (string) $row['PRIORITY_LABEL'] : $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE');
@@ -4010,6 +4312,9 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                     'COUNT' => 0,
                     'OVERDUE_COUNT' => 0,
                     'CRITICAL_COUNT' => 0,
+                    'STAFF_REPLY_COUNT' => 0,
+                    'VERY_OLD_COUNT' => 0,
+                    'DEPARTMENT_COUNTS' => [],
                     'S_AGGREGATED' => false,
                 ];
             }
@@ -4022,6 +4327,20 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             {
                 $assignee_map[$assignee_index]['CRITICAL_COUNT']++;
             }
+            if (!empty($row['IS_STAFF_REPLY']))
+            {
+                $assignee_map[$assignee_index]['STAFF_REPLY_COUNT']++;
+            }
+            if (!empty($row['IS_VERY_OLD']))
+            {
+                $assignee_map[$assignee_index]['VERY_OLD_COUNT']++;
+            }
+            $assignee_department_label = !empty($row['DEPARTMENT_LABEL']) ? (string) $row['DEPARTMENT_LABEL'] : $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+            if (!isset($assignee_map[$assignee_index]['DEPARTMENT_COUNTS'][$assignee_department_label]))
+            {
+                $assignee_map[$assignee_index]['DEPARTMENT_COUNTS'][$assignee_department_label] = 0;
+            }
+            $assignee_map[$assignee_index]['DEPARTMENT_COUNTS'][$assignee_department_label]++;
         }
 
         if ($active_count_for_average > 0)
@@ -4078,10 +4397,27 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
 
         foreach ($this->limit_report_groups($department_map, 8, $this->user->lang('HELPDESK_REPORT_OTHERS_LABEL')) as $row)
         {
+            $department_meta = [];
+            $department_index = $this->department_index_key(isset($row['DEPARTMENT_KEY']) ? $row['DEPARTMENT_KEY'] : '', isset($row['LABEL']) ? $row['LABEL'] : '');
+            if (!empty($department_pressure['index'][$department_index]))
+            {
+                $department_meta = $department_pressure['index'][$department_index];
+            }
+
+            $assignee_count = !empty($row['ASSIGNEE_KEYS']) ? count((array) $row['ASSIGNEE_KEYS']) : (int) ($department_meta['ASSIGNEE_COUNT'] ?? 0);
             $report['department_rows'][] = [
                 'LABEL' => $row['LABEL'],
                 'COUNT' => $row['COUNT'],
                 'PERCENT' => $this->report_percent((int) $row['COUNT'], (int) $report['total']),
+                'ACTIVE_COUNT' => isset($row['ACTIVE_COUNT']) ? (int) $row['ACTIVE_COUNT'] : (int) ($department_meta['ACTIVE_COUNT'] ?? 0),
+                'UNASSIGNED_COUNT' => isset($row['UNASSIGNED_COUNT']) ? (int) $row['UNASSIGNED_COUNT'] : (int) ($department_meta['UNASSIGNED_COUNT'] ?? 0),
+                'OVERDUE_COUNT' => isset($row['OVERDUE_COUNT']) ? (int) $row['OVERDUE_COUNT'] : (int) ($department_meta['OVERDUE_COUNT'] ?? 0),
+                'CRITICAL_COUNT' => isset($row['CRITICAL_COUNT']) ? (int) $row['CRITICAL_COUNT'] : (int) ($department_meta['CRITICAL_COUNT'] ?? 0),
+                'ASSIGNEE_COUNT' => $assignee_count,
+                'PRIMARY_ASSIGNEE_LABEL' => !empty($department_meta['PRIMARY_ASSIGNEE_LABEL']) ? (string) $department_meta['PRIMARY_ASSIGNEE_LABEL'] : $this->user->lang('HELPDESK_REPORT_UNASSIGNED_LABEL'),
+                'PRESSURE_SCORE' => isset($department_meta['PRESSURE_SCORE']) ? (int) $department_meta['PRESSURE_SCORE'] : 0,
+                'STATUS_LABEL' => !empty($department_meta['STATUS_LABEL']) ? (string) $department_meta['STATUS_LABEL'] : $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_STABLE'),
+                'STATUS_CLASS' => !empty($department_meta['STATUS_CLASS']) ? (string) $department_meta['STATUS_CLASS'] : 'stable',
                 'U_FILTER' => (!empty($row['DEPARTMENT_KEY']) && empty($row['S_AGGREGATED'])) ? $this->queue_report_filter_url([
                     'scope' => 'all',
                     'department_key' => $row['DEPARTMENT_KEY'],
@@ -4113,6 +4449,21 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'SCORE' => 0,
             ];
 
+            $primary_department_label = $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+            $primary_department_count = 0;
+            if (!empty($row['DEPARTMENT_COUNTS']) && is_array($row['DEPARTMENT_COUNTS']))
+            {
+                foreach ($row['DEPARTMENT_COUNTS'] as $department_label => $department_count)
+                {
+                    $department_count = (int) $department_count;
+                    if ($department_count > $primary_department_count || ($department_count === $primary_department_count && strcasecmp((string) $department_label, $primary_department_label) < 0))
+                    {
+                        $primary_department_label = (string) $department_label;
+                        $primary_department_count = $department_count;
+                    }
+                }
+            }
+
             $u_filter = '';
             if (empty($row['S_AGGREGATED']))
             {
@@ -4135,6 +4486,10 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'COUNT' => $row['COUNT'],
                 'OVERDUE_COUNT' => $row['OVERDUE_COUNT'],
                 'CRITICAL_COUNT' => $row['CRITICAL_COUNT'],
+                'STAFF_REPLY_COUNT' => isset($row['STAFF_REPLY_COUNT']) ? (int) $row['STAFF_REPLY_COUNT'] : 0,
+                'VERY_OLD_COUNT' => isset($row['VERY_OLD_COUNT']) ? (int) $row['VERY_OLD_COUNT'] : 0,
+                'PRIMARY_DEPARTMENT_LABEL' => $primary_department_label,
+                'PRIMARY_DEPARTMENT_COUNT' => $primary_department_count,
                 'WORKLOAD_LABEL' => $load_meta['WORKLOAD_LABEL'],
                 'WORKLOAD_CLASS' => $load_meta['WORKLOAD_CLASS'],
                 'WORKLOAD_SCORE' => $load_meta['SCORE'],
@@ -4142,7 +4497,659 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             ];
         }
 
+        $report_load_distribution = $this->build_assignee_load_distribution($assignee_load_map);
+        $report['workload_rows'] = $report_load_distribution['rows'];
+        $report['workload_relief_rows'] = $report_load_distribution['relief_rows'];
+        $report['workload_support_rows'] = $report_load_distribution['support_rows'];
+        $report['workload_status_label'] = $report_load_distribution['status_label'];
+        $report['workload_status_text'] = $report_load_distribution['status_text'];
+        $report['workload_status_class'] = $report_load_distribution['status_class'];
+
         return $report;
+    }
+
+    protected function build_department_pressure(array $rows, array $assignee_load)
+    {
+        $summary = [
+            'total_departments' => 0,
+            'critical_count' => 0,
+            'attention_count' => 0,
+            'coverage_gap_count' => 0,
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_STABLE'),
+            'status_text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_TEXT_STABLE'), 0, 0),
+            'status_class' => 'stable',
+            'rows' => [],
+            'focus_rows' => [],
+            'index' => [],
+        ];
+
+        if (empty($rows))
+        {
+            return $summary;
+        }
+
+        $departments = [];
+        foreach ($rows as $row)
+        {
+            $tone = isset($row['STATUS_TONE']) ? (string) $row['STATUS_TONE'] : 'open';
+            if (!$this->is_active_status_tone($tone))
+            {
+                continue;
+            }
+
+            $department_key = !empty($row['DEPARTMENT_KEY']) ? $this->normalize_option_key((string) $row['DEPARTMENT_KEY']) : '';
+            $department_label = !empty($row['DEPARTMENT_LABEL']) ? (string) $row['DEPARTMENT_LABEL'] : $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+            $department_index = $this->department_index_key($department_key, $department_label);
+
+            if (!isset($departments[$department_index]))
+            {
+                $departments[$department_index] = [
+                    'DEPARTMENT_KEY' => $department_key,
+                    'LABEL' => $department_label,
+                    'ACTIVE_COUNT' => 0,
+                    'UNASSIGNED_COUNT' => 0,
+                    'OVERDUE_COUNT' => 0,
+                    'CRITICAL_COUNT' => 0,
+                    'STAFF_REPLY_COUNT' => 0,
+                    'VERY_OLD_COUNT' => 0,
+                    'PRIORITIZED_COUNT' => 0,
+                    'ASSIGNEES' => [],
+                    'ASSIGNEE_TICKET_COUNTS' => [],
+                ];
+            }
+
+            $departments[$department_index]['ACTIVE_COUNT']++;
+            if (!empty($row['IS_UNASSIGNED']))
+            {
+                $departments[$department_index]['UNASSIGNED_COUNT']++;
+            }
+            if (!empty($row['IS_OVERDUE']))
+            {
+                $departments[$department_index]['OVERDUE_COUNT']++;
+            }
+            if (!empty($row['IS_CRITICAL']))
+            {
+                $departments[$department_index]['CRITICAL_COUNT']++;
+            }
+            if (!empty($row['IS_STAFF_REPLY']))
+            {
+                $departments[$department_index]['STAFF_REPLY_COUNT']++;
+            }
+            if (!empty($row['IS_VERY_OLD']))
+            {
+                $departments[$department_index]['VERY_OLD_COUNT']++;
+            }
+            if (!empty($row['IS_PRIORITIZED']) || !empty($row['IS_ASSIGNEE_PRIORITIZED']))
+            {
+                $departments[$department_index]['PRIORITIZED_COUNT']++;
+            }
+            if (!empty($row['ASSIGNED_TO']))
+            {
+                $assignee_key = strtolower((string) $row['ASSIGNED_TO']);
+                $assignee_label = (string) $row['ASSIGNED_TO'];
+                $departments[$department_index]['ASSIGNEES'][$assignee_key] = $assignee_label;
+                if (!isset($departments[$department_index]['ASSIGNEE_TICKET_COUNTS'][$assignee_key]))
+                {
+                    $departments[$department_index]['ASSIGNEE_TICKET_COUNTS'][$assignee_key] = 0;
+                }
+                $departments[$department_index]['ASSIGNEE_TICKET_COUNTS'][$assignee_key]++;
+            }
+        }
+
+        if (empty($departments))
+        {
+            return $summary;
+        }
+
+        foreach ($departments as $department_index => $department)
+        {
+            $assignee_count = count($department['ASSIGNEES']);
+            $overloaded_assignee_count = 0;
+            $high_assignee_count = 0;
+            $support_assignee_count = 0;
+            $primary_assignee_label = $this->user->lang('HELPDESK_REPORT_UNASSIGNED_LABEL');
+            $primary_assignee_count = 0;
+
+            foreach ($department['ASSIGNEE_TICKET_COUNTS'] as $assignee_key => $assignee_ticket_count)
+            {
+                $assignee_label = isset($department['ASSIGNEES'][$assignee_key]) ? (string) $department['ASSIGNEES'][$assignee_key] : (string) $assignee_key;
+                $assignee_ticket_count = (int) $assignee_ticket_count;
+                if ($assignee_ticket_count > $primary_assignee_count || ($assignee_ticket_count === $primary_assignee_count && strcasecmp($assignee_label, $primary_assignee_label) < 0))
+                {
+                    $primary_assignee_label = $assignee_label;
+                    $primary_assignee_count = $assignee_ticket_count;
+                }
+
+                $load_meta = isset($assignee_load[$assignee_key]) ? $assignee_load[$assignee_key] : [];
+                $workload_key = isset($load_meta['WORKLOAD_KEY']) ? (string) $load_meta['WORKLOAD_KEY'] : 'idle';
+                if ($workload_key === 'overload')
+                {
+                    $overloaded_assignee_count++;
+                }
+                else if ($workload_key === 'high')
+                {
+                    $high_assignee_count++;
+                }
+                else if (in_array($workload_key, ['low', 'idle'], true))
+                {
+                    $support_assignee_count++;
+                }
+            }
+
+            $coverage_gap = ((int) $department['ACTIVE_COUNT'] > 0) && ($assignee_count <= 0 || (int) $department['UNASSIGNED_COUNT'] >= max(1, (int) ceil((int) $department['ACTIVE_COUNT'] / 2)));
+            $pressure_score = (int) $department['ACTIVE_COUNT']
+                + ((int) $department['UNASSIGNED_COUNT'] * 3)
+                + ((int) $department['OVERDUE_COUNT'] * 3)
+                + ((int) $department['CRITICAL_COUNT'] * 4)
+                + ((int) $department['STAFF_REPLY_COUNT'] * 2)
+                + ((int) $department['VERY_OLD_COUNT'] * 3)
+                + ((int) $department['PRIORITIZED_COUNT']);
+
+            $status_class = 'stable';
+            if ((int) $department['CRITICAL_COUNT'] > 0 || (int) $department['VERY_OLD_COUNT'] > 0 || (int) $department['OVERDUE_COUNT'] >= 3 || $coverage_gap || $overloaded_assignee_count > 0)
+            {
+                $status_class = 'critical';
+                $summary['critical_count']++;
+            }
+            else if ((int) $department['UNASSIGNED_COUNT'] > 0 || (int) $department['OVERDUE_COUNT'] > 0 || (int) $department['STAFF_REPLY_COUNT'] > 0 || $high_assignee_count > 0)
+            {
+                $status_class = 'attention';
+                $summary['attention_count']++;
+            }
+
+            if ($coverage_gap)
+            {
+                $summary['coverage_gap_count']++;
+            }
+
+            $row = [
+                'DEPARTMENT_KEY' => (string) $department['DEPARTMENT_KEY'],
+                'LABEL' => (string) $department['LABEL'],
+                'ACTIVE_COUNT' => (int) $department['ACTIVE_COUNT'],
+                'UNASSIGNED_COUNT' => (int) $department['UNASSIGNED_COUNT'],
+                'OVERDUE_COUNT' => (int) $department['OVERDUE_COUNT'],
+                'CRITICAL_COUNT' => (int) $department['CRITICAL_COUNT'],
+                'STAFF_REPLY_COUNT' => (int) $department['STAFF_REPLY_COUNT'],
+                'VERY_OLD_COUNT' => (int) $department['VERY_OLD_COUNT'],
+                'PRIORITIZED_COUNT' => (int) $department['PRIORITIZED_COUNT'],
+                'ASSIGNEE_COUNT' => $assignee_count,
+                'OVERLOADED_ASSIGNEE_COUNT' => $overloaded_assignee_count,
+                'HIGH_ASSIGNEE_COUNT' => $high_assignee_count,
+                'SUPPORT_ASSIGNEE_COUNT' => $support_assignee_count,
+                'PRIMARY_ASSIGNEE_LABEL' => $primary_assignee_label,
+                'PRIMARY_ASSIGNEE_COUNT' => $primary_assignee_count,
+                'PRESSURE_SCORE' => $pressure_score,
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_' . strtoupper($status_class)),
+                'STATUS_CLASS' => $status_class,
+                'COVERAGE_LABEL' => $coverage_gap ? $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_COVERAGE_GAP') : $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_COVERAGE_OK'),
+                'S_COVERAGE_GAP' => $coverage_gap,
+                'U_QUEUE' => ((string) $department['DEPARTMENT_KEY'] !== '') ? $this->queue_report_filter_url([
+                    'qview' => 'balance',
+                    'scope' => 'all',
+                    'department_key' => (string) $department['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]) : $this->queue_view_url('balance'),
+                'U_TRIAGE' => ((string) $department['DEPARTMENT_KEY'] !== '') ? $this->queue_report_filter_url([
+                    'qview' => 'triage',
+                    'scope' => 'unassigned',
+                    'department_key' => (string) $department['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]) : $this->queue_scope_url('unassigned', 'triage'),
+                'U_OVERDUE' => ((string) $department['DEPARTMENT_KEY'] !== '') ? $this->queue_report_filter_url([
+                    'qview' => 'alerts',
+                    'scope' => 'overdue',
+                    'department_key' => (string) $department['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]) : '',
+                'U_CRITICAL' => ((string) $department['DEPARTMENT_KEY'] !== '') ? $this->queue_report_filter_url([
+                    'qview' => 'alerts',
+                    'scope' => 'critical',
+                    'department_key' => (string) $department['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]) : '',
+                'U_REPORT' => ((string) $department['DEPARTMENT_KEY'] !== '') ? $this->queue_report_filter_url([
+                    'qview' => 'reports',
+                    'scope' => 'all',
+                    'department_key' => (string) $department['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]) : $this->queue_view_url('reports'),
+                'U_REDISTRIBUTE' => ((string) $department['DEPARTMENT_KEY'] !== '') ? $this->queue_report_filter_url([
+                    'qview' => 'balance',
+                    'scope' => 'redistribute',
+                    'department_key' => (string) $department['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]) : '',
+            ];
+
+            $summary['rows'][] = $row;
+            $summary['index'][$department_index] = $row;
+        }
+
+        usort($summary['rows'], function ($a, $b) {
+            $a_level = ((string) ($a['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($a['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            $b_level = ((string) ($b['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($b['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            if ($a_level !== $b_level)
+            {
+                return ($a_level > $b_level) ? -1 : 1;
+            }
+            if ((int) ($a['PRESSURE_SCORE'] ?? 0) === (int) ($b['PRESSURE_SCORE'] ?? 0))
+            {
+                return strcasecmp((string) ($a['LABEL'] ?? ''), (string) ($b['LABEL'] ?? ''));
+            }
+            return ((int) ($a['PRESSURE_SCORE'] ?? 0) > (int) ($b['PRESSURE_SCORE'] ?? 0)) ? -1 : 1;
+        });
+        $summary['index'] = [];
+        foreach ($summary['rows'] as $row)
+        {
+            $summary['index'][$this->department_index_key(isset($row['DEPARTMENT_KEY']) ? $row['DEPARTMENT_KEY'] : '', isset($row['LABEL']) ? $row['LABEL'] : '')] = $row;
+        }
+
+        $summary['total_departments'] = count($summary['rows']);
+        if ($summary['critical_count'] > 0 || $summary['coverage_gap_count'] > 0)
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_CRITICAL');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_TEXT_CRITICAL'), $summary['critical_count'], $summary['coverage_gap_count']);
+            $summary['status_class'] = 'critical';
+        }
+        else if ($summary['attention_count'] > 0)
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_ATTENTION');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_TEXT_ATTENTION'), $summary['attention_count'], $summary['total_departments']);
+            $summary['status_class'] = 'attention';
+        }
+        else
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_STABLE');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_TEXT_STABLE'), $summary['total_departments'], $summary['coverage_gap_count']);
+            $summary['status_class'] = 'stable';
+        }
+
+        $focus_rows = [];
+        foreach ($summary['rows'] as $row)
+        {
+            if ((string) $row['STATUS_CLASS'] !== 'stable' || !empty($row['S_COVERAGE_GAP']) || (int) $row['UNASSIGNED_COUNT'] > 0)
+            {
+                $focus_rows[] = $row;
+            }
+        }
+        if (empty($focus_rows))
+        {
+            $focus_rows = $summary['rows'];
+        }
+        $summary['focus_rows'] = array_slice($focus_rows, 0, 4);
+
+        return $summary;
+    }
+
+    protected function build_forum_backlog(array $rows)
+    {
+        $summary = [
+            'total_forums' => 0,
+            'critical_count' => 0,
+            'attention_count' => 0,
+            'multi_department_count' => 0,
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_STABLE'),
+            'status_text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_TEXT_STABLE'), 0, 0),
+            'status_class' => 'stable',
+            'rows' => [],
+            'focus_rows' => [],
+        ];
+
+        if (empty($rows))
+        {
+            return $summary;
+        }
+
+        $forums = [];
+        foreach ($rows as $row)
+        {
+            $tone = isset($row['STATUS_TONE']) ? (string) $row['STATUS_TONE'] : 'open';
+            if (!$this->is_active_status_tone($tone))
+            {
+                continue;
+            }
+
+            $forum_id = isset($row['FORUM_ID']) ? (int) $row['FORUM_ID'] : 0;
+            $forum_label = !empty($row['FORUM_NAME']) ? (string) $row['FORUM_NAME'] : $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE');
+            $forum_index = $this->forum_index_key($forum_id, $forum_label);
+
+            if (!isset($forums[$forum_index]))
+            {
+                $forums[$forum_index] = [
+                    'FORUM_ID' => $forum_id,
+                    'LABEL' => $forum_label,
+                    'ACTIVE_COUNT' => 0,
+                    'UNASSIGNED_COUNT' => 0,
+                    'OVERDUE_COUNT' => 0,
+                    'CRITICAL_COUNT' => 0,
+                    'VERY_OLD_COUNT' => 0,
+                    'DEPARTMENT_COUNTS' => [],
+                ];
+            }
+
+            $forums[$forum_index]['ACTIVE_COUNT']++;
+            if (!empty($row['IS_UNASSIGNED']))
+            {
+                $forums[$forum_index]['UNASSIGNED_COUNT']++;
+            }
+            if (!empty($row['IS_OVERDUE']))
+            {
+                $forums[$forum_index]['OVERDUE_COUNT']++;
+            }
+            if (!empty($row['IS_CRITICAL']))
+            {
+                $forums[$forum_index]['CRITICAL_COUNT']++;
+            }
+            if (!empty($row['IS_VERY_OLD']))
+            {
+                $forums[$forum_index]['VERY_OLD_COUNT']++;
+            }
+
+            $department_label = !empty($row['DEPARTMENT_LABEL']) ? (string) $row['DEPARTMENT_LABEL'] : $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+            if (!isset($forums[$forum_index]['DEPARTMENT_COUNTS'][$department_label]))
+            {
+                $forums[$forum_index]['DEPARTMENT_COUNTS'][$department_label] = 0;
+            }
+            $forums[$forum_index]['DEPARTMENT_COUNTS'][$department_label]++;
+        }
+
+        if (empty($forums))
+        {
+            return $summary;
+        }
+
+        foreach ($forums as $forum)
+        {
+            $department_count = !empty($forum['DEPARTMENT_COUNTS']) ? count($forum['DEPARTMENT_COUNTS']) : 0;
+            $primary_department_label = $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+            $primary_department_count = 0;
+            foreach ((array) $forum['DEPARTMENT_COUNTS'] as $department_label => $department_count_value)
+            {
+                $department_count_value = (int) $department_count_value;
+                if ($department_count_value > $primary_department_count || ($department_count_value === $primary_department_count && strcasecmp((string) $department_label, $primary_department_label) < 0))
+                {
+                    $primary_department_label = (string) $department_label;
+                    $primary_department_count = $department_count_value;
+                }
+            }
+
+            if ($department_count > 1)
+            {
+                $summary['multi_department_count']++;
+            }
+
+            $pressure_score = (int) $forum['ACTIVE_COUNT']
+                + ((int) $forum['UNASSIGNED_COUNT'] * 3)
+                + ((int) $forum['OVERDUE_COUNT'] * 3)
+                + ((int) $forum['CRITICAL_COUNT'] * 4)
+                + ((int) $forum['VERY_OLD_COUNT'] * 3)
+                + max(0, $department_count - 1);
+
+            $status_class = 'stable';
+            if ((int) $forum['CRITICAL_COUNT'] > 0 || (int) $forum['VERY_OLD_COUNT'] > 0 || (int) $forum['OVERDUE_COUNT'] >= 3 || (int) $forum['UNASSIGNED_COUNT'] >= max(2, (int) ceil((int) $forum['ACTIVE_COUNT'] / 2)))
+            {
+                $status_class = 'critical';
+                $summary['critical_count']++;
+            }
+            else if ((int) $forum['UNASSIGNED_COUNT'] > 0 || (int) $forum['OVERDUE_COUNT'] > 0 || $department_count > 1)
+            {
+                $status_class = 'attention';
+                $summary['attention_count']++;
+            }
+
+            $summary['rows'][] = [
+                'FORUM_ID' => (int) $forum['FORUM_ID'],
+                'LABEL' => (string) $forum['LABEL'],
+                'ACTIVE_COUNT' => (int) $forum['ACTIVE_COUNT'],
+                'UNASSIGNED_COUNT' => (int) $forum['UNASSIGNED_COUNT'],
+                'OVERDUE_COUNT' => (int) $forum['OVERDUE_COUNT'],
+                'CRITICAL_COUNT' => (int) $forum['CRITICAL_COUNT'],
+                'VERY_OLD_COUNT' => (int) $forum['VERY_OLD_COUNT'],
+                'DEPARTMENT_COUNT' => $department_count,
+                'PRIMARY_DEPARTMENT_LABEL' => $primary_department_label,
+                'PRIMARY_DEPARTMENT_COUNT' => $primary_department_count,
+                'PRESSURE_SCORE' => $pressure_score,
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_' . strtoupper($status_class)),
+                'STATUS_CLASS' => $status_class,
+                'U_QUEUE' => ((int) $forum['FORUM_ID'] > 0) ? $this->queue_report_filter_url([
+                    'qview' => 'balance',
+                    'scope' => 'all',
+                    'forum_id' => (int) $forum['FORUM_ID'],
+                    'page' => 1,
+                ]) : $this->queue_view_url('balance'),
+                'U_TRIAGE' => ((int) $forum['FORUM_ID'] > 0) ? $this->queue_report_filter_url([
+                    'qview' => 'triage',
+                    'scope' => ((int) $forum['UNASSIGNED_COUNT'] > 0) ? 'unassigned' : 'all',
+                    'forum_id' => (int) $forum['FORUM_ID'],
+                    'page' => 1,
+                ]) : $this->queue_view_url('triage'),
+                'U_ALERTS' => ((int) $forum['FORUM_ID'] > 0) ? $this->queue_report_filter_url([
+                    'qview' => 'alerts',
+                    'scope' => 'all',
+                    'forum_id' => (int) $forum['FORUM_ID'],
+                    'page' => 1,
+                ]) : $this->queue_view_url('alerts'),
+                'U_REPORT' => ((int) $forum['FORUM_ID'] > 0) ? $this->queue_report_filter_url([
+                    'qview' => 'reports',
+                    'scope' => 'all',
+                    'forum_id' => (int) $forum['FORUM_ID'],
+                    'page' => 1,
+                ]) : $this->queue_view_url('reports'),
+            ];
+        }
+
+        usort($summary['rows'], function ($a, $b) {
+            $a_level = ((string) ($a['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($a['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            $b_level = ((string) ($b['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($b['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            if ($a_level !== $b_level)
+            {
+                return ($a_level > $b_level) ? -1 : 1;
+            }
+            if ((int) ($a['PRESSURE_SCORE'] ?? 0) === (int) ($b['PRESSURE_SCORE'] ?? 0))
+            {
+                return strcasecmp((string) ($a['LABEL'] ?? ''), (string) ($b['LABEL'] ?? ''));
+            }
+            return ((int) ($a['PRESSURE_SCORE'] ?? 0) > (int) ($b['PRESSURE_SCORE'] ?? 0)) ? -1 : 1;
+        });
+
+        $summary['total_forums'] = count($summary['rows']);
+        if ($summary['critical_count'] > 0)
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_CRITICAL');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_TEXT_CRITICAL'), $summary['critical_count'], $summary['multi_department_count']);
+            $summary['status_class'] = 'critical';
+        }
+        else if ($summary['attention_count'] > 0)
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_ATTENTION');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_TEXT_ATTENTION'), $summary['attention_count'], $summary['total_forums']);
+            $summary['status_class'] = 'attention';
+        }
+        else
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_STABLE');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_TEXT_STABLE'), $summary['total_forums'], $summary['multi_department_count']);
+            $summary['status_class'] = 'stable';
+        }
+
+        $focus_rows = [];
+        foreach ($summary['rows'] as $row)
+        {
+            if ((string) $row['STATUS_CLASS'] !== 'stable' || (int) $row['DEPARTMENT_COUNT'] > 1)
+            {
+                $focus_rows[] = $row;
+            }
+        }
+        if (empty($focus_rows))
+        {
+            $focus_rows = $summary['rows'];
+        }
+        $summary['focus_rows'] = array_slice($focus_rows, 0, 4);
+
+        return $summary;
+    }
+
+    protected function build_forum_department_backlog(array $rows)
+    {
+        $summary = [
+            'rows' => [],
+        ];
+
+        if (empty($rows))
+        {
+            return $summary;
+        }
+
+        $groups = [];
+        foreach ($rows as $row)
+        {
+            $tone = isset($row['STATUS_TONE']) ? (string) $row['STATUS_TONE'] : 'open';
+            if (!$this->is_active_status_tone($tone))
+            {
+                continue;
+            }
+
+            $forum_id = isset($row['FORUM_ID']) ? (int) $row['FORUM_ID'] : 0;
+            $forum_label = !empty($row['FORUM_NAME']) ? (string) $row['FORUM_NAME'] : $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE');
+            $department_key = !empty($row['DEPARTMENT_KEY']) ? $this->normalize_option_key((string) $row['DEPARTMENT_KEY']) : '';
+            $department_label = !empty($row['DEPARTMENT_LABEL']) ? (string) $row['DEPARTMENT_LABEL'] : $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
+            $group_key = $this->forum_index_key($forum_id, $forum_label) . '::' . $this->department_index_key($department_key, $department_label);
+
+            if (!isset($groups[$group_key]))
+            {
+                $groups[$group_key] = [
+                    'FORUM_ID' => $forum_id,
+                    'FORUM_LABEL' => $forum_label,
+                    'DEPARTMENT_KEY' => $department_key,
+                    'DEPARTMENT_LABEL' => $department_label,
+                    'ACTIVE_COUNT' => 0,
+                    'UNASSIGNED_COUNT' => 0,
+                    'OVERDUE_COUNT' => 0,
+                    'CRITICAL_COUNT' => 0,
+                    'VERY_OLD_COUNT' => 0,
+                    'ASSIGNEE_COUNTS' => [],
+                ];
+            }
+
+            $groups[$group_key]['ACTIVE_COUNT']++;
+            if (!empty($row['IS_UNASSIGNED']))
+            {
+                $groups[$group_key]['UNASSIGNED_COUNT']++;
+            }
+            if (!empty($row['IS_OVERDUE']))
+            {
+                $groups[$group_key]['OVERDUE_COUNT']++;
+            }
+            if (!empty($row['IS_CRITICAL']))
+            {
+                $groups[$group_key]['CRITICAL_COUNT']++;
+            }
+            if (!empty($row['IS_VERY_OLD']))
+            {
+                $groups[$group_key]['VERY_OLD_COUNT']++;
+            }
+            $assignee_label = !empty($row['ASSIGNED_TO']) ? (string) $row['ASSIGNED_TO'] : $this->user->lang('HELPDESK_REPORT_UNASSIGNED_LABEL');
+            if (!isset($groups[$group_key]['ASSIGNEE_COUNTS'][$assignee_label]))
+            {
+                $groups[$group_key]['ASSIGNEE_COUNTS'][$assignee_label] = 0;
+            }
+            $groups[$group_key]['ASSIGNEE_COUNTS'][$assignee_label]++;
+        }
+
+        foreach ($groups as $group)
+        {
+            $primary_assignee_label = $this->user->lang('HELPDESK_REPORT_UNASSIGNED_LABEL');
+            $primary_assignee_count = 0;
+            foreach ((array) $group['ASSIGNEE_COUNTS'] as $assignee_label => $assignee_count)
+            {
+                $assignee_count = (int) $assignee_count;
+                if ($assignee_count > $primary_assignee_count || ($assignee_count === $primary_assignee_count && strcasecmp((string) $assignee_label, $primary_assignee_label) < 0))
+                {
+                    $primary_assignee_label = (string) $assignee_label;
+                    $primary_assignee_count = $assignee_count;
+                }
+            }
+
+            $pressure_score = (int) $group['ACTIVE_COUNT']
+                + ((int) $group['UNASSIGNED_COUNT'] * 3)
+                + ((int) $group['OVERDUE_COUNT'] * 3)
+                + ((int) $group['CRITICAL_COUNT'] * 4)
+                + ((int) $group['VERY_OLD_COUNT'] * 3);
+
+            $status_class = 'stable';
+            if ((int) $group['CRITICAL_COUNT'] > 0 || (int) $group['VERY_OLD_COUNT'] > 0 || (int) $group['OVERDUE_COUNT'] >= 2)
+            {
+                $status_class = 'critical';
+            }
+            else if ((int) $group['UNASSIGNED_COUNT'] > 0 || (int) $group['OVERDUE_COUNT'] > 0)
+            {
+                $status_class = 'attention';
+            }
+
+            $summary['rows'][] = [
+                'FORUM_ID' => (int) $group['FORUM_ID'],
+                'FORUM_LABEL' => (string) $group['FORUM_LABEL'],
+                'DEPARTMENT_KEY' => (string) $group['DEPARTMENT_KEY'],
+                'DEPARTMENT_LABEL' => (string) $group['DEPARTMENT_LABEL'],
+                'ACTIVE_COUNT' => (int) $group['ACTIVE_COUNT'],
+                'UNASSIGNED_COUNT' => (int) $group['UNASSIGNED_COUNT'],
+                'OVERDUE_COUNT' => (int) $group['OVERDUE_COUNT'],
+                'CRITICAL_COUNT' => (int) $group['CRITICAL_COUNT'],
+                'VERY_OLD_COUNT' => (int) $group['VERY_OLD_COUNT'],
+                'PRIMARY_ASSIGNEE_LABEL' => $primary_assignee_label,
+                'PRIMARY_ASSIGNEE_COUNT' => $primary_assignee_count,
+                'PRESSURE_SCORE' => $pressure_score,
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_' . strtoupper($status_class)),
+                'STATUS_CLASS' => $status_class,
+                'U_FILTER' => $this->queue_report_filter_url([
+                    'qview' => 'reports',
+                    'scope' => 'all',
+                    'forum_id' => (int) $group['FORUM_ID'],
+                    'department_key' => (string) $group['DEPARTMENT_KEY'],
+                    'page' => 1,
+                ]),
+            ];
+        }
+
+        usort($summary['rows'], function ($a, $b) {
+            $a_level = ((string) ($a['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($a['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            $b_level = ((string) ($b['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($b['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            if ($a_level !== $b_level)
+            {
+                return ($a_level > $b_level) ? -1 : 1;
+            }
+            if ((int) ($a['PRESSURE_SCORE'] ?? 0) === (int) ($b['PRESSURE_SCORE'] ?? 0))
+            {
+                $a_label = (string) (($a['FORUM_LABEL'] ?? '') . ' ' . ($a['DEPARTMENT_LABEL'] ?? ''));
+                $b_label = (string) (($b['FORUM_LABEL'] ?? '') . ' ' . ($b['DEPARTMENT_LABEL'] ?? ''));
+                return strcasecmp($a_label, $b_label);
+            }
+            return ((int) ($a['PRESSURE_SCORE'] ?? 0) > (int) ($b['PRESSURE_SCORE'] ?? 0)) ? -1 : 1;
+        });
+
+        return $summary;
+    }
+
+    protected function forum_index_key($forum_id, $forum_label)
+    {
+        $forum_id = (int) $forum_id;
+        if ($forum_id > 0)
+        {
+            return (string) $forum_id;
+        }
+
+        return '__forum__' . $this->slugify((string) $forum_label);
+    }
+
+    protected function department_index_key($department_key, $department_label)
+    {
+        $department_key = $this->normalize_option_key($department_key);
+        if ($department_key !== '')
+        {
+            return $department_key;
+        }
+
+        return '__unset__' . $this->slugify((string) $department_label);
     }
 
     protected function build_overview_focus(array $counts)
@@ -4243,12 +5250,1065 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
     }
 
 
+    protected function build_backlog_aging(array $rows)
+    {
+        $summary = [
+            'total_active' => 0,
+            'within_sla_count' => 0,
+            'aging_count' => 0,
+            'stale_count' => 0,
+            'very_old_count' => 0,
+            'recent_activity_count' => 0,
+            'oldest_age_label' => $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE'),
+            'oldest_idle_label' => $this->user->lang('HELPDESK_REPORT_EMPTY_VALUE'),
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_STABLE'),
+            'status_text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_TEXT_STABLE'), 0, 0),
+            'status_class' => 'stable',
+            'rows' => [],
+            'focus_rows' => [],
+        ];
+
+        if (empty($rows))
+        {
+            return $summary;
+        }
+
+        $now = time();
+        $oldest_age = 0;
+        $oldest_idle = 0;
+
+        foreach ($rows as $row)
+        {
+            if (empty($row['IS_OPEN']))
+            {
+                continue;
+            }
+
+            $summary['total_active']++;
+
+            $created_ts = !empty($row['CREATED_TS']) ? (int) $row['CREATED_TS'] : 0;
+            $updated_ts = !empty($row['UPDATED_TS']) ? (int) $row['UPDATED_TS'] : 0;
+            if ($created_ts > 0)
+            {
+                $age_seconds = max(0, $now - $created_ts);
+                $oldest_age = max($oldest_age, $age_seconds);
+                if (!empty($row['IS_VERY_OLD']))
+                {
+                    $summary['very_old_count']++;
+                }
+                else if (!empty($row['IS_STALE']))
+                {
+                    $summary['stale_count']++;
+                }
+                else if (!empty($row['IS_AGING']))
+                {
+                    $summary['aging_count']++;
+                }
+                else
+                {
+                    $summary['within_sla_count']++;
+                }
+            }
+            else
+            {
+                $summary['within_sla_count']++;
+            }
+
+            $idle_base = ($updated_ts > 0) ? $updated_ts : $created_ts;
+            if ($idle_base > 0)
+            {
+                $idle_seconds = max(0, $now - $idle_base);
+                $oldest_idle = max($oldest_idle, $idle_seconds);
+                if ($idle_seconds <= 86400)
+                {
+                    $summary['recent_activity_count']++;
+                }
+            }
+        }
+
+        $summary['oldest_age_label'] = ($oldest_age > 0) ? $this->format_report_duration($oldest_age) : $summary['oldest_age_label'];
+        $summary['oldest_idle_label'] = ($oldest_idle > 0) ? $this->format_report_duration($oldest_idle) : $summary['oldest_idle_label'];
+
+        $active_total = max(1, (int) $summary['total_active']);
+        $aging_pressure = (int) $summary['aging_count'] + (int) $summary['stale_count'] + (int) $summary['very_old_count'];
+
+        if ((int) $summary['very_old_count'] > 0 || (int) $summary['stale_count'] >= 4 || $aging_pressure >= (int) ceil($active_total * 0.5))
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_CRITICAL');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_TEXT_CRITICAL'), $summary['stale_count'], $summary['very_old_count']);
+            $summary['status_class'] = 'critical';
+        }
+        else if ((int) $summary['aging_count'] > 0 || (int) $summary['stale_count'] > 0)
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_ATTENTION');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_TEXT_ATTENTION'), $summary['aging_count'], $summary['stale_count']);
+            $summary['status_class'] = 'attention';
+        }
+        else
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_STABLE');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_TEXT_STABLE'), $summary['within_sla_count'], $summary['aging_count']);
+            $summary['status_class'] = 'stable';
+        }
+
+        $rows_meta = [
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_WITHIN_SLA'),
+                'count' => (int) $summary['within_sla_count'],
+                'url' => '',
+                'level' => 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_QUEUE_AGING'),
+                'count' => (int) $summary['aging_count'],
+                'url' => $this->queue_report_scope_url('aging'),
+                'level' => ((int) $summary['aging_count'] > 0) ? 'attention' : 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_QUEUE_STALE'),
+                'count' => (int) $summary['stale_count'],
+                'url' => $this->queue_report_scope_url('stale'),
+                'level' => ((int) $summary['stale_count'] > 0) ? 'attention' : 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_QUEUE_VERY_OLD'),
+                'count' => (int) $summary['very_old_count'],
+                'url' => $this->queue_report_scope_url('very_old'),
+                'level' => ((int) $summary['very_old_count'] > 0) ? 'critical' : 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_REPORT_UPDATED_24H'),
+                'count' => (int) $summary['recent_activity_count'],
+                'url' => $this->queue_report_scope_url('updated_24h'),
+                'level' => 'stable',
+            ],
+        ];
+
+        foreach ($rows_meta as $row_meta)
+        {
+            $row = [
+                'LABEL' => (string) $row_meta['label'],
+                'COUNT' => (int) $row_meta['count'],
+                'PERCENT' => $this->report_percent((int) $row_meta['count'], (int) $summary['total_active']),
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_' . strtoupper((string) $row_meta['level'])),
+                'STATUS_CLASS' => 'is-' . (string) $row_meta['level'],
+                'U_FILTER' => (string) $row_meta['url'],
+            ];
+            $summary['rows'][] = $row;
+        }
+
+        foreach ($summary['rows'] as $row)
+        {
+            if ((int) $row['COUNT'] <= 0)
+            {
+                continue;
+            }
+            if ((string) $row['LABEL'] === (string) $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_WITHIN_SLA'))
+            {
+                continue;
+            }
+            $summary['focus_rows'][] = [
+                'TITLE' => (string) $row['LABEL'],
+                'COUNT' => (int) $row['COUNT'],
+                'STATUS_LABEL' => (string) $row['STATUS_LABEL'],
+                'STATUS_CLASS' => (string) $row['STATUS_CLASS'],
+                'U_ROW' => (string) $row['U_FILTER'],
+            ];
+        }
+        if (empty($summary['focus_rows']))
+        {
+            $summary['focus_rows'][] = [
+                'TITLE' => $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_WITHIN_SLA'),
+                'COUNT' => (int) $summary['within_sla_count'],
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_STATUS_STABLE'),
+                'STATUS_CLASS' => 'is-stable',
+                'U_ROW' => $this->queue_view_url('queue'),
+            ];
+        }
+
+        return $summary;
+    }
+
+
+    protected function build_executive_summary(array $counts, array $alert_overview, array $load_distribution, array $department_pressure, array $forum_backlog, array $backlog_aging, array $team_productivity)
+    {
+        $summary = [
+            'active_total' => (int) ($counts['active'] ?? 0),
+            'alert_total' => (int) ($alert_overview['alert_total'] ?? 0),
+            'overloaded_count' => (int) ($load_distribution['overloaded_count'] ?? 0),
+            'engaged_assignees_count' => (int) ($team_productivity['engaged_assignees_count'] ?? 0),
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_OVERVIEW_HEALTH_STATUS_STABLE'),
+            'status_text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_EXECUTIVE_STATUS_TEXT_STABLE'), (int) ($counts['active'] ?? 0), (int) ($team_productivity['recent_activity_count'] ?? 0), (int) ($team_productivity['engaged_assignees_count'] ?? 0)),
+            'status_class' => 'stable',
+            'focus_rows' => [],
+            'report_rows' => [],
+        ];
+
+        $candidates = [];
+        $add_candidate = function ($label, $count, $level, $priority, $url, $section_label) use (&$candidates)
+        {
+            $count = (int) $count;
+            if ($count <= 0)
+            {
+                return;
+            }
+
+            $level = in_array((string) $level, ['stable', 'attention', 'critical'], true) ? (string) $level : 'stable';
+            $candidates[] = [
+                'LABEL' => (string) $label,
+                'COUNT' => $count,
+                'LEVEL' => $level,
+                'PRIORITY' => (int) $priority,
+                'U_FILTER' => (string) $url,
+                'SECTION_LABEL' => (string) $section_label,
+            ];
+        };
+
+        $critical_count = (int) ($counts['critical'] ?? 0);
+        if ($critical_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_CRITICALITY_CRITICAL'), $critical_count, 'critical', 1400 + ($critical_count * 5), $this->queue_scope_url('critical', 'alerts'), $this->user->lang('HELPDESK_QUEUE_SECTION_ALERTS'));
+        }
+
+        $first_reply_count = (int) ($team_productivity['first_reply_count'] ?? 0);
+        if ($first_reply_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_FIRST_REPLY_PENDING'), $first_reply_count, 'critical', 1350 + ($first_reply_count * 5), $this->queue_report_scope_url('no_reply'), $this->user->lang('HELPDESK_QUEUE_SECTION_ALERTS'));
+        }
+
+        $overdue_count = (int) ($counts['overdue'] ?? 0);
+        if ($overdue_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_QUEUE_OVERDUE'), $overdue_count, ($overdue_count >= 5) ? 'critical' : 'attention', 1300 + ($overdue_count * 4), $this->queue_scope_url('overdue', 'alerts'), $this->user->lang('HELPDESK_QUEUE_SECTION_ALERTS'));
+        }
+
+        $very_old_count = (int) ($counts['very_old'] ?? 0);
+        if ($very_old_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_QUEUE_VERY_OLD'), $very_old_count, 'critical', 1250 + ($very_old_count * 4), $this->queue_scope_url('very_old', 'alerts'), $this->user->lang('HELPDESK_QUEUE_SECTION_ALERTS'));
+        }
+
+        $staff_reply_count = (int) ($team_productivity['staff_reply_count'] ?? 0);
+        if ($staff_reply_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TEAM_RESPONSE_PENDING'), $staff_reply_count, ($staff_reply_count >= 2) ? 'critical' : 'attention', 1180 + ($staff_reply_count * 4), $this->queue_report_scope_url('staff_reply'), $this->user->lang('HELPDESK_QUEUE_SECTION_QUEUE'));
+        }
+
+        $unassigned_count = (int) ($counts['unassigned'] ?? 0);
+        if ($unassigned_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_QUEUE_UNASSIGNED'), $unassigned_count, ($unassigned_count >= 8) ? 'critical' : 'attention', 1120 + ($unassigned_count * 3), $this->queue_scope_url('unassigned', 'triage'), $this->user->lang('HELPDESK_QUEUE_SECTION_TRIAGE'));
+        }
+
+        $redistribute_count = max((int) ($counts['redistribute'] ?? 0), (int) ($load_distribution['overloaded_count'] ?? 0));
+        if ($redistribute_count > 0)
+        {
+            $redistribute_level = (((int) ($load_distribution['overloaded_count'] ?? 0) > 0) || $redistribute_count >= 6) ? 'critical' : 'attention';
+            $add_candidate($this->user->lang('HELPDESK_QUEUE_REDISTRIBUTE'), $redistribute_count, $redistribute_level, 1080 + ($redistribute_count * 3), $this->queue_scope_url('redistribute', 'balance'), $this->user->lang('HELPDESK_QUEUE_SECTION_BALANCE'));
+        }
+
+        $aging_pressure_count = (int) ($backlog_aging['stale_count'] ?? 0) + (int) ($backlog_aging['very_old_count'] ?? 0);
+        if ($aging_pressure_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_BACKLOG_AGING_REPORT_TITLE'), $aging_pressure_count, ((int) ($backlog_aging['very_old_count'] ?? 0) > 0) ? 'critical' : 'attention', 1020 + ($aging_pressure_count * 3), $this->queue_view_url('reports'), $this->user->lang('HELPDESK_QUEUE_SECTION_REPORTS'));
+        }
+
+        $department_pressure_count = (int) ($department_pressure['critical_count'] ?? 0) + (int) ($department_pressure['attention_count'] ?? 0);
+        if ($department_pressure_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_TITLE'), $department_pressure_count, ((int) ($department_pressure['critical_count'] ?? 0) > 0) ? 'critical' : 'attention', 980 + ($department_pressure_count * 2), $this->queue_view_url('balance'), $this->user->lang('HELPDESK_QUEUE_SECTION_BALANCE'));
+        }
+
+        $forum_pressure_count = (int) ($forum_backlog['critical_count'] ?? 0) + (int) ($forum_backlog['attention_count'] ?? 0);
+        if ($forum_pressure_count > 0)
+        {
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_REPORT_TITLE'), $forum_pressure_count, ((int) ($forum_backlog['critical_count'] ?? 0) > 0) ? 'critical' : 'attention', 940 + ($forum_pressure_count * 2), $this->queue_view_url('reports'), $this->user->lang('HELPDESK_QUEUE_SECTION_REPORTS'));
+        }
+
+        if (empty($candidates))
+        {
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TOTAL_ACTIVE'), (int) ($counts['active'] ?? 0), 'stable', 100, $this->queue_report_scope_url('active'), $this->user->lang('HELPDESK_QUEUE_SECTION_QUEUE'));
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ACTIVE_TOUCHED_24H'), (int) ($team_productivity['recent_activity_count'] ?? 0), 'stable', 90, $this->queue_report_scope_url('updated_24h'), $this->user->lang('HELPDESK_QUEUE_SECTION_REPORTS'));
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_COMPLETED_24H'), (int) ($team_productivity['recent_completed_count'] ?? 0), 'stable', 80, $this->queue_view_url('reports'), $this->user->lang('HELPDESK_QUEUE_SECTION_REPORTS'));
+            $add_candidate($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ENGAGED_ASSIGNEES'), (int) ($team_productivity['engaged_assignees_count'] ?? 0), 'stable', 70, $this->queue_view_url('personal'), $this->user->lang('HELPDESK_QUEUE_SECTION_PERSONAL'));
+        }
+
+        usort($candidates, function ($a, $b)
+        {
+            if ((int) ($a['PRIORITY'] ?? 0) !== (int) ($b['PRIORITY'] ?? 0))
+            {
+                return ((int) ($a['PRIORITY'] ?? 0) > (int) ($b['PRIORITY'] ?? 0)) ? -1 : 1;
+            }
+            if ((int) ($a['COUNT'] ?? 0) !== (int) ($b['COUNT'] ?? 0))
+            {
+                return ((int) ($a['COUNT'] ?? 0) > (int) ($b['COUNT'] ?? 0)) ? -1 : 1;
+            }
+
+            return strcasecmp((string) ($a['LABEL'] ?? ''), (string) ($b['LABEL'] ?? ''));
+        });
+
+        $component_states = [
+            (string) ($load_distribution['status_class'] ?? 'stable'),
+            (string) ($department_pressure['status_class'] ?? 'stable'),
+            (string) ($forum_backlog['status_class'] ?? 'stable'),
+            (string) ($backlog_aging['status_class'] ?? 'stable'),
+            (string) ($team_productivity['status_class'] ?? 'stable'),
+        ];
+        $overall_level = 'stable';
+        if (in_array('critical', $component_states, true))
+        {
+            $overall_level = 'critical';
+        }
+        else if (in_array('attention', $component_states, true))
+        {
+            $overall_level = 'attention';
+        }
+
+        if (!empty($candidates) && (string) ($candidates[0]['LEVEL'] ?? 'stable') === 'critical')
+        {
+            $overall_level = 'critical';
+        }
+        else if (!empty($candidates) && (string) ($candidates[0]['LEVEL'] ?? 'stable') === 'attention' && $overall_level === 'stable')
+        {
+            $overall_level = 'attention';
+        }
+
+        $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_OVERVIEW_HEALTH_STATUS_' . strtoupper($overall_level));
+        $summary['status_class'] = $overall_level;
+
+        $primary = $candidates[0] ?? [
+            'LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TOTAL_ACTIVE'),
+            'COUNT' => (int) ($counts['active'] ?? 0),
+        ];
+        $secondary = $candidates[1] ?? $primary;
+
+        if ($overall_level === 'critical')
+        {
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_EXECUTIVE_STATUS_TEXT_CRITICAL'), (string) $primary['LABEL'], (int) $primary['COUNT'], (string) $secondary['LABEL'], (int) $secondary['COUNT']);
+        }
+        else if ($overall_level === 'attention')
+        {
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_EXECUTIVE_STATUS_TEXT_ATTENTION'), (string) $primary['LABEL'], (int) $primary['COUNT'], (string) $secondary['LABEL'], (int) $secondary['COUNT']);
+        }
+        else
+        {
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_EXECUTIVE_STATUS_TEXT_STABLE'), (int) ($counts['active'] ?? 0), (int) ($team_productivity['recent_activity_count'] ?? 0), (int) ($team_productivity['engaged_assignees_count'] ?? 0));
+        }
+
+        foreach (array_slice($candidates, 0, 4) as $candidate)
+        {
+            $summary['focus_rows'][] = [
+                'TITLE' => (string) ($candidate['LABEL'] ?? ''),
+                'COUNT' => (int) ($candidate['COUNT'] ?? 0),
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_OVERVIEW_HEALTH_STATUS_' . strtoupper((string) ($candidate['LEVEL'] ?? 'stable'))),
+                'STATUS_CLASS' => 'is-' . (string) ($candidate['LEVEL'] ?? 'stable'),
+                'SECTION_LABEL' => (string) ($candidate['SECTION_LABEL'] ?? ''),
+                'U_ROW' => (string) ($candidate['U_FILTER'] ?? ''),
+            ];
+        }
+
+        foreach (array_slice($candidates, 0, 6) as $candidate)
+        {
+            $summary['report_rows'][] = [
+                'LABEL' => (string) ($candidate['LABEL'] ?? ''),
+                'COUNT' => (int) ($candidate['COUNT'] ?? 0),
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_OVERVIEW_HEALTH_STATUS_' . strtoupper((string) ($candidate['LEVEL'] ?? 'stable'))),
+                'STATUS_CLASS' => 'is-' . (string) ($candidate['LEVEL'] ?? 'stable'),
+                'SECTION_LABEL' => (string) ($candidate['SECTION_LABEL'] ?? ''),
+                'U_FILTER' => (string) ($candidate['U_FILTER'] ?? ''),
+            ];
+        }
+
+        return $summary;
+    }
+
+
+    protected function build_shift_plan(array $counts, array $load_distribution, array $backlog_aging, array $team_productivity, array $department_pressure, array $forum_backlog)
+    {
+        $summary = [
+            'immediate_count' => 0,
+            'intake_count' => 0,
+            'follow_up_count' => 0,
+            'rebalance_count' => 0,
+            'capacity_count' => 0,
+            'constrained_count' => 0,
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_STABLE'),
+            'status_text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_TEXT_STABLE'), 0, 0),
+            'status_class' => 'stable',
+            'focus_rows' => [],
+            'report_rows' => [],
+            'pull_rows' => [],
+            'relief_rows' => [],
+        ];
+
+        $summary['immediate_count'] = (int) ($counts['critical'] ?? 0) + (int) ($counts['overdue'] ?? 0) + (int) ($counts['very_old'] ?? 0);
+        $summary['intake_count'] = (int) ($counts['unassigned'] ?? 0) + (int) ($team_productivity['first_reply_count'] ?? 0);
+        $summary['follow_up_count'] = (int) ($team_productivity['staff_reply_count'] ?? 0) + (int) ($counts['stale'] ?? 0);
+        $summary['rebalance_count'] = (int) ($counts['redistribute'] ?? 0) + (int) ($load_distribution['overloaded_count'] ?? 0) + (int) ($department_pressure['coverage_gap_count'] ?? 0);
+        $summary['capacity_count'] = (int) ($load_distribution['support_count'] ?? 0);
+        $summary['constrained_count'] = (int) ($load_distribution['relief_count'] ?? 0);
+
+        $capacity = max(0, (int) $summary['capacity_count']);
+        $immediate = (int) $summary['immediate_count'];
+        $intake = (int) $summary['intake_count'];
+        $follow_up = (int) $summary['follow_up_count'];
+        $rebalance = (int) $summary['rebalance_count'];
+        $constrained = (int) $summary['constrained_count'];
+        $very_old = (int) ($backlog_aging['very_old_count'] ?? 0);
+        $forum_critical = (int) ($forum_backlog['critical_count'] ?? 0);
+        $first_reply = (int) ($team_productivity['first_reply_count'] ?? 0);
+
+        if ($immediate >= max(4, $capacity * 2) || ($constrained > 0 && $capacity <= 0) || ($rebalance >= 4 && $capacity <= 1) || ($very_old > 0 && $first_reply > 0))
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_CRITICAL');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_TEXT_CRITICAL'), $immediate, $constrained, $capacity);
+            $summary['status_class'] = 'critical';
+        }
+        else if ($immediate > $capacity || $intake > max(2, $capacity) || $follow_up > max(2, $capacity) || $rebalance > 0 || $constrained > 0 || $forum_critical > 0)
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_ATTENTION');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_TEXT_ATTENTION'), $immediate, $intake + $follow_up, $capacity);
+            $summary['status_class'] = 'attention';
+        }
+        else
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_STABLE');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_TEXT_STABLE'), $capacity, $immediate);
+            $summary['status_class'] = 'stable';
+        }
+
+        $rows = [
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_IMMEDIATE'),
+                'count' => $immediate,
+                'section' => $this->user->lang('HELPDESK_QUEUE_SECTION_ALERTS'),
+                'url' => $this->queue_view_url('alerts'),
+                'level' => ($immediate > 0) ? 'critical' : 'stable',
+                'priority' => 1400 + ($immediate * 5),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_INTAKE'),
+                'count' => $intake,
+                'section' => $this->user->lang('HELPDESK_QUEUE_SECTION_TRIAGE'),
+                'url' => $this->queue_view_url('triage'),
+                'level' => ($first_reply > 0) ? 'critical' : (($intake > 0) ? 'attention' : 'stable'),
+                'priority' => 1320 + ($intake * 4),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_FOLLOW_UP'),
+                'count' => $follow_up,
+                'section' => $this->user->lang('HELPDESK_QUEUE_SECTION_REPORTS'),
+                'url' => $this->queue_view_url('reports'),
+                'level' => ($follow_up > 0) ? (((int) ($counts['stale'] ?? 0) > 0) ? 'attention' : 'stable') : 'stable',
+                'priority' => 1180 + ($follow_up * 3),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_REBALANCE'),
+                'count' => $rebalance,
+                'section' => $this->user->lang('HELPDESK_QUEUE_SECTION_BALANCE'),
+                'url' => $this->queue_view_url('balance'),
+                'level' => (((int) ($load_distribution['overloaded_count'] ?? 0) > 0) || ((int) ($department_pressure['coverage_gap_count'] ?? 0) > 0)) ? (($rebalance > 0) ? 'critical' : 'stable') : (($rebalance > 0) ? 'attention' : 'stable'),
+                'priority' => 1120 + ($rebalance * 3),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_CAPACITY'),
+                'count' => $capacity,
+                'section' => $this->user->lang('HELPDESK_QUEUE_SECTION_BALANCE'),
+                'url' => $this->queue_view_url('balance'),
+                'level' => ($capacity > 0) ? 'stable' : (($immediate > 0 || $intake > 0 || $follow_up > 0) ? 'attention' : 'stable'),
+                'priority' => 200 + $capacity,
+            ],
+        ];
+
+        usort($rows, function ($a, $b)
+        {
+            if ((int) ($a['priority'] ?? 0) !== (int) ($b['priority'] ?? 0))
+            {
+                return ((int) ($a['priority'] ?? 0) > (int) ($b['priority'] ?? 0)) ? -1 : 1;
+            }
+
+            return strcasecmp((string) ($a['label'] ?? ''), (string) ($b['label'] ?? ''));
+        });
+
+        foreach ($rows as $row)
+        {
+            $summary['report_rows'][] = [
+                'LABEL' => (string) ($row['label'] ?? ''),
+                'COUNT' => (int) ($row['count'] ?? 0),
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_' . strtoupper((string) ($row['level'] ?? 'stable'))),
+                'STATUS_CLASS' => 'is-' . (string) ($row['level'] ?? 'stable'),
+                'SECTION_LABEL' => (string) ($row['section'] ?? ''),
+                'U_FILTER' => (string) ($row['url'] ?? ''),
+            ];
+
+            if ((int) ($row['count'] ?? 0) <= 0)
+            {
+                continue;
+            }
+
+            $summary['focus_rows'][] = [
+                'TITLE' => (string) ($row['label'] ?? ''),
+                'COUNT' => (int) ($row['count'] ?? 0),
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_' . strtoupper((string) ($row['level'] ?? 'stable'))),
+                'STATUS_CLASS' => 'is-' . (string) ($row['level'] ?? 'stable'),
+                'SECTION_LABEL' => (string) ($row['section'] ?? ''),
+                'U_ROW' => (string) ($row['url'] ?? ''),
+            ];
+
+            if (count($summary['focus_rows']) >= 4)
+            {
+                break;
+            }
+        }
+
+        if (empty($summary['focus_rows']))
+        {
+            $summary['focus_rows'][] = [
+                'TITLE' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_CAPACITY'),
+                'COUNT' => $capacity,
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_STATUS_STABLE'),
+                'STATUS_CLASS' => 'is-stable',
+                'SECTION_LABEL' => $this->user->lang('HELPDESK_QUEUE_SECTION_BALANCE'),
+                'U_ROW' => $this->queue_view_url('balance'),
+            ];
+        }
+
+        $pull_action_label = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_ACTION_SUPPORT_QUEUE');
+        $pull_action_url = $this->queue_view_url('queue');
+        if ($immediate > 0)
+        {
+            $pull_action_label = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_ACTION_PULL_ALERTS');
+            $pull_action_url = $this->queue_view_url('alerts');
+        }
+        else if ($intake > 0)
+        {
+            $pull_action_label = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_ACTION_TAKE_INTAKE');
+            $pull_action_url = $this->queue_view_url('triage');
+        }
+        else if (((int) ($backlog_aging['stale_count'] ?? 0) + (int) ($backlog_aging['very_old_count'] ?? 0)) > 0)
+        {
+            $pull_action_label = $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_ACTION_RECOVER_BACKLOG');
+            $pull_action_url = $this->queue_view_url('reports');
+        }
+
+        foreach (array_slice((array) ($load_distribution['support_rows'] ?? []), 0, 4) as $load_row)
+        {
+            $summary['pull_rows'][] = [
+                'LABEL' => isset($load_row['LABEL']) ? (string) $load_row['LABEL'] : '',
+                'WORKLOAD_LABEL' => isset($load_row['WORKLOAD_LABEL']) ? (string) $load_row['WORKLOAD_LABEL'] : $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+                'WORKLOAD_CLASS' => isset($load_row['WORKLOAD_CLASS']) ? (string) $load_row['WORKLOAD_CLASS'] : 'helpdesk-workload-idle',
+                'ACTIVE_COUNT' => isset($load_row['ACTIVE_COUNT']) ? (int) $load_row['ACTIVE_COUNT'] : 0,
+                'OVERDUE_COUNT' => isset($load_row['OVERDUE_COUNT']) ? (int) $load_row['OVERDUE_COUNT'] : 0,
+                'CRITICAL_COUNT' => isset($load_row['CRITICAL_COUNT']) ? (int) $load_row['CRITICAL_COUNT'] : 0,
+                'SCORE' => isset($load_row['SCORE']) ? (int) $load_row['SCORE'] : 0,
+                'ACTION_LABEL' => $pull_action_label,
+                'U_FILTER' => isset($load_row['U_FILTER']) ? (string) $load_row['U_FILTER'] : '',
+                'U_ACTION' => $pull_action_url,
+            ];
+        }
+
+        foreach (array_slice((array) ($load_distribution['relief_rows'] ?? []), 0, 4) as $load_row)
+        {
+            $summary['relief_rows'][] = [
+                'LABEL' => isset($load_row['LABEL']) ? (string) $load_row['LABEL'] : '',
+                'WORKLOAD_LABEL' => isset($load_row['WORKLOAD_LABEL']) ? (string) $load_row['WORKLOAD_LABEL'] : $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+                'WORKLOAD_CLASS' => isset($load_row['WORKLOAD_CLASS']) ? (string) $load_row['WORKLOAD_CLASS'] : 'helpdesk-workload-idle',
+                'ACTIVE_COUNT' => isset($load_row['ACTIVE_COUNT']) ? (int) $load_row['ACTIVE_COUNT'] : 0,
+                'OVERDUE_COUNT' => isset($load_row['OVERDUE_COUNT']) ? (int) $load_row['OVERDUE_COUNT'] : 0,
+                'CRITICAL_COUNT' => isset($load_row['CRITICAL_COUNT']) ? (int) $load_row['CRITICAL_COUNT'] : 0,
+                'SCORE' => isset($load_row['SCORE']) ? (int) $load_row['SCORE'] : 0,
+                'ACTION_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_ACTION_RELIEVE'),
+                'U_FILTER' => isset($load_row['U_FILTER']) ? (string) $load_row['U_FILTER'] : '',
+                'U_ACTION' => $this->queue_view_url('balance'),
+            ];
+        }
+
+        return $summary;
+    }
+
+
+    protected function build_team_productivity(array $rows, array $assignee_load_map = [])
+    {
+        $summary = [
+            'total_active' => 0,
+            'first_reply_count' => 0,
+            'staff_reply_count' => 0,
+            'recent_activity_count' => 0,
+            'created_24h_count' => 0,
+            'recent_completed_count' => 0,
+            'engaged_assignees_count' => 0,
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_STABLE'),
+            'status_text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_TEXT_STABLE'), 0, 0, 0),
+            'status_class' => 'stable',
+            'rows' => [],
+            'focus_rows' => [],
+            'assignee_rows' => [],
+        ];
+
+        if (empty($rows))
+        {
+            return $summary;
+        }
+
+        $now = time();
+        $recent_cutoff = $now - 86400;
+        $engaged_assignees = [];
+        $assignee_map = [];
+
+        foreach ($rows as $row)
+        {
+            $tone = isset($row['STATUS_TONE']) ? (string) $row['STATUS_TONE'] : 'open';
+            $is_active = $this->is_active_status_tone($tone);
+            $updated_ts = !empty($row['UPDATED_TS']) ? (int) $row['UPDATED_TS'] : 0;
+            $created_ts = !empty($row['CREATED_TS']) ? (int) $row['CREATED_TS'] : 0;
+            $reply_count = isset($row['REPLY_COUNT']) ? (int) $row['REPLY_COUNT'] : 0;
+            $updated_recent = ($updated_ts > 0 && $updated_ts >= $recent_cutoff);
+            $created_recent = ($created_ts > 0 && $created_ts >= $recent_cutoff);
+            $assignee_value = !empty($row['ASSIGNED_TO']) ? (string) $row['ASSIGNED_TO'] : '';
+            $assignee_key = ($assignee_value !== '') ? strtolower($assignee_value) : '';
+
+            if ($is_active)
+            {
+                $summary['total_active']++;
+
+                if ($reply_count <= 0)
+                {
+                    $summary['first_reply_count']++;
+                }
+                if (!empty($row['IS_STAFF_REPLY']))
+                {
+                    $summary['staff_reply_count']++;
+                }
+                if ($updated_recent)
+                {
+                    $summary['recent_activity_count']++;
+                    if ($assignee_key !== '')
+                    {
+                        $engaged_assignees[$assignee_key] = $assignee_value;
+                    }
+                }
+                if ($created_recent)
+                {
+                    $summary['created_24h_count']++;
+                }
+            }
+            else if (($tone === 'resolved' || $tone === 'closed') && $updated_recent)
+            {
+                $summary['recent_completed_count']++;
+                if ($assignee_key !== '')
+                {
+                    $engaged_assignees[$assignee_key] = $assignee_value;
+                }
+            }
+
+            if ($assignee_key === '')
+            {
+                continue;
+            }
+
+            if (!isset($assignee_map[$assignee_key]))
+            {
+                $assignee_map[$assignee_key] = [
+                    'LABEL' => $assignee_value,
+                    'ACTIVE_COUNT' => 0,
+                    'FIRST_REPLY_COUNT' => 0,
+                    'STAFF_REPLY_COUNT' => 0,
+                    'PENDING_RESPONSE_COUNT' => 0,
+                    'TOUCHED_24H_COUNT' => 0,
+                    'NEW_24H_COUNT' => 0,
+                    'RECENT_COMPLETED_COUNT' => 0,
+                    'RESOLVED_COUNT' => 0,
+                    'CLOSED_COUNT' => 0,
+                ];
+            }
+
+            if ($is_active)
+            {
+                $assignee_map[$assignee_key]['ACTIVE_COUNT']++;
+                if ($reply_count <= 0)
+                {
+                    $assignee_map[$assignee_key]['FIRST_REPLY_COUNT']++;
+                    $assignee_map[$assignee_key]['PENDING_RESPONSE_COUNT']++;
+                }
+                if (!empty($row['IS_STAFF_REPLY']))
+                {
+                    $assignee_map[$assignee_key]['STAFF_REPLY_COUNT']++;
+                    $assignee_map[$assignee_key]['PENDING_RESPONSE_COUNT']++;
+                }
+                if ($updated_recent)
+                {
+                    $assignee_map[$assignee_key]['TOUCHED_24H_COUNT']++;
+                }
+                if ($created_recent)
+                {
+                    $assignee_map[$assignee_key]['NEW_24H_COUNT']++;
+                }
+            }
+            else if ($tone === 'resolved')
+            {
+                $assignee_map[$assignee_key]['RESOLVED_COUNT']++;
+                if ($updated_recent)
+                {
+                    $assignee_map[$assignee_key]['RECENT_COMPLETED_COUNT']++;
+                }
+            }
+            else if ($tone === 'closed')
+            {
+                $assignee_map[$assignee_key]['CLOSED_COUNT']++;
+                if ($updated_recent)
+                {
+                    $assignee_map[$assignee_key]['RECENT_COMPLETED_COUNT']++;
+                }
+            }
+        }
+
+        $summary['engaged_assignees_count'] = count($engaged_assignees);
+        $pending_total = (int) $summary['first_reply_count'] + (int) $summary['staff_reply_count'];
+        $recent_movement = (int) $summary['recent_activity_count'] + (int) $summary['recent_completed_count'];
+        $activity_floor = max(1, (int) ceil(max(1, (int) $summary['total_active']) * 0.25));
+
+        if ($pending_total >= max(4, (int) ceil(max(1, (int) $summary['total_active']) * 0.5)) || ((int) $summary['first_reply_count'] >= 2 && $recent_movement <= max(2, $activity_floor)))
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_CRITICAL');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_TEXT_CRITICAL'), $summary['first_reply_count'], $summary['staff_reply_count'], $summary['recent_activity_count'], $summary['recent_completed_count']);
+            $summary['status_class'] = 'critical';
+        }
+        else if ($pending_total > 0 || ((int) $summary['total_active'] > 0 && (int) $summary['recent_activity_count'] < $activity_floor))
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_ATTENTION');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_TEXT_ATTENTION'), $summary['first_reply_count'], $summary['staff_reply_count'], $summary['recent_activity_count'], $summary['recent_completed_count']);
+            $summary['status_class'] = 'attention';
+        }
+        else
+        {
+            $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_STABLE');
+            $summary['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_TEXT_STABLE'), $summary['recent_activity_count'], $summary['recent_completed_count'], $summary['engaged_assignees_count']);
+            $summary['status_class'] = 'stable';
+        }
+
+        $rows_meta = [
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_FIRST_REPLY_PENDING'),
+                'count' => (int) $summary['first_reply_count'],
+                'url' => $this->queue_report_scope_url('no_reply'),
+                'level' => ((int) $summary['first_reply_count'] > 0) ? 'critical' : 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TEAM_RESPONSE_PENDING'),
+                'count' => (int) $summary['staff_reply_count'],
+                'url' => $this->queue_report_scope_url('staff_reply'),
+                'level' => ((int) $summary['staff_reply_count'] > 0) ? (((int) $summary['staff_reply_count'] >= 2) ? 'critical' : 'attention') : 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ACTIVE_TOUCHED_24H'),
+                'count' => (int) $summary['recent_activity_count'],
+                'url' => $this->queue_report_scope_url('updated_24h'),
+                'level' => ((int) $summary['total_active'] > 0 && (int) $summary['recent_activity_count'] <= 0) ? 'attention' : 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_CREATED_24H'),
+                'count' => (int) $summary['created_24h_count'],
+                'url' => $this->queue_report_scope_url('created_24h'),
+                'level' => 'stable',
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_COMPLETED_24H'),
+                'count' => (int) $summary['recent_completed_count'],
+                'url' => $this->queue_view_url('reports'),
+                'level' => ((int) $summary['recent_completed_count'] > 0) ? 'stable' : (((int) $summary['total_active'] > 0 && $pending_total > 0) ? 'attention' : 'stable'),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ENGAGED_ASSIGNEES'),
+                'count' => (int) $summary['engaged_assignees_count'],
+                'url' => $this->queue_scope_url('my', 'personal'),
+                'level' => ((int) $summary['engaged_assignees_count'] > 0 || (int) $summary['total_active'] <= 0) ? 'stable' : 'attention',
+            ],
+        ];
+
+        foreach ($rows_meta as $row_meta)
+        {
+            $summary['rows'][] = [
+                'LABEL' => (string) $row_meta['label'],
+                'COUNT' => (int) $row_meta['count'],
+                'PERCENT' => $this->report_percent((int) $row_meta['count'], max(1, (int) $summary['total_active'])),
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_' . strtoupper((string) $row_meta['level'])),
+                'STATUS_CLASS' => 'is-' . (string) $row_meta['level'],
+                'U_FILTER' => (string) $row_meta['url'],
+            ];
+        }
+
+        foreach ($summary['rows'] as $row)
+        {
+            if ((int) $row['COUNT'] <= 0)
+            {
+                continue;
+            }
+
+            $summary['focus_rows'][] = [
+                'TITLE' => (string) $row['LABEL'],
+                'COUNT' => (int) $row['COUNT'],
+                'STATUS_LABEL' => (string) $row['STATUS_LABEL'],
+                'STATUS_CLASS' => (string) $row['STATUS_CLASS'],
+                'U_ROW' => (string) $row['U_FILTER'],
+            ];
+
+            if (count($summary['focus_rows']) >= 4)
+            {
+                break;
+            }
+        }
+
+        if (empty($summary['focus_rows']))
+        {
+            $summary['focus_rows'][] = [
+                'TITLE' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ACTIVE_TOUCHED_24H'),
+                'COUNT' => (int) $summary['recent_activity_count'],
+                'STATUS_LABEL' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_STABLE'),
+                'STATUS_CLASS' => 'is-stable',
+                'U_ROW' => $this->queue_report_scope_url('updated_24h'),
+            ];
+        }
+
+        foreach ($assignee_map as $assignee_key => $assignee_row)
+        {
+            $status_class = 'stable';
+            if ((int) $assignee_row['PENDING_RESPONSE_COUNT'] >= 2 || ((int) $assignee_row['PENDING_RESPONSE_COUNT'] > 0 && (int) $assignee_row['TOUCHED_24H_COUNT'] <= 0))
+            {
+                $status_class = 'critical';
+            }
+            else if ((int) $assignee_row['PENDING_RESPONSE_COUNT'] > 0)
+            {
+                $status_class = 'attention';
+            }
+
+            $load_meta = isset($assignee_load_map[$assignee_key]) ? $assignee_load_map[$assignee_key] : [
+                'WORKLOAD_LABEL' => $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+                'WORKLOAD_CLASS' => 'helpdesk-workload-idle',
+                'SCORE' => 0,
+            ];
+
+            $assignee_row['STATUS_CLASS'] = $status_class;
+            $assignee_row['STATUS_LABEL'] = $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_STATUS_' . strtoupper($status_class));
+            $assignee_row['WORKLOAD_LABEL'] = isset($load_meta['WORKLOAD_LABEL']) ? (string) $load_meta['WORKLOAD_LABEL'] : $this->user->lang('HELPDESK_WORKLOAD_IDLE');
+            $assignee_row['WORKLOAD_CLASS'] = isset($load_meta['WORKLOAD_CLASS']) ? (string) $load_meta['WORKLOAD_CLASS'] : 'helpdesk-workload-idle';
+            $assignee_row['WORKLOAD_SCORE'] = isset($load_meta['SCORE']) ? (int) $load_meta['SCORE'] : 0;
+            $assignee_row['U_FILTER'] = $this->queue_report_filter_url([
+                'scope' => ((int) $assignee_row['FIRST_REPLY_COUNT'] > 0) ? 'no_reply' : (((int) $assignee_row['STAFF_REPLY_COUNT'] > 0) ? 'staff_reply' : 'all'),
+                'assigned_to' => (string) $assignee_row['LABEL'],
+                'page' => 1,
+            ]);
+
+            $summary['assignee_rows'][] = $assignee_row;
+        }
+
+        usort($summary['assignee_rows'], function ($a, $b) {
+            $a_level = ((string) ($a['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($a['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            $b_level = ((string) ($b['STATUS_CLASS'] ?? '') === 'critical') ? 2 : (((string) ($b['STATUS_CLASS'] ?? '') === 'attention') ? 1 : 0);
+            if ($a_level !== $b_level)
+            {
+                return ($a_level > $b_level) ? -1 : 1;
+            }
+            if ((int) ($a['PENDING_RESPONSE_COUNT'] ?? 0) !== (int) ($b['PENDING_RESPONSE_COUNT'] ?? 0))
+            {
+                return ((int) ($a['PENDING_RESPONSE_COUNT'] ?? 0) > (int) ($b['PENDING_RESPONSE_COUNT'] ?? 0)) ? -1 : 1;
+            }
+            if ((int) ($a['RECENT_COMPLETED_COUNT'] ?? 0) !== (int) ($b['RECENT_COMPLETED_COUNT'] ?? 0))
+            {
+                return ((int) ($a['RECENT_COMPLETED_COUNT'] ?? 0) > (int) ($b['RECENT_COMPLETED_COUNT'] ?? 0)) ? -1 : 1;
+            }
+            if ((int) ($a['TOUCHED_24H_COUNT'] ?? 0) !== (int) ($b['TOUCHED_24H_COUNT'] ?? 0))
+            {
+                return ((int) ($a['TOUCHED_24H_COUNT'] ?? 0) > (int) ($b['TOUCHED_24H_COUNT'] ?? 0)) ? -1 : 1;
+            }
+            if ((int) ($a['ACTIVE_COUNT'] ?? 0) !== (int) ($b['ACTIVE_COUNT'] ?? 0))
+            {
+                return ((int) ($a['ACTIVE_COUNT'] ?? 0) > (int) ($b['ACTIVE_COUNT'] ?? 0)) ? -1 : 1;
+            }
+
+            return strcasecmp((string) ($a['LABEL'] ?? ''), (string) ($b['LABEL'] ?? ''));
+        });
+
+        $summary['assignee_rows'] = array_slice($summary['assignee_rows'], 0, 8);
+
+        return $summary;
+    }
+
+
+    protected function build_assignee_load_distribution(array $assignee_load)
+    {
+        $distribution = [
+            'total_assignees' => 0,
+            'overloaded_count' => 0,
+            'high_count' => 0,
+            'medium_count' => 0,
+            'low_count' => 0,
+            'idle_count' => 0,
+            'relief_count' => 0,
+            'support_count' => 0,
+            'status_label' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_STABLE'),
+            'status_text' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_TEXT_STABLE'),
+            'status_class' => 'stable',
+            'rows' => [],
+            'relief_rows' => [],
+            'support_rows' => [],
+        ];
+
+        if (empty($assignee_load))
+        {
+            return $distribution;
+        }
+
+        $distribution['total_assignees'] = count($assignee_load);
+        $bucket_rows = [
+            'overload' => [
+                'LABEL' => $this->user->lang('HELPDESK_WORKLOAD_OVERLOAD'),
+                'CLASS' => 'helpdesk-workload-overload',
+                'COUNT' => 0,
+                'U_FILTER' => $this->queue_scope_url('overloaded', 'balance'),
+            ],
+            'high' => [
+                'LABEL' => $this->user->lang('HELPDESK_WORKLOAD_HIGH'),
+                'CLASS' => 'helpdesk-workload-high',
+                'COUNT' => 0,
+                'U_FILTER' => $this->queue_view_url('balance'),
+            ],
+            'medium' => [
+                'LABEL' => $this->user->lang('HELPDESK_WORKLOAD_MEDIUM'),
+                'CLASS' => 'helpdesk-workload-medium',
+                'COUNT' => 0,
+                'U_FILTER' => $this->queue_view_url('balance'),
+            ],
+            'low' => [
+                'LABEL' => $this->user->lang('HELPDESK_WORKLOAD_LOW'),
+                'CLASS' => 'helpdesk-workload-low',
+                'COUNT' => 0,
+                'U_FILTER' => $this->queue_view_url('balance'),
+            ],
+            'idle' => [
+                'LABEL' => $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+                'CLASS' => 'helpdesk-workload-idle',
+                'COUNT' => 0,
+                'U_FILTER' => $this->queue_view_url('balance'),
+            ],
+        ];
+
+        $relief_rows = [];
+        $support_rows = [];
+
+        foreach ($assignee_load as $load_row)
+        {
+            $workload_key = isset($load_row['WORKLOAD_KEY']) ? (string) $load_row['WORKLOAD_KEY'] : 'idle';
+            if (!isset($bucket_rows[$workload_key]))
+            {
+                $workload_key = 'idle';
+            }
+
+            $bucket_rows[$workload_key]['COUNT']++;
+
+            if ($workload_key === 'overload')
+            {
+                $distribution['overloaded_count']++;
+                $distribution['relief_count']++;
+                $relief_rows[] = $load_row;
+            }
+            else if ($workload_key === 'high')
+            {
+                $distribution['high_count']++;
+                $distribution['relief_count']++;
+                $relief_rows[] = $load_row;
+            }
+            else if ($workload_key === 'medium')
+            {
+                $distribution['medium_count']++;
+            }
+            else if ($workload_key === 'low')
+            {
+                $distribution['low_count']++;
+                $distribution['support_count']++;
+                $support_rows[] = $load_row;
+            }
+            else
+            {
+                $distribution['idle_count']++;
+                $distribution['support_count']++;
+                $support_rows[] = $load_row;
+            }
+        }
+
+        if ($distribution['overloaded_count'] > 0)
+        {
+            $distribution['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_CRITICAL');
+            $distribution['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_TEXT_CRITICAL'), $distribution['overloaded_count'], $distribution['support_count']);
+            $distribution['status_class'] = 'critical';
+        }
+        else if ($distribution['high_count'] >= 2 || ($distribution['high_count'] >= 1 && $distribution['support_count'] <= 0))
+        {
+            $distribution['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_ATTENTION');
+            $distribution['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_TEXT_ATTENTION'), $distribution['high_count'], $distribution['support_count']);
+            $distribution['status_class'] = 'attention';
+        }
+        else
+        {
+            $distribution['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_STABLE');
+            $distribution['status_text'] = sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_STATUS_TEXT_STABLE'), $distribution['low_count'] + $distribution['idle_count'], $distribution['medium_count']);
+            $distribution['status_class'] = 'stable';
+        }
+
+        foreach (['overload', 'high', 'medium', 'low', 'idle'] as $bucket_key)
+        {
+            $bucket_rows[$bucket_key]['PERCENT'] = $this->report_percent((int) $bucket_rows[$bucket_key]['COUNT'], (int) $distribution['total_assignees']);
+            $distribution['rows'][] = $bucket_rows[$bucket_key];
+        }
+
+        $relief_rows = array_slice($relief_rows, 0, 4);
+        foreach ($relief_rows as $load_row)
+        {
+            $distribution['relief_rows'][] = [
+                'LABEL' => isset($load_row['LABEL']) ? (string) $load_row['LABEL'] : '',
+                'WORKLOAD_LABEL' => isset($load_row['WORKLOAD_LABEL']) ? (string) $load_row['WORKLOAD_LABEL'] : $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+                'WORKLOAD_CLASS' => isset($load_row['WORKLOAD_CLASS']) ? (string) $load_row['WORKLOAD_CLASS'] : 'helpdesk-workload-idle',
+                'ACTIVE_COUNT' => isset($load_row['ACTIVE_COUNT']) ? (int) $load_row['ACTIVE_COUNT'] : 0,
+                'OVERDUE_COUNT' => isset($load_row['OVERDUE_COUNT']) ? (int) $load_row['OVERDUE_COUNT'] : 0,
+                'CRITICAL_COUNT' => isset($load_row['CRITICAL_COUNT']) ? (int) $load_row['CRITICAL_COUNT'] : 0,
+                'SCORE' => isset($load_row['SCORE']) ? (int) $load_row['SCORE'] : 0,
+                'U_FILTER' => isset($load_row['U_QUEUE']) ? (string) $load_row['U_QUEUE'] : '',
+            ];
+        }
+
+        usort($support_rows, function ($a, $b) {
+            if ((int) ($a['SCORE'] ?? 0) === (int) ($b['SCORE'] ?? 0))
+            {
+                return strcasecmp((string) ($a['LABEL'] ?? ''), (string) ($b['LABEL'] ?? ''));
+            }
+
+            return ((int) ($a['SCORE'] ?? 0) < (int) ($b['SCORE'] ?? 0)) ? -1 : 1;
+        });
+        $support_rows = array_slice($support_rows, 0, 4);
+        foreach ($support_rows as $load_row)
+        {
+            $distribution['support_rows'][] = [
+                'LABEL' => isset($load_row['LABEL']) ? (string) $load_row['LABEL'] : '',
+                'WORKLOAD_LABEL' => isset($load_row['WORKLOAD_LABEL']) ? (string) $load_row['WORKLOAD_LABEL'] : $this->user->lang('HELPDESK_WORKLOAD_IDLE'),
+                'WORKLOAD_CLASS' => isset($load_row['WORKLOAD_CLASS']) ? (string) $load_row['WORKLOAD_CLASS'] : 'helpdesk-workload-idle',
+                'ACTIVE_COUNT' => isset($load_row['ACTIVE_COUNT']) ? (int) $load_row['ACTIVE_COUNT'] : 0,
+                'OVERDUE_COUNT' => isset($load_row['OVERDUE_COUNT']) ? (int) $load_row['OVERDUE_COUNT'] : 0,
+                'CRITICAL_COUNT' => isset($load_row['CRITICAL_COUNT']) ? (int) $load_row['CRITICAL_COUNT'] : 0,
+                'SCORE' => isset($load_row['SCORE']) ? (int) $load_row['SCORE'] : 0,
+                'U_FILTER' => isset($load_row['U_QUEUE']) ? (string) $load_row['U_QUEUE'] : '',
+            ];
+        }
+
+        return $distribution;
+    }
+
     protected function build_overview_health(array $counts)
     {
         $rows = [];
         $critical_count = (int) ($counts['critical'] ?? 0);
         $overdue_count = (int) ($counts['overdue'] ?? 0);
         $unassigned_count = (int) ($counts['unassigned'] ?? 0);
+        $stale_count = (int) ($counts['stale'] ?? 0);
+        $very_old_count = (int) ($counts['very_old'] ?? 0);
         $redistribute_count = (int) ($counts['redistribute'] ?? 0);
         $my_overdue_count = (int) ($counts['my_overdue'] ?? 0);
 
@@ -4265,6 +6325,18 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             ($overdue_count >= 5) ? 'critical' : (($overdue_count > 0) ? 'attention' : 'stable')
         );
         $rows[] = $this->build_overview_health_row(
+            $this->user->lang('HELPDESK_QUEUE_STALE'),
+            $stale_count,
+            $this->queue_scope_url('stale', 'alerts'),
+            ($stale_count >= 6) ? 'critical' : (($stale_count > 0) ? 'attention' : 'stable')
+        );
+        $rows[] = $this->build_overview_health_row(
+            $this->user->lang('HELPDESK_QUEUE_VERY_OLD'),
+            $very_old_count,
+            $this->queue_scope_url('very_old', 'alerts'),
+            ($very_old_count > 0) ? 'critical' : 'stable'
+        );
+        $rows[] = $this->build_overview_health_row(
             $this->user->lang('HELPDESK_QUEUE_UNASSIGNED'),
             $unassigned_count,
             $this->queue_scope_url('unassigned', 'triage'),
@@ -4278,11 +6350,11 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
         );
 
         $overall_level = 'stable';
-        if ($critical_count > 0 || $my_overdue_count > 0 || $overdue_count >= 5)
+        if ($critical_count > 0 || $very_old_count > 0 || $my_overdue_count > 0 || $overdue_count >= 5)
         {
             $overall_level = 'critical';
         }
-        else if ($overdue_count > 0 || $unassigned_count >= 3 || $redistribute_count > 0 || (int) ($counts['attention'] ?? 0) > 0)
+        else if ($overdue_count > 0 || $stale_count > 0 || $unassigned_count >= 3 || $redistribute_count > 0 || (int) ($counts['attention'] ?? 0) > 0)
         {
             $overall_level = 'attention';
         }
@@ -4314,7 +6386,9 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             'alert_total' => 0,
             'first_reply' => 0,
             'overdue' => 0,
+            'aging' => 0,
             'stale' => 0,
+            'very_old' => 0,
             'staff_reply' => 0,
             'critical' => 0,
             'attention' => 0,
@@ -4342,6 +6416,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             $has_alert = $is_first_reply
                 || !empty($row['IS_OVERDUE'])
                 || !empty($row['IS_STALE'])
+                || !empty($row['IS_VERY_OLD'])
                 || !empty($row['IS_STAFF_REPLY'])
                 || !empty($row['IS_CRITICAL'])
                 || !empty($row['IS_ATTENTION'])
@@ -4366,6 +6441,10 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             if (!empty($row['IS_STALE']))
             {
                 $overview['stale']++;
+            }
+            if (!empty($row['IS_VERY_OLD']))
+            {
+                $overview['very_old']++;
             }
             if (!empty($row['IS_STAFF_REPLY']))
             {
@@ -4472,6 +6551,11 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'label' => $this->user->lang('HELPDESK_QUEUE_STALE'),
                 'count' => (int) $overview['stale'],
                 'url' => $this->queue_scope_url('stale'),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_QUEUE_VERY_OLD'),
+                'count' => (int) $overview['very_old'],
+                'url' => $this->queue_scope_url('very_old'),
             ],
             [
                 'label' => $this->user->lang('HELPDESK_QUEUE_STAFF_REPLY'),
@@ -4618,22 +6702,48 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                     $other = [
                         'LABEL' => (string) $other_label,
                         'COUNT' => 0,
+                        'ACTIVE_COUNT' => 0,
+                        'UNASSIGNED_COUNT' => 0,
                         'OVERDUE_COUNT' => 0,
                         'CRITICAL_COUNT' => 0,
                         'STAFF_REPLY_COUNT' => 0,
+                        'VERY_OLD_COUNT' => 0,
                         'FIRST_REPLY_COUNT' => 0,
                         'DEPARTMENT_KEY' => '',
                         'ASSIGNED_TO' => '',
                         'FORUM_ID' => 0,
+                        'ASSIGNEE_KEYS' => [],
+                        'DEPARTMENT_COUNTS' => [],
                         'S_AGGREGATED' => true,
                     ];
                 }
 
                 $other['COUNT'] += isset($row['COUNT']) ? (int) $row['COUNT'] : 0;
+                $other['ACTIVE_COUNT'] += isset($row['ACTIVE_COUNT']) ? (int) $row['ACTIVE_COUNT'] : 0;
+                $other['UNASSIGNED_COUNT'] += isset($row['UNASSIGNED_COUNT']) ? (int) $row['UNASSIGNED_COUNT'] : 0;
                 $other['OVERDUE_COUNT'] += isset($row['OVERDUE_COUNT']) ? (int) $row['OVERDUE_COUNT'] : 0;
                 $other['CRITICAL_COUNT'] += isset($row['CRITICAL_COUNT']) ? (int) $row['CRITICAL_COUNT'] : 0;
                 $other['STAFF_REPLY_COUNT'] += isset($row['STAFF_REPLY_COUNT']) ? (int) $row['STAFF_REPLY_COUNT'] : 0;
+                $other['VERY_OLD_COUNT'] += isset($row['VERY_OLD_COUNT']) ? (int) $row['VERY_OLD_COUNT'] : 0;
                 $other['FIRST_REPLY_COUNT'] += isset($row['FIRST_REPLY_COUNT']) ? (int) $row['FIRST_REPLY_COUNT'] : 0;
+                if (!empty($row['ASSIGNEE_KEYS']) && is_array($row['ASSIGNEE_KEYS']))
+                {
+                    foreach ($row['ASSIGNEE_KEYS'] as $assignee_key => $assignee_label)
+                    {
+                        $other['ASSIGNEE_KEYS'][$assignee_key] = $assignee_label;
+                    }
+                }
+                if (!empty($row['DEPARTMENT_COUNTS']) && is_array($row['DEPARTMENT_COUNTS']))
+                {
+                    foreach ($row['DEPARTMENT_COUNTS'] as $department_label => $department_count)
+                    {
+                        if (!isset($other['DEPARTMENT_COUNTS'][$department_label]))
+                        {
+                            $other['DEPARTMENT_COUNTS'][$department_label] = 0;
+                        }
+                        $other['DEPARTMENT_COUNTS'][$department_label] += (int) $department_count;
+                    }
+                }
             }
 
             $index++;
@@ -4722,8 +6832,12 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                     return !empty($row['IS_UNASSIGNED']) && !empty($row['IS_OPEN']);
                 case 'overdue':
                     return !empty($row['IS_OVERDUE']);
+                case 'aging':
+                    return !empty($row['IS_AGING']);
                 case 'stale':
                     return !empty($row['IS_STALE']);
+                case 'very_old':
+                    return !empty($row['IS_VERY_OLD']);
                 case 'reopened':
                     return !empty($row['IS_REOPENED']);
                 case 'critical':
@@ -5960,6 +8074,21 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
         $department_key = $this->extract_department_key($row);
         $priority_key = isset($row['priority_key']) ? (string) $row['priority_key'] : 'normal';
         return !empty($row['created_time']) && (time() - (int) $row['created_time']) > ($this->effective_sla_hours($department_key, $priority_key) * 3600);
+    }
+
+    protected function is_ticket_aging(array $row)
+    {
+        $department_key = $this->extract_department_key($row);
+        $priority_key = isset($row['priority_key']) ? (string) $row['priority_key'] : 'normal';
+        $created_time = !empty($row['created_time']) ? (int) $row['created_time'] : 0;
+        if ($created_time <= 0)
+        {
+            return false;
+        }
+
+        $age_seconds = time() - $created_time;
+        return $age_seconds > ($this->effective_sla_hours($department_key, $priority_key) * 3600)
+            && $age_seconds <= ($this->effective_stale_hours($department_key, $priority_key) * 3600);
     }
 
     protected function is_ticket_stale(array $row)

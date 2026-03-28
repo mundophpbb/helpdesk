@@ -53,6 +53,14 @@ class v120 extends \phpbb\db\migration\migration
         ];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_status_definitions']],
+        ];
+    }
+
     public function update_data()
     {
         return [

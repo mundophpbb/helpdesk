@@ -371,7 +371,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var bulkStatusOptionsHtml = '<option value="">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_status_options --><option value="{helpdesk_bulk_status_options.VALUE}">{helpdesk_bulk_status_options.LABEL}</option><!-- END helpdesk_bulk_status_options -->';
     var bulkPriorityOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_priority_options --><option value="{helpdesk_bulk_priority_options.VALUE}">{helpdesk_bulk_priority_options.LABEL}</option><!-- END helpdesk_bulk_priority_options -->';
     var bulkDepartmentOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><option value="__CLEAR__">{L_HELPDESK_BULK_CLEAR_VALUE}</option><!-- BEGIN helpdesk_bulk_department_options --><option value="{helpdesk_bulk_department_options.VALUE}">{helpdesk_bulk_department_options.LABEL}</option><!-- END helpdesk_bulk_department_options -->';
-    if (statuses.length) {
+    var bulkChecks = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-bulk-check'));
+    if (statuses.length && bulkChecks.length) {
         var bulkWrapper = document.createElement('div');
         bulkWrapper.className = 'panel bg2 helpdesk-bulk-panel';
         bulkWrapper.id = 'helpdesk-bulk-panel';
@@ -440,7 +441,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var bulkSummary = bulkWrapper.querySelector('#helpdesk-bulk-summary');
         var selectAllButton = bulkWrapper.querySelector('#helpdesk-bulk-select-all');
         var clearButton = bulkWrapper.querySelector('#helpdesk-bulk-clear');
-        var bulkChecks = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-bulk-check'));
 
         function visibleChecks() {
             return bulkChecks.filter(function (check) {

@@ -1954,3 +1954,471 @@
         box-shadow: 0 0 0 0 rgba(66, 139, 202, 0);
     }
 }
+
+
+.helpdesk-subject-prefix-note {
+    margin: 0 0 10px;
+}
+
+.helpdesk-subject-prefix-label {
+    font-weight: 600;
+}
+
+.helpdesk-subject-prefix-value {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+    font-weight: 600;
+}
+
+/* 4.9.61 visual refinement: compact badges, lighter cards, cleaner overall density */
+.helpdesk-topic-meta {
+    gap: 4px;
+    margin: 6px 0 2px;
+}
+
+.helpdesk-topic-meta-row {
+    margin-top: 4px;
+}
+
+.helpdesk-badge,
+.helpdesk-tag {
+    min-height: 18px;
+    padding: 1px 6px;
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+}
+
+.helpdesk-topic-meta-row .helpdesk-badge,
+.helpdesk-topic-meta-row .helpdesk-tag {
+    min-height: 17px;
+    padding: 1px 5px;
+    font-size: 9px;
+}
+
+.helpdesk-bulk-check-wrap {
+    margin-right: 0;
+}
+
+.helpdesk-bulk-check {
+    width: 13px;
+    height: 13px;
+}
+
+.helpdesk-history-type,
+.helpdesk-health-pill,
+.helpdesk-overview-next-badge,
+.helpdesk-assignee-count,
+.helpdesk-overview-next-count,
+.helpdesk-inline-count,
+.helpdesk-preview-rank {
+    min-height: 18px;
+    height: auto;
+    padding: 1px 6px;
+    font-size: 10px;
+}
+
+.helpdesk-assignee-chip,
+.helpdesk-context-pill {
+    gap: 6px;
+    padding: 5px 8px;
+    font-size: 10px;
+}
+
+.helpdesk-team-cards {
+    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+    gap: 8px;
+}
+
+.helpdesk-team-card {
+    gap: 3px;
+    padding: 10px;
+    border-radius: 7px;
+}
+
+.helpdesk-team-card strong {
+    font-size: 16px;
+}
+
+.helpdesk-team-cards-report {
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 8px;
+}
+
+.helpdesk-report-card strong {
+    font-size: 1.15em;
+}
+
+.helpdesk-queue-grid {
+    gap: 10px;
+}
+
+.helpdesk-queue-card {
+    padding: 10px 12px;
+    border-radius: 7px;
+}
+
+.helpdesk-queue-count {
+    font-size: 1.55em;
+    margin-bottom: 4px;
+}
+
+.helpdesk-queue-label {
+    font-size: 0.92em;
+    margin-bottom: 3px;
+}
+
+.helpdesk-queue-note,
+.helpdesk-filter-summary,
+.helpdesk-bulk-summary,
+.helpdesk-report-meta,
+.helpdesk-alert-ticket-note,
+.helpdesk-note {
+    font-size: 0.88em;
+}
+
+.helpdesk-tabs {
+    gap: 6px;
+}
+
+.helpdesk-tab {
+    min-height: 32px;
+    padding: 6px 12px;
+    border-radius: 7px 7px 0 0;
+    font-size: 0.92em;
+}
+
+.helpdesk-tabs-secondary .helpdesk-tab {
+    min-height: 28px;
+    padding: 5px 10px;
+}
+
+.helpdesk-overview-next-grid,
+.helpdesk-overview-focus-grid,
+.helpdesk-overview-health-grid,
+.helpdesk-report-grid,
+.helpdesk-team-load-grid,
+.helpdesk-manage-grid,
+.helpdesk-filter-grid,
+.helpdesk-bulk-grid,
+.helpdesk-team-filter-grid {
+    gap: 10px;
+}
+
+.helpdesk-overview-next-card,
+.helpdesk-overview-focus-box,
+.helpdesk-overview-health-box,
+.helpdesk-report-panel,
+.helpdesk-team-load-card,
+.helpdesk-preview-compare-box,
+.helpdesk-team-bulk-bar,
+.helpdesk-redistribution-bulk-bar,
+.helpdesk-saved-views-group-other {
+    padding: 10px 11px;
+    border-radius: 7px;
+}
+
+.helpdesk-overview-health-box {
+    margin-top: 10px;
+}
+
+.helpdesk-overview-health-card {
+    gap: 6px;
+    padding: 10px;
+    border-radius: 7px;
+}
+
+.helpdesk-overview-health-count {
+    font-size: 19px;
+}
+
+.helpdesk-overview-next-card strong,
+.helpdesk-overview-focus-box h4,
+.helpdesk-report-panel h4,
+.helpdesk-manage-box h4,
+.helpdesk-history-box h4 {
+    margin-bottom: 5px;
+}
+
+.helpdesk-quick-actions,
+.helpdesk-team-context-buttons,
+.helpdesk-team-layout-tools-actions,
+.helpdesk-team-section-jump-links,
+.helpdesk-redistribution-actions,
+.helpdesk-team-load-actions,
+.helpdesk-filter-actions,
+.helpdesk-bulk-actions {
+    gap: 6px;
+}
+
+.helpdesk-report-summary {
+    gap: 8px;
+    padding: 10px 11px;
+}
+
+.helpdesk-report-section-body {
+    padding: 0 11px 11px;
+}
+
+.helpdesk-report-list li,
+.helpdesk-history-list li,
+.helpdesk-team-history-list li {
+    padding: 7px 0;
+}
+
+.helpdesk-team-summary,
+.helpdesk-team-filter-box,
+.helpdesk-team-alerts-box,
+.helpdesk-team-table-box,
+.helpdesk-team-report-box,
+.helpdesk-queue-panel,
+.helpdesk-bulk-panel,
+.helpdesk-filter-panel,
+.helpdesk-team-context-box,
+.helpdesk-team-display-box,
+.helpdesk-posting-panel,
+.helpdesk-topic-panel {
+    margin: 10px 0;
+}
+
+.helpdesk-posting-panel .helpdesk-grid-stack .helpdesk-field dd {
+    margin-top: 4px !important;
+}
+
+.helpdesk-posting-panel .helpdesk-grid-stack .helpdesk-field select,
+.helpdesk-manage-field select,
+.helpdesk-filter-field select,
+.helpdesk-filter-field input[type="text"],
+.helpdesk-manage-field input[type="text"] {
+    min-height: 32px;
+}
+
+.helpdesk-manage-field textarea {
+    min-height: 52px;
+}
+
+@media (max-width: 700px) {
+    .helpdesk-team-card strong,
+    .helpdesk-overview-health-count {
+        font-size: 16px;
+    }
+
+    .helpdesk-queue-count {
+        font-size: 1.35em;
+    }
+
+    .helpdesk-tab {
+        min-height: 30px;
+        padding: 5px 10px;
+    }
+}
+
+
+/* 4.9.62 visual pass: remove redundant viewforum bulk selection and make queue list closer to prosilver */
+.helpdesk-team-table-wrap {
+    border: 1px solid #c8d3dc;
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.helpdesk-team-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.helpdesk-team-table thead th {
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4c5d77;
+    background: linear-gradient(to bottom, #f9fbfc 0%, #e8eef3 100%);
+    border-bottom: 1px solid #c8d3dc;
+}
+
+.helpdesk-team-table tbody td {
+    padding: 8px 10px;
+    border-top: 1px solid #e4ebf0;
+    background: #ffffff;
+}
+
+.helpdesk-team-table tbody tr:nth-child(even) td {
+    background: #fbfcfd;
+}
+
+.helpdesk-team-table tbody tr:hover td {
+    background: #f2f7fb;
+}
+
+.helpdesk-team-topic-cell,
+.helpdesk-team-forum-cell,
+.helpdesk-team-department-cell,
+.helpdesk-team-assignee-cell,
+.helpdesk-team-alerts-cell,
+.helpdesk-team-updated-cell {
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.helpdesk-team-topic-link {
+    font-weight: 700;
+    font-size: 1em;
+}
+
+.helpdesk-team-topic-subline {
+    margin-top: 4px;
+    font-size: 10px;
+    color: #5f6b78;
+    gap: 4px;
+}
+
+.helpdesk-team-assignee-name {
+    font-weight: 700;
+}
+
+.helpdesk-team-forum-cell,
+.helpdesk-team-updated-cell {
+    color: #5f6b78;
+}
+
+.helpdesk-team-alerts-cell {
+    color: #8a4f08;
+}
+
+.helpdesk-team-status-cell .helpdesk-badge,
+.helpdesk-team-priority-cell .helpdesk-badge,
+.helpdesk-team-assignee-cell .helpdesk-badge {
+    min-height: 16px;
+    padding: 1px 5px;
+    font-size: 8px;
+}
+
+.helpdesk-team-table-check {
+    width: 28px;
+}
+
+.helpdesk-team-table-check input[type="checkbox"] {
+    width: 13px;
+    height: 13px;
+}
+
+/* 4.9.63 visual pass: queue list closer to prosilver topic list */
+.helpdesk-team-table-wrap {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow-x: auto;
+}
+
+.helpdesk-team-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    background: transparent;
+}
+
+.helpdesk-team-table thead th {
+    padding: 7px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #ffffff;
+    background: linear-gradient(to bottom, #5b8fb6 0%, #3e6e93 100%);
+    border-bottom: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.helpdesk-team-table thead th:first-child {
+    border-top-left-radius: 4px;
+}
+
+.helpdesk-team-table thead th:last-child {
+    border-top-right-radius: 4px;
+    border-right: 0;
+}
+
+.helpdesk-team-table tbody td {
+    padding: 8px 9px;
+    border-top: 1px solid #dbe5ee;
+    background: #fefefe;
+}
+
+.helpdesk-team-table tbody tr:first-child td {
+    border-top-color: #c7d7e5;
+}
+
+.helpdesk-team-table tbody tr:nth-child(even) td {
+    background: #f6f9fc;
+}
+
+.helpdesk-team-table tbody tr:hover td {
+    background: #edf4fa;
+}
+
+.helpdesk-team-topic-link {
+    color: #105289;
+    font-weight: 700;
+    font-size: 1.04em;
+    text-decoration: none;
+}
+
+.helpdesk-team-topic-link:hover,
+.helpdesk-team-topic-link:focus {
+    color: #bc2a4d;
+    text-decoration: underline;
+}
+
+.helpdesk-team-topic-subline {
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 1.35;
+    color: #536482;
+}
+
+.helpdesk-team-topic-cell,
+.helpdesk-team-forum-cell,
+.helpdesk-team-department-cell,
+.helpdesk-team-assignee-cell,
+.helpdesk-team-alerts-cell,
+.helpdesk-team-updated-cell {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #333333;
+}
+
+.helpdesk-team-forum-cell,
+.helpdesk-team-department-cell,
+.helpdesk-team-updated-cell {
+    color: #536482;
+}
+
+.helpdesk-team-alerts-cell {
+    color: #7b5b21;
+    font-size: 10px;
+}
+
+.helpdesk-team-assignee-name {
+    color: #105289;
+}
+
+.helpdesk-team-status-cell .helpdesk-badge,
+.helpdesk-team-priority-cell .helpdesk-badge,
+.helpdesk-team-assignee-cell .helpdesk-badge {
+    min-height: 15px;
+    padding: 1px 5px;
+    font-size: 8px;
+    border-radius: 10px;
+}
+
+.helpdesk-team-table-check {
+    width: 30px;
+}
+
+.helpdesk-team-table-check input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+}

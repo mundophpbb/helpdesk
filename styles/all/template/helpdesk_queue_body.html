@@ -74,6 +74,18 @@
                 <strong>{HELPDESK_QUEUE_OVERDUE_COUNT}</strong>
                 <span>{L_HELPDESK_QUEUE_OVERDUE}</span>
             </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_AGING}">
+                <strong>{HELPDESK_QUEUE_AGING_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_AGING}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE}">
+                <strong>{HELPDESK_QUEUE_STALE_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_STALE}</span>
+            </a>
+            <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_VERY_OLD}">
+                <strong>{HELPDESK_QUEUE_VERY_OLD_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_VERY_OLD}</span>
+            </a>
             <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STAFF_REPLY}">
                 <strong>{HELPDESK_QUEUE_STAFF_REPLY_COUNT}</strong>
                 <span>{L_HELPDESK_QUEUE_STAFF_REPLY}</span>
@@ -157,6 +169,341 @@
             </div>
         </div>
 
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_LOAD_DISTRIBUTION_STATUS_CLASS}">{HELPDESK_LOAD_DISTRIBUTION_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_LOAD_DISTRIBUTION_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_LOAD_DISTRIBUTION_TOTAL_ASSIGNEES}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_TOTAL_ASSIGNEES}</span>
+                </div>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_LOAD_DISTRIBUTION_OVERLOADED}">
+                    <strong>{HELPDESK_LOAD_DISTRIBUTION_OVERLOADED_COUNT}</strong>
+                    <span>{L_HELPDESK_WORKLOAD_OVERLOAD}</span>
+                </a>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_LOAD_DISTRIBUTION_HIGH_COUNT}</strong>
+                    <span>{L_HELPDESK_WORKLOAD_HIGH}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_LOAD_DISTRIBUTION_MEDIUM_COUNT}</strong>
+                    <span>{L_HELPDESK_WORKLOAD_MEDIUM}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_LOAD_DISTRIBUTION_LOW_COUNT}</strong>
+                    <span>{L_HELPDESK_WORKLOAD_LOW}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_LOAD_DISTRIBUTION_IDLE_COUNT}</strong>
+                    <span>{L_HELPDESK_WORKLOAD_IDLE}</span>
+                </div>
+            </div>
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_LOAD_DISTRIBUTION_BALANCE}">{L_HELPDESK_QUEUE_SECTION_BALANCE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_LOAD_DISTRIBUTION_OVERLOADED}">{L_HELPDESK_QUEUE_OVERLOADED}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_LOAD_DISTRIBUTION_REDISTRIBUTE}">{L_HELPDESK_QUEUE_REDISTRIBUTE}</a>
+            </p>
+        </div>
+
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_DEPARTMENT_OPERATIONS_STATUS_CLASS}">{HELPDESK_DEPARTMENT_OPERATIONS_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_DEPARTMENT_OPERATIONS_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_DEPARTMENT_OPERATIONS_TOTAL}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_TOTAL}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_DEPARTMENT_OPERATIONS_CRITICAL_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_CRITICAL}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_DEPARTMENT_OPERATIONS_ATTENTION_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_ATTENTION}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_DEPARTMENT_OPERATIONS_COVERAGE_GAP_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_COVERAGE_GAPS}</span>
+                </div>
+            </div>
+            <!-- IF .helpdesk_department_focus_rows -->
+            <div class="helpdesk-overview-health-grid">
+                <!-- BEGIN helpdesk_department_focus_rows -->
+                <a class="helpdesk-overview-health-card" href="{helpdesk_department_focus_rows.U_QUEUE}">
+                    <span class="helpdesk-health-pill is-{helpdesk_department_focus_rows.STATUS_CLASS}">{helpdesk_department_focus_rows.STATUS_LABEL}</span>
+                    <strong>{helpdesk_department_focus_rows.LABEL}</strong>
+                    <span class="helpdesk-overview-health-count">{helpdesk_department_focus_rows.ACTIVE_COUNT}</span>
+                    <span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_department_focus_rows.UNASSIGNED_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_department_focus_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_department_focus_rows.CRITICAL_COUNT}</span>
+                </a>
+                <!-- END helpdesk_department_focus_rows -->
+            </div>
+            <!-- ENDIF -->
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_DEPARTMENT_OPERATIONS_BALANCE}">{L_HELPDESK_QUEUE_SECTION_BALANCE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_DEPARTMENT_OPERATIONS_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_DEPARTMENT_OPERATIONS_TRIAGE}">{L_HELPDESK_QUEUE_SECTION_TRIAGE}</a>
+            </p>
+        </div>
+
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_FORUM_BACKLOG_STATUS_CLASS}">{HELPDESK_FORUM_BACKLOG_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_FORUM_BACKLOG_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_FORUM_BACKLOG_TOTAL}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_TOTAL}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_FORUM_BACKLOG_CRITICAL_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_CRITICAL}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_FORUM_BACKLOG_ATTENTION_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_ATTENTION}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_FORUM_BACKLOG_MULTI_DEPARTMENT_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_MULTI_DEPARTMENT}</span>
+                </div>
+            </div>
+            <!-- IF .helpdesk_forum_backlog_focus_rows -->
+            <div class="helpdesk-overview-health-grid">
+                <!-- BEGIN helpdesk_forum_backlog_focus_rows -->
+                <a class="helpdesk-overview-health-card" href="{helpdesk_forum_backlog_focus_rows.U_QUEUE}">
+                    <span class="helpdesk-health-pill is-{helpdesk_forum_backlog_focus_rows.STATUS_CLASS}">{helpdesk_forum_backlog_focus_rows.STATUS_LABEL}</span>
+                    <strong>{helpdesk_forum_backlog_focus_rows.LABEL}</strong>
+                    <span class="helpdesk-overview-health-count">{helpdesk_forum_backlog_focus_rows.ACTIVE_COUNT}</span>
+                    <span class="helpdesk-report-meta">{L_HELPDESK_DEPARTMENT}: {helpdesk_forum_backlog_focus_rows.PRIMARY_DEPARTMENT_LABEL} &middot; {L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_forum_backlog_focus_rows.UNASSIGNED_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_forum_backlog_focus_rows.OVERDUE_COUNT}</span>
+                </a>
+                <!-- END helpdesk_forum_backlog_focus_rows -->
+            </div>
+            <!-- ENDIF -->
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_FORUM_BACKLOG_BALANCE}">{L_HELPDESK_QUEUE_SECTION_BALANCE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_FORUM_BACKLOG_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_FORUM_BACKLOG_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+            </p>
+        </div>
+
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_BACKLOG_AGING_STATUS_CLASS}">{HELPDESK_BACKLOG_AGING_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_BACKLOG_AGING_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_BACKLOG_AGING_TOTAL}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_TOTAL}</span>
+                </div>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_AGING}">
+                    <strong>{HELPDESK_BACKLOG_AGING_AGING_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_AGING}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_STALE}">
+                    <strong>{HELPDESK_BACKLOG_AGING_STALE_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_STALE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_VERY_OLD}">
+                    <strong>{HELPDESK_BACKLOG_AGING_VERY_OLD_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_VERY_OLD}</span>
+                </a>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_OLDEST_AGE}: <strong>{HELPDESK_BACKLOG_AGING_OLDEST_AGE}</strong> &middot; {L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_OLDEST_IDLE}: <strong>{HELPDESK_BACKLOG_AGING_OLDEST_IDLE}</strong></p>
+            <!-- IF .helpdesk_backlog_aging_focus_rows -->
+            <div class="helpdesk-overview-health-grid">
+                <!-- BEGIN helpdesk_backlog_aging_focus_rows -->
+                <a class="helpdesk-overview-health-card" href="{helpdesk_backlog_aging_focus_rows.U_ROW}">
+                    <span class="helpdesk-health-pill {helpdesk_backlog_aging_focus_rows.STATUS_CLASS}">{helpdesk_backlog_aging_focus_rows.STATUS_LABEL}</span>
+                    <strong>{helpdesk_backlog_aging_focus_rows.TITLE}</strong>
+                    <span class="helpdesk-overview-health-count">{helpdesk_backlog_aging_focus_rows.COUNT}</span>
+                </a>
+                <!-- END helpdesk_backlog_aging_focus_rows -->
+            </div>
+            <!-- ENDIF -->
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_BACKLOG_AGING_QUEUE}">{L_HELPDESK_QUEUE_SECTION_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_BACKLOG_AGING_REPORT}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_BACKLOG_AGING_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+            </p>
+        </div>
+
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_EXECUTIVE_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_EXECUTIVE_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_EXECUTIVE_STATUS_CLASS}">{HELPDESK_EXECUTIVE_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_EXECUTIVE_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_ACTIVE}">
+                    <strong>{HELPDESK_EXECUTIVE_ACTIVE_TOTAL}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TOTAL_ACTIVE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_ALERTS}">
+                    <strong>{HELPDESK_EXECUTIVE_ALERT_TOTAL}</strong>
+                    <span>{L_HELPDESK_QUEUE_SECTION_ALERTS}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_OVERLOADED}">
+                    <strong>{HELPDESK_EXECUTIVE_OVERLOADED_COUNT}</strong>
+                    <span>{L_HELPDESK_WORKLOAD_OVERLOAD}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_PERSONAL}">
+                    <strong>{HELPDESK_EXECUTIVE_ENGAGED_ASSIGNEES_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ENGAGED_ASSIGNEES}</span>
+                </a>
+            </div>
+            <!-- IF .helpdesk_executive_focus_rows -->
+            <div class="helpdesk-overview-health-grid">
+                <!-- BEGIN helpdesk_executive_focus_rows -->
+                <a class="helpdesk-overview-health-card" href="{helpdesk_executive_focus_rows.U_ROW}">
+                    <span class="helpdesk-health-pill {helpdesk_executive_focus_rows.STATUS_CLASS}">{helpdesk_executive_focus_rows.STATUS_LABEL}</span>
+                    <strong>{helpdesk_executive_focus_rows.TITLE}</strong>
+                    <span class="helpdesk-overview-health-count">{helpdesk_executive_focus_rows.COUNT}</span>
+                    <span class="helpdesk-report-meta">{helpdesk_executive_focus_rows.SECTION_LABEL}</span>
+                </a>
+                <!-- END helpdesk_executive_focus_rows -->
+            </div>
+            <!-- ENDIF -->
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_QUEUE}">{L_HELPDESK_QUEUE_SECTION_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_BALANCE}">{L_HELPDESK_QUEUE_SECTION_BALANCE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+            </p>
+        </div>
+
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_SHIFT_PLAN_STATUS_CLASS}">{HELPDESK_SHIFT_PLAN_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_SHIFT_PLAN_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <a class="helpdesk-team-card" href="{U_HELPDESK_SHIFT_PLAN_ALERTS}">
+                    <strong>{HELPDESK_SHIFT_PLAN_IMMEDIATE_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_IMMEDIATE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_SHIFT_PLAN_TRIAGE}">
+                    <strong>{HELPDESK_SHIFT_PLAN_INTAKE_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_INTAKE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_SHIFT_PLAN_REPORTS}">
+                    <strong>{HELPDESK_SHIFT_PLAN_FOLLOW_UP_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_FOLLOW_UP}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_SHIFT_PLAN_BALANCE}">
+                    <strong>{HELPDESK_SHIFT_PLAN_REBALANCE_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_REBALANCE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_SHIFT_PLAN_BALANCE}">
+                    <strong>{HELPDESK_SHIFT_PLAN_CAPACITY_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_CAPACITY}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_SHIFT_PLAN_BALANCE}">
+                    <strong>{HELPDESK_SHIFT_PLAN_CONSTRAINED_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_CONSTRAINED}</span>
+                </a>
+            </div>
+            <!-- IF .helpdesk_shift_plan_focus_rows -->
+            <div class="helpdesk-overview-health-grid">
+                <!-- BEGIN helpdesk_shift_plan_focus_rows -->
+                <a class="helpdesk-overview-health-card" href="{helpdesk_shift_plan_focus_rows.U_ROW}">
+                    <span class="helpdesk-health-pill {helpdesk_shift_plan_focus_rows.STATUS_CLASS}">{helpdesk_shift_plan_focus_rows.STATUS_LABEL}</span>
+                    <strong>{helpdesk_shift_plan_focus_rows.TITLE}</strong>
+                    <span class="helpdesk-overview-health-count">{helpdesk_shift_plan_focus_rows.COUNT}</span>
+                    <span class="helpdesk-report-meta">{helpdesk_shift_plan_focus_rows.SECTION_LABEL}</span>
+                </a>
+                <!-- END helpdesk_shift_plan_focus_rows -->
+            </div>
+            <!-- ENDIF -->
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_SHIFT_PLAN_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_SHIFT_PLAN_TRIAGE}">{L_HELPDESK_QUEUE_SECTION_TRIAGE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_SHIFT_PLAN_BALANCE}">{L_HELPDESK_QUEUE_SECTION_BALANCE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_SHIFT_PLAN_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+            </p>
+        </div>
+
+        <div class="helpdesk-overview-health-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_EXPLAIN}</p>
+                </div>
+                <span class="helpdesk-health-pill is-{HELPDESK_TEAM_PRODUCTIVITY_STATUS_CLASS}">{HELPDESK_TEAM_PRODUCTIVITY_STATUS_LABEL}</span>
+            </div>
+            <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_TEAM_PRODUCTIVITY_STATUS_TEXT}</p>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_TEAM_PRODUCTIVITY_TOTAL_ACTIVE}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TOTAL_ACTIVE}</span>
+                </div>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_FIRST_REPLY}">
+                    <strong>{HELPDESK_TEAM_PRODUCTIVITY_FIRST_REPLY_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_FIRST_REPLY_PENDING}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_STAFF_REPLY}">
+                    <strong>{HELPDESK_TEAM_PRODUCTIVITY_STAFF_REPLY_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TEAM_RESPONSE_PENDING}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_REPORT_UPDATED_24H}">
+                    <strong>{HELPDESK_TEAM_PRODUCTIVITY_RECENT_ACTIVITY_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ACTIVE_TOUCHED_24H}</span>
+                </a>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_TEAM_PRODUCTIVITY_RECENT_COMPLETED_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_COMPLETED_24H}</span>
+                </div>
+                <div class="helpdesk-team-card">
+                    <strong>{HELPDESK_TEAM_PRODUCTIVITY_ENGAGED_ASSIGNEES_COUNT}</strong>
+                    <span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ENGAGED_ASSIGNEES}</span>
+                </div>
+            </div>
+            <!-- IF .helpdesk_team_productivity_focus_rows -->
+            <div class="helpdesk-overview-health-grid">
+                <!-- BEGIN helpdesk_team_productivity_focus_rows -->
+                <a class="helpdesk-overview-health-card" href="{helpdesk_team_productivity_focus_rows.U_ROW}">
+                    <span class="helpdesk-health-pill {helpdesk_team_productivity_focus_rows.STATUS_CLASS}">{helpdesk_team_productivity_focus_rows.STATUS_LABEL}</span>
+                    <strong>{helpdesk_team_productivity_focus_rows.TITLE}</strong>
+                    <span class="helpdesk-overview-health-count">{helpdesk_team_productivity_focus_rows.COUNT}</span>
+                </a>
+                <!-- END helpdesk_team_productivity_focus_rows -->
+            </div>
+            <!-- ENDIF -->
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_PRODUCTIVITY_QUEUE}">{L_HELPDESK_QUEUE_SECTION_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_PRODUCTIVITY_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_PRODUCTIVITY_PERSONAL}">{L_HELPDESK_QUEUE_SECTION_PERSONAL}</a>
+            </p>
+        </div>
+
         <div class="helpdesk-overview-focus-grid">
             <div class="helpdesk-overview-focus-box">
                 <h4>{L_HELPDESK_TEAM_QUEUE_OVERVIEW_MY_FOCUS_TITLE}</h4>
@@ -171,6 +518,8 @@
                 <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_TRIAGE}">{L_HELPDESK_QUEUE_SECTION_TRIAGE}</a>
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_UNASSIGNED}">{L_HELPDESK_QUEUE_UNASSIGNED} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_UNASSIGNED_COUNT}</span></a>
+                    <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE}">{L_HELPDESK_QUEUE_STALE} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_STALE_COUNT}</span></a>
+                    <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_VERY_OLD}">{L_HELPDESK_QUEUE_VERY_OLD} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_VERY_OLD_COUNT}</span></a>
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_CRITICAL}">{L_HELPDESK_CRITICALITY_CRITICAL} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_CRITICAL_COUNT}</span></a>
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_REDISTRIBUTE}">{L_HELPDESK_QUEUE_REDISTRIBUTE} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_REDISTRIBUTION_COUNT}</span></a>
                 </p>
@@ -193,6 +542,9 @@
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'all' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_ALL}">{L_HELPDESK_QUEUE_ALL}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'unassigned' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_UNASSIGNED}">{L_HELPDESK_QUEUE_UNASSIGNED}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_OVERDUE}">{L_HELPDESK_QUEUE_OVERDUE}</a>
+                <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'aging' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_AGING}">{L_HELPDESK_QUEUE_AGING}</a>
+                <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'stale' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STALE}">{L_HELPDESK_QUEUE_STALE}</a>
+                <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'very_old' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_VERY_OLD}">{L_HELPDESK_QUEUE_VERY_OLD}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'staff_reply' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STAFF_REPLY}">{L_HELPDESK_QUEUE_STAFF_REPLY}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'critical' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_CRITICAL}">{L_HELPDESK_CRITICALITY_CRITICAL}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'prioritized' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_PRIORITIZED}">{L_HELPDESK_QUEUE_PRIORITIZED}</a>
@@ -286,6 +638,145 @@
                 <span>{L_HELPDESK_REDISTRIBUTION_SMART_READY}</span>
             </a>
         </div>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-overview-box">
+    <div class="inner">
+        <div class="helpdesk-overview-health-head">
+            <div>
+                <h3>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_TITLE}</h3>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_EXPLAIN}</p>
+            </div>
+            <span class="helpdesk-health-pill is-{HELPDESK_LOAD_DISTRIBUTION_STATUS_CLASS}">{HELPDESK_LOAD_DISTRIBUTION_STATUS_LABEL}</span>
+        </div>
+        <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_LOAD_DISTRIBUTION_STATUS_TEXT}</p>
+        <div class="helpdesk-report-grid">
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="balance-load-distribution" open="open">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_BUCKETS}</span> <span class="helpdesk-report-summary-hint">{L_HELPDESK_REPORT_SECTION_TOGGLE}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_load_distribution_rows -->
+                        <li><!-- IF helpdesk_load_distribution_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_load_distribution_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main"><span class="helpdesk-badge {helpdesk_load_distribution_rows.CLASS}">{helpdesk_load_distribution_rows.LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_load_distribution_rows.COUNT} &middot; {helpdesk_load_distribution_rows.PERCENT}</span><!-- IF helpdesk_load_distribution_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_load_distribution_rows -->
+                    </ul>
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="balance-load-relief">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_RELIEF_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_LOAD_DISTRIBUTION_RELIEF_COUNT}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <!-- IF .helpdesk_load_distribution_relief_rows -->
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_load_distribution_relief_rows -->
+                        <li><!-- IF helpdesk_load_distribution_relief_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_load_distribution_relief_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_load_distribution_relief_rows.LABEL} <span class="helpdesk-badge {helpdesk_load_distribution_relief_rows.WORKLOAD_CLASS}">{helpdesk_load_distribution_relief_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_load_distribution_relief_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_load_distribution_relief_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_load_distribution_relief_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_load_distribution_relief_rows.SCORE}</span><!-- IF helpdesk_load_distribution_relief_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_load_distribution_relief_rows -->
+                    </ul>
+                    <!-- ELSE -->
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_EMPTY_RELIEF}</p>
+                    <!-- ENDIF -->
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="balance-load-support">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_SUPPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_LOAD_DISTRIBUTION_SUPPORT_COUNT}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <!-- IF .helpdesk_load_distribution_support_rows -->
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_load_distribution_support_rows -->
+                        <li><!-- IF helpdesk_load_distribution_support_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_load_distribution_support_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_load_distribution_support_rows.LABEL} <span class="helpdesk-badge {helpdesk_load_distribution_support_rows.WORKLOAD_CLASS}">{helpdesk_load_distribution_support_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_load_distribution_support_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_load_distribution_support_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_load_distribution_support_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_load_distribution_support_rows.SCORE}</span><!-- IF helpdesk_load_distribution_support_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_load_distribution_support_rows -->
+                    </ul>
+                    <!-- ELSE -->
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_EMPTY_SUPPORT}</p>
+                    <!-- ENDIF -->
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-overview-box">
+    <div class="inner">
+        <div class="helpdesk-overview-health-head">
+            <div>
+                <h3>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_LOAD_TITLE}</h3>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_LOAD_EXPLAIN}</p>
+            </div>
+            <span class="helpdesk-health-pill is-{HELPDESK_DEPARTMENT_OPERATIONS_STATUS_CLASS}">{HELPDESK_DEPARTMENT_OPERATIONS_STATUS_LABEL}</span>
+        </div>
+        <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_DEPARTMENT_OPERATIONS_STATUS_TEXT}</p>
+        <!-- IF .helpdesk_department_pressure_rows -->
+        <div class="helpdesk-team-load-grid">
+            <!-- BEGIN helpdesk_department_pressure_rows -->
+            <div class="helpdesk-team-load-card<!-- IF helpdesk_department_pressure_rows.S_COVERAGE_GAP --> helpdesk-team-load-card-actionable<!-- ENDIF -->">
+                <div class="helpdesk-team-load-head">
+                    <strong>{helpdesk_department_pressure_rows.LABEL}</strong>
+                    <span class="helpdesk-health-pill is-{helpdesk_department_pressure_rows.STATUS_CLASS}">{helpdesk_department_pressure_rows.STATUS_LABEL}</span>
+                </div>
+                <div class="helpdesk-team-load-meta">
+                    <span>{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_department_pressure_rows.ACTIVE_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_department_pressure_rows.UNASSIGNED_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_department_pressure_rows.OVERDUE_COUNT}</span>
+                    <span>{L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_department_pressure_rows.CRITICAL_COUNT}</span>
+                    <span>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_ACTIVE_ASSIGNEES}: {helpdesk_department_pressure_rows.ASSIGNEE_COUNT}</span>
+                    <span>{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_PRIMARY_ASSIGNEE}: {helpdesk_department_pressure_rows.PRIMARY_ASSIGNEE_LABEL}</span>
+                    <span>{L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_department_pressure_rows.PRESSURE_SCORE}</span>
+                </div>
+                <div class="helpdesk-team-load-actions">
+                    <!-- IF helpdesk_department_pressure_rows.U_QUEUE --><a class="button button-secondary button-small" href="{helpdesk_department_pressure_rows.U_QUEUE}">{L_HELPDESK_TEAM_QUEUE_LOAD_VIEW_QUEUE}</a><!-- ENDIF -->
+                    <a class="button button-secondary button-small" href="{helpdesk_department_pressure_rows.U_TRIAGE}">{L_HELPDESK_QUEUE_SECTION_TRIAGE}</a>
+                    <!-- IF helpdesk_department_pressure_rows.U_OVERDUE --><a class="button button-secondary button-small" href="{helpdesk_department_pressure_rows.U_OVERDUE}">{L_HELPDESK_TEAM_QUEUE_LOAD_VIEW_OVERDUE}</a><!-- ENDIF -->
+                    <!-- IF helpdesk_department_pressure_rows.U_CRITICAL --><a class="button button-secondary button-small" href="{helpdesk_department_pressure_rows.U_CRITICAL}">{L_HELPDESK_TEAM_QUEUE_LOAD_VIEW_CRITICAL}</a><!-- ENDIF -->
+                    <!-- IF helpdesk_department_pressure_rows.U_REDISTRIBUTE --><a class="button button-secondary button-small" href="{helpdesk_department_pressure_rows.U_REDISTRIBUTE}">{L_HELPDESK_QUEUE_REDISTRIBUTE}</a><!-- ENDIF -->
+                    <!-- IF helpdesk_department_pressure_rows.U_REPORT --><a class="button button-secondary button-small" href="{helpdesk_department_pressure_rows.U_REPORT}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a><!-- ENDIF -->
+                </div>
+            </div>
+            <!-- END helpdesk_department_pressure_rows -->
+        </div>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_EMPTY}</p>
+        <!-- ENDIF -->
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-overview-box">
+    <div class="inner">
+        <div class="helpdesk-overview-health-head">
+            <div>
+                <h3>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_LOAD_TITLE}</h3>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_LOAD_EXPLAIN}</p>
+            </div>
+            <span class="helpdesk-health-pill is-{HELPDESK_FORUM_BACKLOG_STATUS_CLASS}">{HELPDESK_FORUM_BACKLOG_STATUS_LABEL}</span>
+        </div>
+        <p class="helpdesk-note helpdesk-overview-health-summary">{HELPDESK_FORUM_BACKLOG_STATUS_TEXT}</p>
+        <!-- IF .helpdesk_forum_backlog_rows -->
+        <div class="helpdesk-team-load-grid">
+            <!-- BEGIN helpdesk_forum_backlog_rows -->
+            <div class="helpdesk-team-load-card">
+                <div class="helpdesk-team-load-head">
+                    <strong>{helpdesk_forum_backlog_rows.LABEL}</strong>
+                    <span class="helpdesk-health-pill is-{helpdesk_forum_backlog_rows.STATUS_CLASS}">{helpdesk_forum_backlog_rows.STATUS_LABEL}</span>
+                </div>
+                <div class="helpdesk-team-load-meta">
+                    <span>{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_forum_backlog_rows.ACTIVE_COUNT}</span>
+                    <span>{L_HELPDESK_DEPARTMENT}: {helpdesk_forum_backlog_rows.PRIMARY_DEPARTMENT_LABEL}</span>
+                    <span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_DEPARTMENTS}: {helpdesk_forum_backlog_rows.DEPARTMENT_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_forum_backlog_rows.UNASSIGNED_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_forum_backlog_rows.OVERDUE_COUNT}</span>
+                    <span>{L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_forum_backlog_rows.CRITICAL_COUNT}</span>
+                    <span>{L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_forum_backlog_rows.PRESSURE_SCORE}</span>
+                </div>
+                <div class="helpdesk-team-load-actions">
+                    <a class="button button-secondary button-small" href="{helpdesk_forum_backlog_rows.U_QUEUE}">{L_HELPDESK_TEAM_QUEUE_LOAD_VIEW_QUEUE}</a>
+                    <a class="button button-secondary button-small" href="{helpdesk_forum_backlog_rows.U_TRIAGE}">{L_HELPDESK_QUEUE_SECTION_TRIAGE}</a>
+                    <a class="button button-secondary button-small" href="{helpdesk_forum_backlog_rows.U_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+                    <a class="button button-secondary button-small" href="{helpdesk_forum_backlog_rows.U_REPORT}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+                </div>
+            </div>
+            <!-- END helpdesk_forum_backlog_rows -->
+        </div>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_EMPTY}</p>
+        <!-- ENDIF -->
     </div>
 </div>
 
@@ -893,6 +1384,7 @@
                         <option value="unassigned"<!-- IF HELPDESK_FILTER_SCOPE eq 'unassigned' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_UNASSIGNED}</option>
                         <option value="overdue"<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_OVERDUE}</option>
                         <option value="stale"<!-- IF HELPDESK_FILTER_SCOPE eq 'stale' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_STALE}</option>
+                        <option value="very_old"<!-- IF HELPDESK_FILTER_SCOPE eq 'very_old' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_VERY_OLD}</option>
                         <option value="staff_reply"<!-- IF HELPDESK_FILTER_SCOPE eq 'staff_reply' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_STAFF_REPLY}</option>
                         <option value="reopened"<!-- IF HELPDESK_FILTER_SCOPE eq 'reopened' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_QUEUE_REOPENED}</option>
                         <option value="critical"<!-- IF HELPDESK_FILTER_SCOPE eq 'critical' --> selected="selected"<!-- ENDIF -->>{L_HELPDESK_CRITICALITY_CRITICAL}</option>
@@ -1014,14 +1506,14 @@
                 <thead>
                     <tr>
                         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN and S_HELPDESK_QUEUE_VIEW_TRIAGE --><th class="helpdesk-team-table-check">{L_MARK}</th><!-- ENDIF -->
-                        <th>{L_TOPIC}</th>
-                        <th>{L_FORUM}</th>
-                        <th>{L_HELPDESK_STATUS}</th>
-                        <th>{L_HELPDESK_PRIORITY}</th>
-                        <th>{L_HELPDESK_DEPARTMENT}</th>
-                        <th>{L_HELPDESK_ASSIGNED_TO}</th>
-                        <th>{L_HELPDESK_TEAM_QUEUE_ALERTS}</th>
-                        <th>{L_HELPDESK_LAST_UPDATE}</th>
+                        <th class="helpdesk-team-topic-head">{L_TOPIC}</th>
+                        <th class="helpdesk-team-forum-head">{L_FORUM}</th>
+                        <th class="helpdesk-team-status-head">{L_HELPDESK_STATUS}</th>
+                        <th class="helpdesk-team-priority-head">{L_HELPDESK_PRIORITY}</th>
+                        <th class="helpdesk-team-department-head">{L_HELPDESK_DEPARTMENT}</th>
+                        <th class="helpdesk-team-assignee-head">{L_HELPDESK_ASSIGNED_TO}</th>
+                        <th class="helpdesk-team-alerts-head">{L_HELPDESK_TEAM_QUEUE_ALERTS}</th>
+                        <th class="helpdesk-team-updated-head">{L_HELPDESK_LAST_UPDATE}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1030,14 +1522,14 @@
                         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN and S_HELPDESK_QUEUE_VIEW_TRIAGE -->
                         <td class="helpdesk-team-table-check"><input type="checkbox" name="queue_bulk_items[]" value="{helpdesk_queue_rows.SELECTION_VALUE}" form="helpdesk-queue-bulk-form" class="helpdesk-queue-bulk-check" aria-label="{L_HELPDESK_BULK_SELECT_TICKET}" /></td>
                         <!-- ENDIF -->
-                        <td><a href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a><!-- IF helpdesk_queue_rows.QUEUE_RULE_LABEL --><div class="helpdesk-topic-meta">{helpdesk_queue_rows.QUEUE_RULE_LABEL} &middot; {L_HELPDESK_QUEUE_PRIORITY_SCORE}: {helpdesk_queue_rows.QUEUE_SCORE}</div><!-- ENDIF --></td>
-                        <td>{helpdesk_queue_rows.FORUM_NAME}</td>
-                        <td><span class="helpdesk-badge {helpdesk_queue_rows.STATUS_CLASS}">{helpdesk_queue_rows.STATUS_LABEL}</span></td>
-                        <td><span class="helpdesk-badge {helpdesk_queue_rows.PRIORITY_CLASS}">{helpdesk_queue_rows.PRIORITY_LABEL}</span></td>
-                        <td>{helpdesk_queue_rows.DEPARTMENT_LABEL}</td>
-                        <td><!-- IF helpdesk_queue_rows.ASSIGNED_TO -->{helpdesk_queue_rows.ASSIGNED_TO}<div class="helpdesk-topic-meta"><span class="helpdesk-badge {helpdesk_queue_rows.WORKLOAD_CLASS}">{helpdesk_queue_rows.WORKLOAD_LABEL}</span> &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_queue_rows.WORKLOAD_SCORE}</div><!-- ELSE -->{helpdesk_queue_rows.ASSIGNED_TO}<!-- ENDIF --></td>
-                        <td>{helpdesk_queue_rows.ALERT_TEXT}</td>
-                        <td>{helpdesk_queue_rows.UPDATED_AT}</td>
+                        <td class="helpdesk-team-topic-cell"><a class="helpdesk-team-topic-link" href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a><!-- IF helpdesk_queue_rows.QUEUE_RULE_LABEL --><div class="helpdesk-topic-meta helpdesk-team-topic-subline">{helpdesk_queue_rows.QUEUE_RULE_LABEL} &middot; {L_HELPDESK_QUEUE_PRIORITY_SCORE}: {helpdesk_queue_rows.QUEUE_SCORE}</div><!-- ENDIF --></td>
+                        <td class="helpdesk-team-forum-cell">{helpdesk_queue_rows.FORUM_NAME}</td>
+                        <td class="helpdesk-team-status-cell"><span class="helpdesk-badge {helpdesk_queue_rows.STATUS_CLASS}">{helpdesk_queue_rows.STATUS_LABEL}</span></td>
+                        <td class="helpdesk-team-priority-cell"><span class="helpdesk-badge {helpdesk_queue_rows.PRIORITY_CLASS}">{helpdesk_queue_rows.PRIORITY_LABEL}</span></td>
+                        <td class="helpdesk-team-department-cell">{helpdesk_queue_rows.DEPARTMENT_LABEL}</td>
+                        <td class="helpdesk-team-assignee-cell"><!-- IF helpdesk_queue_rows.ASSIGNED_TO --><strong class="helpdesk-team-assignee-name">{helpdesk_queue_rows.ASSIGNED_TO}</strong><div class="helpdesk-topic-meta helpdesk-team-topic-subline"><span class="helpdesk-badge {helpdesk_queue_rows.WORKLOAD_CLASS}">{helpdesk_queue_rows.WORKLOAD_LABEL}</span> &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_queue_rows.WORKLOAD_SCORE}</div><!-- ELSE -->{helpdesk_queue_rows.ASSIGNED_TO}<!-- ENDIF --></td>
+                        <td class="helpdesk-team-alerts-cell">{helpdesk_queue_rows.ALERT_TEXT}</td>
+                        <td class="helpdesk-team-updated-cell">{helpdesk_queue_rows.UPDATED_AT}</td>
                     </tr>
                     <!-- END helpdesk_queue_rows -->
                 </tbody>
@@ -1084,9 +1576,51 @@
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_UPDATED_24H}"><strong>{HELPDESK_REPORT_UPDATED_24H}</strong><span>{L_HELPDESK_REPORT_UPDATED_24H}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_CREATED_24H}"><strong>{HELPDESK_REPORT_CREATED_24H}</strong><span>{L_HELPDESK_REPORT_CREATED_24H}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_OVERDUE}"><strong>{HELPDESK_REPORT_OVERDUE}</strong><span>{L_HELPDESK_REPORT_OVERDUE}</span></a>
+            <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_AGING}"><strong>{HELPDESK_REPORT_AGING}</strong><span>{L_HELPDESK_QUEUE_AGING}</span></a>
+            <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_STALE}"><strong>{HELPDESK_REPORT_STALE}</strong><span>{L_HELPDESK_QUEUE_STALE}</span></a>
+            <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_VERY_OLD}"><strong>{HELPDESK_REPORT_VERY_OLD}</strong><span>{L_HELPDESK_QUEUE_VERY_OLD}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_STAFF_REPLY}"><strong>{HELPDESK_REPORT_STAFF_REPLY}</strong><span>{L_HELPDESK_REPORT_STAFF_REPLY}</span></a>
         </div>
         <div class="helpdesk-report-grid">
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-executive" open="open">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_EXECUTIVE_REPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_EXECUTIVE_STATUS_LABEL}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_EXECUTIVE_STATUS_TEXT}</p>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_executive_rows -->
+                        <li><!-- IF helpdesk_report_executive_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_executive_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_executive_rows.LABEL} <span class="helpdesk-health-pill {helpdesk_report_executive_rows.STATUS_CLASS}">{helpdesk_report_executive_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_executive_rows.COUNT} &middot; {helpdesk_report_executive_rows.SECTION_LABEL}</span><!-- IF helpdesk_report_executive_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_executive_rows -->
+                    </ul>
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-shift-plan" open="open">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_REPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_SHIFT_PLAN_STATUS_LABEL}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_SHIFT_PLAN_STATUS_TEXT}</p>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_shift_plan_rows -->
+                        <li><!-- IF helpdesk_report_shift_plan_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_shift_plan_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_shift_plan_rows.LABEL} <span class="helpdesk-health-pill {helpdesk_report_shift_plan_rows.STATUS_CLASS}">{helpdesk_report_shift_plan_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_shift_plan_rows.COUNT} &middot; {helpdesk_report_shift_plan_rows.SECTION_LABEL}</span><!-- IF helpdesk_report_shift_plan_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_shift_plan_rows -->
+                    </ul>
+                    <!-- IF .helpdesk_shift_plan_pull_rows -->
+                    <h4>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_PULL_TITLE}</h4>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_shift_plan_pull_rows -->
+                        <li><!-- IF helpdesk_shift_plan_pull_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_shift_plan_pull_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_shift_plan_pull_rows.LABEL} <span class="helpdesk-badge {helpdesk_shift_plan_pull_rows.WORKLOAD_CLASS}">{helpdesk_shift_plan_pull_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_RECOMMENDED_ACTION}: {helpdesk_shift_plan_pull_rows.ACTION_LABEL} &middot; {L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_shift_plan_pull_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_shift_plan_pull_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_shift_plan_pull_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_shift_plan_pull_rows.SCORE}</span><!-- IF helpdesk_shift_plan_pull_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_shift_plan_pull_rows -->
+                    </ul>
+                    <!-- ENDIF -->
+                    <!-- IF .helpdesk_shift_plan_relief_rows -->
+                    <h4>{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_RELIEF_TITLE}</h4>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_shift_plan_relief_rows -->
+                        <li><!-- IF helpdesk_shift_plan_relief_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_shift_plan_relief_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_shift_plan_relief_rows.LABEL} <span class="helpdesk-badge {helpdesk_shift_plan_relief_rows.WORKLOAD_CLASS}">{helpdesk_shift_plan_relief_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_TEAM_QUEUE_SHIFT_PLAN_RECOMMENDED_ACTION}: {helpdesk_shift_plan_relief_rows.ACTION_LABEL} &middot; {L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_shift_plan_relief_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_shift_plan_relief_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_shift_plan_relief_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_shift_plan_relief_rows.SCORE}</span><!-- IF helpdesk_shift_plan_relief_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_shift_plan_relief_rows -->
+                    </ul>
+                    <!-- ENDIF -->
+                </div>
+            </details>
+
             <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-status" open="open">
                 <summary class="helpdesk-report-summary"><span>{L_HELPDESK_REPORT_BY_STATUS}</span> <span class="helpdesk-report-summary-hint">{L_HELPDESK_REPORT_SECTION_TOGGLE}</span></summary>
                 <div class="helpdesk-report-section-body">
@@ -1098,15 +1632,69 @@
                 </div>
             </details>
             <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-department">
-                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_REPORT_BY_DEPARTMENT}</span> <span class="helpdesk-report-summary-hint">{L_HELPDESK_REPORT_SECTION_TOGGLE}</span></summary>
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_REPORT_BY_DEPARTMENT}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_REPORT_DEPARTMENT_STATUS_LABEL}</span></summary>
                 <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_REPORT_DEPARTMENT_STATUS_TEXT}</p>
                     <ul class="helpdesk-report-list">
                         <!-- BEGIN helpdesk_report_department_rows -->
-                        <li><!-- IF helpdesk_report_department_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_department_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_department_rows.LABEL}</span><span class="helpdesk-report-meta">{helpdesk_report_department_rows.COUNT} &middot; {helpdesk_report_department_rows.PERCENT}</span><!-- IF helpdesk_report_department_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <li><!-- IF helpdesk_report_department_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_department_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_department_rows.LABEL} <span class="helpdesk-health-pill is-{helpdesk_report_department_rows.STATUS_CLASS}">{helpdesk_report_department_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_department_rows.COUNT} &middot; {helpdesk_report_department_rows.PERCENT} &middot; {L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_report_department_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_report_department_rows.UNASSIGNED_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_department_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_department_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_TEAM_QUEUE_DEPARTMENT_ACTIVE_ASSIGNEES}: {helpdesk_report_department_rows.ASSIGNEE_COUNT} &middot; {L_HELPDESK_TEAM_QUEUE_DEPARTMENT_PRIMARY_ASSIGNEE}: {helpdesk_report_department_rows.PRIMARY_ASSIGNEE_LABEL} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_department_rows.PRESSURE_SCORE}</span><!-- IF helpdesk_report_department_rows.U_FILTER --></a><!-- ENDIF --></li>
                         <!-- END helpdesk_report_department_rows -->
                     </ul>
                 </div>
             </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-forum-backlog">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_REPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_FORUM_BACKLOG_STATUS_LABEL}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_FORUM_BACKLOG_STATUS_TEXT}</p>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_forum_backlog_rows -->
+                        <li><!-- IF helpdesk_forum_backlog_rows.U_REPORT --><a class="helpdesk-report-link" href="{helpdesk_forum_backlog_rows.U_REPORT}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_forum_backlog_rows.LABEL} <span class="helpdesk-health-pill is-{helpdesk_forum_backlog_rows.STATUS_CLASS}">{helpdesk_forum_backlog_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_forum_backlog_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_DEPARTMENT}: {helpdesk_forum_backlog_rows.PRIMARY_DEPARTMENT_LABEL} &middot; {L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_DEPARTMENTS}: {helpdesk_forum_backlog_rows.DEPARTMENT_COUNT} &middot; {L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_forum_backlog_rows.UNASSIGNED_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_forum_backlog_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_forum_backlog_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_forum_backlog_rows.PRESSURE_SCORE}</span><!-- IF helpdesk_forum_backlog_rows.U_REPORT --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_forum_backlog_rows -->
+                    </ul>
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-forum-department-hotspots">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_HOTSPOTS_TITLE}</span> <span class="helpdesk-report-summary-hint">{L_HELPDESK_REPORT_SECTION_TOGGLE}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_forum_department_backlog_rows -->
+                        <li><!-- IF helpdesk_forum_department_backlog_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_forum_department_backlog_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_forum_department_backlog_rows.FORUM_LABEL} &middot; {helpdesk_forum_department_backlog_rows.DEPARTMENT_LABEL} <span class="helpdesk-health-pill is-{helpdesk_forum_department_backlog_rows.STATUS_CLASS}">{helpdesk_forum_department_backlog_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_forum_department_backlog_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_TEAM_QUEUE_DEPARTMENT_PRIMARY_ASSIGNEE}: {helpdesk_forum_department_backlog_rows.PRIMARY_ASSIGNEE_LABEL} &middot; {L_HELPDESK_QUEUE_UNASSIGNED}: {helpdesk_forum_department_backlog_rows.UNASSIGNED_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_forum_department_backlog_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_forum_department_backlog_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_VERY_OLD}: {helpdesk_forum_department_backlog_rows.VERY_OLD_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_forum_department_backlog_rows.PRESSURE_SCORE}</span><!-- IF helpdesk_forum_department_backlog_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_forum_department_backlog_rows -->
+                    </ul>
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-backlog-aging">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_REPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_BACKLOG_AGING_STATUS_LABEL}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_BACKLOG_AGING_STATUS_TEXT}</p>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_OLDEST_AGE}: <strong>{HELPDESK_BACKLOG_AGING_OLDEST_AGE}</strong> &middot; {L_HELPDESK_TEAM_QUEUE_BACKLOG_AGING_OLDEST_IDLE}: <strong>{HELPDESK_BACKLOG_AGING_OLDEST_IDLE}</strong></p>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_backlog_aging_rows -->
+                        <li><!-- IF helpdesk_backlog_aging_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_backlog_aging_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_backlog_aging_rows.LABEL} <span class="helpdesk-health-pill {helpdesk_backlog_aging_rows.STATUS_CLASS}">{helpdesk_backlog_aging_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_backlog_aging_rows.COUNT} &middot; {helpdesk_backlog_aging_rows.PERCENT}</span><!-- IF helpdesk_backlog_aging_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_backlog_aging_rows -->
+                    </ul>
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-productivity">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_REPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_TEAM_PRODUCTIVITY_STATUS_LABEL}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_TEAM_PRODUCTIVITY_STATUS_TEXT}</p>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_productivity_rows -->
+                        <li><!-- IF helpdesk_report_productivity_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_productivity_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_productivity_rows.LABEL} <span class="helpdesk-health-pill {helpdesk_report_productivity_rows.STATUS_CLASS}">{helpdesk_report_productivity_rows.STATUS_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_productivity_rows.COUNT} &middot; {helpdesk_report_productivity_rows.PERCENT}</span><!-- IF helpdesk_report_productivity_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_productivity_rows -->
+                    </ul>
+                    <!-- IF .helpdesk_report_response_rows -->
+                    <h4>{L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_RESPONSE_BY_ASSIGNEE}</h4>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_response_rows -->
+                        <li><!-- IF helpdesk_report_response_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_response_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_response_rows.LABEL} <span class="helpdesk-health-pill is-{helpdesk_report_response_rows.STATUS_CLASS}">{helpdesk_report_response_rows.STATUS_LABEL}</span> <span class="helpdesk-badge {helpdesk_report_response_rows.WORKLOAD_CLASS}">{helpdesk_report_response_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_report_response_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_PENDING_RESPONSE}: {helpdesk_report_response_rows.PENDING_RESPONSE_COUNT} &middot; {L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_ACTIVE_TOUCHED_24H}: {helpdesk_report_response_rows.TOUCHED_24H_COUNT} &middot; {L_HELPDESK_TEAM_QUEUE_PRODUCTIVITY_COMPLETED_24H}: {helpdesk_report_response_rows.RECENT_COMPLETED_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_response_rows.WORKLOAD_SCORE}</span><!-- IF helpdesk_report_response_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_response_rows -->
+                    </ul>
+                    <!-- ENDIF -->
+                </div>
+            </details>
+
             <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-priority">
                 <summary class="helpdesk-report-summary"><span>{L_HELPDESK_REPORT_BY_PRIORITY}</span> <span class="helpdesk-report-summary-hint">{L_HELPDESK_REPORT_SECTION_TOGGLE}</span></summary>
                 <div class="helpdesk-report-section-body">
@@ -1122,9 +1710,36 @@
                 <div class="helpdesk-report-section-body">
                     <ul class="helpdesk-report-list">
                         <!-- BEGIN helpdesk_report_assignee_rows -->
-                        <li><!-- IF helpdesk_report_assignee_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_assignee_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_assignee_rows.LABEL} <span class="helpdesk-badge {helpdesk_report_assignee_rows.WORKLOAD_CLASS}">{helpdesk_report_assignee_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_assignee_rows.COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_assignee_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_assignee_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_assignee_rows.WORKLOAD_SCORE}</span><!-- IF helpdesk_report_assignee_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <li><!-- IF helpdesk_report_assignee_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_assignee_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_assignee_rows.LABEL} <span class="helpdesk-badge {helpdesk_report_assignee_rows.WORKLOAD_CLASS}">{helpdesk_report_assignee_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_assignee_rows.COUNT} &middot; {L_HELPDESK_DEPARTMENT}: {helpdesk_report_assignee_rows.PRIMARY_DEPARTMENT_LABEL} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_assignee_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_assignee_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_STAFF_REPLY}: {helpdesk_report_assignee_rows.STAFF_REPLY_COUNT} &middot; {L_HELPDESK_QUEUE_VERY_OLD}: {helpdesk_report_assignee_rows.VERY_OLD_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_assignee_rows.WORKLOAD_SCORE}</span><!-- IF helpdesk_report_assignee_rows.U_FILTER --></a><!-- ENDIF --></li>
                         <!-- END helpdesk_report_assignee_rows -->
                     </ul>
+                </div>
+            </details>
+            <details class="helpdesk-report-panel helpdesk-report-section" data-helpdesk-collapse="reports-workload">
+                <summary class="helpdesk-report-summary"><span>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_REPORT_TITLE}</span> <span class="helpdesk-report-summary-hint">{HELPDESK_REPORT_WORKLOAD_STATUS_LABEL}</span></summary>
+                <div class="helpdesk-report-section-body">
+                    <p class="helpdesk-note">{HELPDESK_REPORT_WORKLOAD_STATUS_TEXT}</p>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_workload_rows -->
+                        <li><!-- IF helpdesk_report_workload_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_workload_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main"><span class="helpdesk-badge {helpdesk_report_workload_rows.CLASS}">{helpdesk_report_workload_rows.LABEL}</span></span><span class="helpdesk-report-meta">{helpdesk_report_workload_rows.COUNT} &middot; {helpdesk_report_workload_rows.PERCENT}</span><!-- IF helpdesk_report_workload_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_workload_rows -->
+                    </ul>
+                    <!-- IF .helpdesk_report_workload_relief_rows -->
+                    <h4>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_RELIEF_TITLE}</h4>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_workload_relief_rows -->
+                        <li><!-- IF helpdesk_report_workload_relief_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_workload_relief_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_workload_relief_rows.LABEL} <span class="helpdesk-badge {helpdesk_report_workload_relief_rows.WORKLOAD_CLASS}">{helpdesk_report_workload_relief_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_report_workload_relief_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_workload_relief_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_workload_relief_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_workload_relief_rows.SCORE}</span><!-- IF helpdesk_report_workload_relief_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_workload_relief_rows -->
+                    </ul>
+                    <!-- ENDIF -->
+                    <!-- IF .helpdesk_report_workload_support_rows -->
+                    <h4>{L_HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_SUPPORT_TITLE}</h4>
+                    <ul class="helpdesk-report-list">
+                        <!-- BEGIN helpdesk_report_workload_support_rows -->
+                        <li><!-- IF helpdesk_report_workload_support_rows.U_FILTER --><a class="helpdesk-report-link" href="{helpdesk_report_workload_support_rows.U_FILTER}"><!-- ENDIF --><span class="helpdesk-report-main">{helpdesk_report_workload_support_rows.LABEL} <span class="helpdesk-badge {helpdesk_report_workload_support_rows.WORKLOAD_CLASS}">{helpdesk_report_workload_support_rows.WORKLOAD_LABEL}</span></span><span class="helpdesk-report-meta">{L_HELPDESK_QUEUE_LOAD_ACTIVE}: {helpdesk_report_workload_support_rows.ACTIVE_COUNT} &middot; {L_HELPDESK_QUEUE_OVERDUE}: {helpdesk_report_workload_support_rows.OVERDUE_COUNT} &middot; {L_HELPDESK_CRITICALITY_CRITICAL}: {helpdesk_report_workload_support_rows.CRITICAL_COUNT} &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_report_workload_support_rows.SCORE}</span><!-- IF helpdesk_report_workload_support_rows.U_FILTER --></a><!-- ENDIF --></li>
+                        <!-- END helpdesk_report_workload_support_rows -->
+                    </ul>
+                    <!-- ENDIF -->
                 </div>
             </details>
         </div>
@@ -1149,6 +1764,7 @@
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_NO_REPLY}"><strong>{HELPDESK_ALERT_FIRST_REPLY_COUNT}</strong><span>{L_HELPDESK_QUEUE_FIRST_REPLY}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_OVERDUE}"><strong>{HELPDESK_ALERT_OVERDUE_COUNT}</strong><span>{L_HELPDESK_QUEUE_OVERDUE}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STALE}"><strong>{HELPDESK_ALERT_STALE_COUNT}</strong><span>{L_HELPDESK_QUEUE_STALE}</span></a>
+            <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_VERY_OLD}"><strong>{HELPDESK_ALERT_VERY_OLD_COUNT}</strong><span>{L_HELPDESK_QUEUE_VERY_OLD}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STAFF_REPLY}"><strong>{HELPDESK_ALERT_STAFF_REPLY_COUNT}</strong><span>{L_HELPDESK_QUEUE_STAFF_REPLY}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_CRITICAL}"><strong>{HELPDESK_ALERT_CRITICAL_COUNT}</strong><span>{L_HELPDESK_CRITICALITY_CRITICAL}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_ATTENTION}"><strong>{HELPDESK_ALERT_ATTENTION_COUNT}</strong><span>{L_HELPDESK_CRITICALITY_ATTENTION}</span></a>

@@ -18,6 +18,14 @@ class v190 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v180'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_old_hours']],
+        ];
+    }
+
     public function update_data()
     {
         return [

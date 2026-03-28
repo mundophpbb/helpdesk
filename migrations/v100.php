@@ -51,6 +51,25 @@ class v100 extends \phpbb\db\migration\migration
         ];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['module.remove', ['acp', 'ACP_HELPDESK_TITLE', [
+                'module_basename' => '\mundophpbb\helpdesk\acp\main_module',
+                'modes' => ['settings'],
+            ]]],
+            ['module.remove', ['acp', 'ACP_CAT_DOT_MODS', 'ACP_HELPDESK_TITLE']],
+            ['config.remove', ['mundophpbb_helpdesk_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_forums']],
+            ['config.remove', ['mundophpbb_helpdesk_prefix']],
+            ['config.remove', ['mundophpbb_helpdesk_default_status']],
+            ['config.remove', ['mundophpbb_helpdesk_status_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_priority_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_category_enable']],
+        ];
+    }
+
     public function update_data()
     {
         return [

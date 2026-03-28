@@ -20,6 +20,16 @@ class v250 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v240'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_assign_status']],
+            ['config.remove', ['mundophpbb_helpdesk_unassign_status']],
+            ['config.remove', ['mundophpbb_helpdesk_department_status']],
+        ];
+    }
+
     public function update_data()
     {
         return [

@@ -18,6 +18,16 @@ class v180 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v130'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_sla_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_sla_hours']],
+            ['config.remove', ['mundophpbb_helpdesk_stale_hours']],
+        ];
+    }
+
     public function update_data()
     {
         return [

@@ -18,6 +18,22 @@ class v210 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v190'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['permission.permission_unset', ['ROLE_MOD_FULL', ['m_helpdesk_manage', 'm_helpdesk_assign', 'm_helpdesk_bulk', 'm_helpdesk_queue']]],
+            ['permission.remove', ['m_helpdesk_manage']],
+            ['permission.remove', ['m_helpdesk_assign']],
+            ['permission.remove', ['m_helpdesk_bulk']],
+            ['permission.remove', ['m_helpdesk_queue']],
+            ['config.remove', ['mundophpbb_helpdesk_team_panel_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_alerts_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_alert_hours']],
+            ['config.remove', ['mundophpbb_helpdesk_alert_limit']],
+        ];
+    }
+
     public function update_data()
     {
         return [

@@ -44,6 +44,18 @@ class v110 extends \phpbb\db\migration\migration
         ];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_department_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_categories_en']],
+            ['config.remove', ['mundophpbb_helpdesk_categories_pt_br']],
+            ['config.remove', ['mundophpbb_helpdesk_departments_en']],
+            ['config.remove', ['mundophpbb_helpdesk_departments_pt_br']],
+        ];
+    }
+
     public function update_data()
     {
         return [

@@ -41,6 +41,54 @@
 .helpdesk-acp-tab-panel {
     border-top-left-radius: 0;
 }
+.helpdesk-acp-quickcheck {
+    margin-bottom: 16px;
+}
+.helpdesk-acp-quickcheck-summary {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.helpdesk-acp-quickcheck-summary--ok {
+    background: #eef7ea;
+    color: #2f5d2f;
+}
+.helpdesk-acp-quickcheck-summary--warning {
+    background: #fff4df;
+    color: #7a4f00;
+}
+.helpdesk-acp-quickcheck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.helpdesk-acp-quickcheck-item {
+    padding: 10px 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-quickcheck-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #5b6b79;
+}
+.helpdesk-acp-quickcheck-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f425e;
+}
+.helpdesk-acp-quickcheck-warnings {
+    margin: 0;
+    padding-left: 18px;
+}
+.helpdesk-acp-quickcheck-warnings li {
+    margin: 0 0 6px;
+}
 </style>
 
 <div class="helpdesk-acp-tabs-wrap">
@@ -57,6 +105,32 @@
 
 <form id="acp_helpdesk" method="post" action="{U_ACTION}">
     <input type="hidden" name="section" value="{HELPDESK_ACP_SECTION}" />
+
+
+    <fieldset class="helpdesk-acp-quickcheck">
+        <legend>{L_ACP_HELPDESK_QUICK_CHECK}</legend>
+        <p>{L_ACP_HELPDESK_QUICK_CHECK_EXPLAIN}</p>
+        <p class="helpdesk-acp-quickcheck-summary helpdesk-acp-quickcheck-summary--{HELPDESK_ACP_QUICKCHECK_STATUS_CLASS}">
+            <strong>{L_ACP_HELPDESK_QUICK_CHECK_STATUS}{L_COLON}</strong> {HELPDESK_ACP_QUICKCHECK_STATUS_LABEL}
+            <!-- IF HELPDESK_ACP_QUICKCHECK_WARNING_COUNT -->&nbsp;&middot;&nbsp;{HELPDESK_ACP_QUICKCHECK_WARNING_COUNT} {L_ACP_HELPDESK_QUICK_CHECK_WARNING_COUNT_LABEL}<!-- ENDIF -->
+        </p>
+        <div class="helpdesk-acp-quickcheck-grid">
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_FORUMS}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_FORUM_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_STATUSES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_STATUS_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_PRIORITIES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_PRIORITY_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_CATEGORIES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_CATEGORY_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_DEPARTMENTS}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_DEPARTMENT_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_RULES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_RULE_COUNT}</strong></div>
+        </div>
+        <!-- IF .helpdesk_acp_quickcheck_warning -->
+        <h4>{L_ACP_HELPDESK_QUICK_CHECK_WARNINGS}</h4>
+        <ul class="helpdesk-acp-quickcheck-warnings">
+            <!-- BEGIN helpdesk_acp_quickcheck_warning -->
+            <li>{helpdesk_acp_quickcheck_warning.MESSAGE}</li>
+            <!-- END helpdesk_acp_quickcheck_warning -->
+        </ul>
+        <!-- ENDIF -->
+    </fieldset>
 
     <!-- IF S_HELPDESK_ACP_GENERAL -->
     <fieldset class="helpdesk-acp-tab-panel">
@@ -186,6 +260,7 @@
 
     <fieldset class="submit-buttons">
         <input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+        <input class="button2" type="submit" id="restore_defaults" name="restore_defaults" value="{L_ACP_HELPDESK_RESTORE_DEFAULTS}" onclick="return confirm('{LA_ACP_HELPDESK_RESTORE_DEFAULTS_CONFIRM}');" />&nbsp;
         <input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
         {S_FORM_TOKEN}
     </fieldset>

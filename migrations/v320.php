@@ -18,6 +18,14 @@ class v320 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v310'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_department_priority_rule_definitions']],
+        ];
+    }
+
     public function update_data()
     {
         return [

@@ -18,6 +18,14 @@ class v280 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v270'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_department_sla_definitions']],
+        ];
+    }
+
     public function update_data()
     {
         return [

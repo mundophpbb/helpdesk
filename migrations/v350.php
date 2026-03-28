@@ -18,6 +18,14 @@ class v350 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v340'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_assignee_queue_definitions']],
+        ];
+    }
+
     public function update_data()
     {
         return [

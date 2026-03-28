@@ -19,6 +19,15 @@ class v111 extends \phpbb\db\migration\migration
         return ['\mundophpbb\helpdesk\migrations\v110'];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_categories']],
+            ['config.remove', ['mundophpbb_helpdesk_departments']],
+        ];
+    }
+
     public function update_data()
     {
         return [

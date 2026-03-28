@@ -152,10 +152,13 @@ class listener implements EventSubscriberInterface
         $page_data['HELPDESK_SELECTED_PRIORITY'] = $priority;
         $page_data['HELPDESK_SELECTED_CATEGORY'] = $category;
         $page_data['HELPDESK_SELECTED_DEPARTMENT'] = $department;
+        $subject_prefix = $this->subject_prefix();
         $page_data['S_HELPDESK_STATUS_ENABLED'] = $this->status_enabled();
         $page_data['S_HELPDESK_PRIORITY_ENABLED'] = $this->priority_enabled();
         $page_data['S_HELPDESK_CATEGORY_ENABLED'] = $this->category_enabled();
         $page_data['S_HELPDESK_DEPARTMENT_ENABLED'] = $this->department_enabled();
+        $page_data['S_HELPDESK_SUBJECT_PREFIX'] = $mode === 'post' && $subject_prefix !== '';
+        $page_data['HELPDESK_SUBJECT_PREFIX'] = $subject_prefix;
         $event['page_data'] = $page_data;
 
         foreach ($this->status_definitions() as $key => $definition)
@@ -2516,6 +2519,16 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
             : '[Help Desk]';
 
         return $prefix !== '' ? $prefix : '[Help Desk]';
+    }
+
+
+    protected function subject_prefix()
+    {
+        $prefix = isset($this->config['mundophpbb_helpdesk_prefix'])
+            ? trim((string) $this->config['mundophpbb_helpdesk_prefix'])
+            : '[Ticket]';
+
+        return $prefix !== '' ? $prefix : '[Ticket]';
     }
 
     protected function extension_enabled()

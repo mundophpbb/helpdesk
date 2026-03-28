@@ -42,6 +42,14 @@ class v130 extends \phpbb\db\migration\migration
         ];
     }
 
+
+    public function revert_data()
+    {
+        return [
+            ['config.remove', ['mundophpbb_helpdesk_assignment_enable']],
+        ];
+    }
+
     public function update_data()
     {
         return [
