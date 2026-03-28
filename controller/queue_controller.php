@@ -868,6 +868,139 @@ class queue_controller
         return $this->helper->render('helpdesk_queue_body.html', $this->user->lang('HELPDESK_TEAM_QUEUE_TITLE'));
     }
 
+
+    public function my_tickets()
+    {
+        $this->user->add_lang_ext('mundophpbb/helpdesk', 'common');
+
+        if (!$this->extension_enabled())
+        {
+            trigger_error('NOT_AUTHORISED');
+        }
+
+        $user_id = !empty($this->user->data['user_id']) ? (int) $this->user->data['user_id'] : ANONYMOUS;
+        if ($user_id === ANONYMOUS)
+        {
+            login_box($this->helper->route('mundophpbb_helpdesk_my_tickets_controller'));
+        }
+
+        $forum_ids = $this->visible_helpdesk_forum_ids();
+        $scope = (string) $this->request->variable('scope', 'all', true);
+        if (!in_array($scope, ['all', 'active', 'completed', 'resolved', 'closed', 'waiting_team', 'overdue'], true))
+        {
+            $scope = 'all';
+        }
+
+        $forum_id = (int) $this->request->variable('forum_id', 0);
+        if ($forum_id > 0 && !in_array($forum_id, $forum_ids, true))
+        {
+            $forum_id = 0;
+        }
+
+        $sort_by = $this->normalize_queue_sort((string) $this->request->variable('sort_by', 'updated_newest', true));
+        $per_page = (int) $this->request->variable('per_page', 25);
+        if (!in_array($per_page, [25, 50, 100], true))
+        {
+            $per_page = 25;
+        }
+
+        $rows = !empty($forum_ids) ? $this->load_ticket_rows($forum_ids, false) : [];
+        $my_rows = array_values(array_filter($rows, function ($row) use ($user_id) {
+            return isset($row['TOPIC_POSTER_ID']) && (int) $row['TOPIC_POSTER_ID'] === (int) $user_id;
+        }));
+
+        $counts = $this->build_my_ticket_counts($my_rows);
+        $filtered_rows = $this->filter_my_ticket_rows($my_rows, $scope, $forum_id);
+        $sorted_rows = $this->sort_queue_rows($filtered_rows, $sort_by);
+
+        $total_results = count($sorted_rows);
+        $total_pages = max(1, (int) ceil($total_results / max(1, $per_page)));
+        $page = max(1, (int) $this->request->variable('page', 1));
+        if ($page > $total_pages)
+        {
+            $page = $total_pages;
+        }
+        $offset = max(0, ($page - 1) * $per_page);
+        $paged_rows = array_slice($sorted_rows, $offset, $per_page);
+        $results_from = ($total_results > 0) ? ($offset + 1) : 0;
+        $results_to = ($total_results > 0) ? min($offset + count($paged_rows), $total_results) : 0;
+
+        $forums = $this->forum_info($forum_ids);
+        $selected_forum_label = '';
+        foreach ($forums as $forum)
+        {
+            if ((int) $forum['forum_id'] === $forum_id)
+            {
+                $selected_forum_label = (string) $forum['forum_name'];
+                break;
+            }
+        }
+
+        $scope_labels = [
+            'all' => $this->user->lang('HELPDESK_QUEUE_ALL'),
+            'active' => $this->user->lang('HELPDESK_MY_TICKETS_ACTIVE'),
+            'completed' => $this->user->lang('HELPDESK_MY_TICKETS_COMPLETED'),
+            'resolved' => $this->user->lang('HELPDESK_STATUS_RESOLVED'),
+            'closed' => $this->user->lang('HELPDESK_QUEUE_CLOSED'),
+            'waiting_team' => $this->user->lang('HELPDESK_MY_TICKETS_WAITING_TEAM'),
+            'overdue' => $this->user->lang('HELPDESK_QUEUE_OVERDUE'),
+        ];
+
+        foreach ($paged_rows as $row)
+        {
+            $this->template->assign_block_vars('helpdesk_my_ticket_rows', $row + [
+                'META_LINE' => $this->build_my_ticket_meta_line($row),
+            ]);
+        }
+
+        foreach ($forums as $forum)
+        {
+            $this->template->assign_block_vars('helpdesk_my_ticket_forum_options', [
+                'VALUE' => (int) $forum['forum_id'],
+                'LABEL' => (string) $forum['forum_name'],
+                'S_SELECTED' => ((int) $forum['forum_id'] === $forum_id),
+            ]);
+        }
+
+        foreach ($this->queue_sort_options() as $key => $label)
+        {
+            $this->template->assign_block_vars('helpdesk_my_ticket_sort_options', [
+                'VALUE' => $key,
+                'LABEL' => $label,
+                'S_SELECTED' => ((string) $key === (string) $sort_by),
+            ]);
+        }
+
+        $this->template->assign_vars([
+            'S_HELPDESK_MY_TICKETS' => true,
+            'S_HELPDESK_MY_TICKETS_HAS_RESULTS' => !empty($paged_rows),
+            'S_HELPDESK_MY_TICKETS_HAS_PREV_PAGE' => ($page > 1),
+            'S_HELPDESK_MY_TICKETS_HAS_NEXT_PAGE' => ($page < $total_pages),
+            'U_HELPDESK_MY_TICKETS_PAGE_PREV' => ($page > 1) ? $this->my_tickets_list_url(['page' => $page - 1]) : '',
+            'U_HELPDESK_MY_TICKETS_PAGE_NEXT' => ($page < $total_pages) ? $this->my_tickets_list_url(['page' => $page + 1]) : '',
+            'U_HELPDESK_MY_TICKETS_ALL' => $this->my_tickets_scope_url('all'),
+            'U_HELPDESK_MY_TICKETS_ACTIVE' => $this->my_tickets_scope_url('active'),
+            'U_HELPDESK_MY_TICKETS_COMPLETED' => $this->my_tickets_scope_url('completed'),
+            'U_HELPDESK_MY_TICKETS_WAITING_TEAM' => $this->my_tickets_scope_url('waiting_team'),
+            'U_HELPDESK_MY_TICKETS_OVERDUE' => $this->my_tickets_scope_url('overdue'),
+            'U_HELPDESK_MY_TICKETS_RESET' => $this->my_tickets_reset_url(),
+            'HELPDESK_MY_TICKETS_SCOPE' => $scope,
+            'HELPDESK_MY_TICKETS_SCOPE_LABEL' => $scope_labels[$scope] ?? $this->user->lang('HELPDESK_QUEUE_ALL'),
+            'HELPDESK_MY_TICKETS_TOTAL' => $counts['total'],
+            'HELPDESK_MY_TICKETS_ACTIVE_COUNT' => $counts['active'],
+            'HELPDESK_MY_TICKETS_COMPLETED_COUNT' => $counts['completed'],
+            'HELPDESK_MY_TICKETS_WAITING_TEAM_COUNT' => $counts['waiting_team'],
+            'HELPDESK_MY_TICKETS_OVERDUE_COUNT' => $counts['overdue'],
+            'HELPDESK_MY_TICKETS_FILTER_FORUM_ID' => $forum_id,
+            'HELPDESK_MY_TICKETS_FILTER_FORUM_LABEL' => $selected_forum_label,
+            'HELPDESK_MY_TICKETS_SORT_BY' => $sort_by,
+            'HELPDESK_MY_TICKETS_PER_PAGE' => $per_page,
+            'HELPDESK_MY_TICKETS_RESULTS_TEXT' => sprintf($this->user->lang('HELPDESK_QUEUE_RESULTS_SUMMARY'), $results_from, $results_to, $total_results),
+        ]);
+
+        return $this->helper->render('helpdesk_my_tickets_body.html', $this->user->lang('HELPDESK_MY_TICKETS_TITLE'));
+    }
+
     protected function load_ticket_rows(array $forum_ids, $apply_default_sort = true)
     {
         if (empty($forum_ids))
@@ -998,6 +1131,8 @@ class queue_controller
                 'FORUM_ID' => (int) $row['forum_id'],
                 'FORUM_NAME' => (string) $row['forum_name'],
                 'TOPIC_TITLE' => (string) $row['topic_title'],
+                'TOPIC_POSTER_ID' => (int) $row['topic_poster'],
+                'TOPIC_LAST_POSTER_ID' => (int) $row['topic_last_poster_id'],
                 'U_TOPIC' => $this->topic_url((int) $row['forum_id'], (int) $row['topic_id']),
                 'U_FORUM' => $this->forum_url((int) $row['forum_id']),
                 'SELECTION_VALUE' => (int) $row['forum_id'] . ':' . (int) $row['topic_id'],
@@ -7198,6 +7333,193 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
         $this->db->sql_freeresult($result);
 
         return $forums;
+    }
+
+    protected function my_tickets_scope_url($scope = 'all')
+    {
+        $valid_scopes = ['all', 'active', 'completed', 'resolved', 'closed', 'waiting_team', 'overdue'];
+        $scope = in_array((string) $scope, $valid_scopes, true) ? (string) $scope : 'all';
+
+        return $this->my_tickets_list_url([
+            'scope' => $scope,
+            'page' => 1,
+        ]);
+    }
+
+    protected function my_tickets_reset_url()
+    {
+        return $this->my_tickets_list_url([
+            'scope' => 'all',
+            'forum_id' => 0,
+            'sort_by' => 'updated_newest',
+            'per_page' => 25,
+            'page' => 1,
+        ]);
+    }
+
+    protected function my_tickets_list_url(array $overrides = [], array $remove = [])
+    {
+        $params = [
+            'scope' => (string) $this->request->variable('scope', 'all', true),
+            'forum_id' => (int) $this->request->variable('forum_id', 0),
+            'sort_by' => $this->normalize_queue_sort((string) $this->request->variable('sort_by', 'updated_newest', true)),
+            'per_page' => (int) $this->request->variable('per_page', 25),
+            'page' => max(1, (int) $this->request->variable('page', 1)),
+        ];
+
+        if (!in_array((int) $params['per_page'], [25, 50, 100], true))
+        {
+            $params['per_page'] = 25;
+        }
+
+        foreach ($remove as $remove_key)
+        {
+            unset($params[(string) $remove_key]);
+        }
+
+        foreach ($overrides as $key => $value)
+        {
+            $params[(string) $key] = $value;
+        }
+
+        $pairs = [];
+        foreach ($params as $key => $value)
+        {
+            if ($key === 'forum_id' && (int) $value <= 0)
+            {
+                continue;
+            }
+            if ($key === 'page' && (int) $value <= 1)
+            {
+                continue;
+            }
+            if ($key === 'per_page' && (int) $value === 25)
+            {
+                continue;
+            }
+            if ($key === 'sort_by' && (string) $value === 'updated_newest')
+            {
+                continue;
+            }
+            if ($key === 'scope' && (string) $value === 'all')
+            {
+                continue;
+            }
+            $pairs[] = rawurlencode((string) $key) . '=' . rawurlencode((string) $value);
+        }
+
+        return $this->helper->route('mundophpbb_helpdesk_my_tickets_controller') . (!empty($pairs) ? '?' . implode('&', $pairs) : '');
+    }
+
+    protected function visible_helpdesk_forum_ids()
+    {
+        $enabled = $this->enabled_forum_ids();
+        $allowed = [];
+
+        foreach ($enabled as $forum_id)
+        {
+            if ($this->auth->acl_get('f_list', $forum_id) && $this->auth->acl_get('f_read', $forum_id))
+            {
+                $allowed[] = (int) $forum_id;
+            }
+        }
+
+        return array_values(array_unique($allowed));
+    }
+
+    protected function build_my_ticket_counts(array $rows)
+    {
+        $counts = [
+            'total' => count($rows),
+            'active' => 0,
+            'completed' => 0,
+            'resolved' => 0,
+            'closed' => 0,
+            'waiting_team' => 0,
+            'overdue' => 0,
+        ];
+
+        foreach ($rows as $row)
+        {
+            if (!empty($row['IS_OPEN']))
+            {
+                $counts['active']++;
+            }
+
+            $status_tone = isset($row['STATUS_TONE']) ? (string) $row['STATUS_TONE'] : '';
+            if ($status_tone === 'resolved')
+            {
+                $counts['resolved']++;
+                $counts['completed']++;
+            }
+            else if ($status_tone === 'closed')
+            {
+                $counts['closed']++;
+                $counts['completed']++;
+            }
+
+            if (!empty($row['IS_STAFF_REPLY']))
+            {
+                $counts['waiting_team']++;
+            }
+            if (!empty($row['IS_OVERDUE']))
+            {
+                $counts['overdue']++;
+            }
+        }
+
+        return $counts;
+    }
+
+    protected function filter_my_ticket_rows(array $rows, $scope = 'all', $forum_id = 0)
+    {
+        $scope = (string) $scope;
+        $forum_id = (int) $forum_id;
+
+        return array_values(array_filter($rows, function ($row) use ($scope, $forum_id) {
+            if ($forum_id > 0 && (int) ($row['FORUM_ID'] ?? 0) !== $forum_id)
+            {
+                return false;
+            }
+
+            switch ($scope)
+            {
+                case 'active':
+                    return !empty($row['IS_OPEN']);
+                case 'completed':
+                    return isset($row['STATUS_TONE']) && in_array((string) $row['STATUS_TONE'], ['resolved', 'closed'], true);
+                case 'resolved':
+                    return isset($row['STATUS_TONE']) && (string) $row['STATUS_TONE'] === 'resolved';
+                case 'closed':
+                    return isset($row['STATUS_TONE']) && (string) $row['STATUS_TONE'] === 'closed';
+                case 'waiting_team':
+                    return !empty($row['IS_STAFF_REPLY']);
+                case 'overdue':
+                    return !empty($row['IS_OVERDUE']);
+                case 'all':
+                default:
+                    return true;
+            }
+        }));
+    }
+
+    protected function build_my_ticket_meta_line(array $row)
+    {
+        $parts = [];
+        if (!empty($row['FORUM_NAME']))
+        {
+            $parts[] = $this->user->lang('FORUM') . ': ' . (string) $row['FORUM_NAME'];
+        }
+        if (!empty($row['UPDATED_AT']))
+        {
+            $parts[] = $this->user->lang('HELPDESK_LAST_UPDATE') . ': ' . (string) $row['UPDATED_AT'];
+        }
+        if (!empty($row['ASSIGNED_TO']))
+        {
+            $parts[] = $this->user->lang('HELPDESK_ASSIGNED_TO') . ': ' . (string) $row['ASSIGNED_TO'];
+        }
+
+        return implode(' · ', $parts);
     }
 
     protected function accessible_forum_ids()

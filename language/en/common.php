@@ -265,6 +265,13 @@ $lang = array_merge($lang, [
     'HELPDESK_REPORT_FIRST_REPLY' => 'No first reply',
     'HELPDESK_REPORT_AVG_AGE' => 'Average active age',
 
+    'HELPDESK_MY_TICKETS_TITLE' => 'My tickets',
+    'HELPDESK_MY_TICKETS_EXPLAIN' => 'A personal view of the topics you created in the Help Desk forums, including current status and completed tickets.',
+    'HELPDESK_MY_TICKETS_ACTIVE' => 'Active',
+    'HELPDESK_MY_TICKETS_COMPLETED' => 'Completed',
+    'HELPDESK_MY_TICKETS_WAITING_TEAM' => 'Waiting for team reply',
+    'HELPDESK_MY_TICKETS_EMPTY' => 'No tickets found',
+    'HELPDESK_MY_TICKETS_EMPTY_EXPLAIN' => 'There are no Help Desk tickets matching the current filters.',
     'HELPDESK_QUEUE_SORT' => 'Sort by',
     'HELPDESK_QUEUE_PER_PAGE' => 'Rows per page',
     'HELPDESK_QUEUE_SORT_QUEUE' => 'Queue score',

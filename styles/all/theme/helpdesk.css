@@ -2422,3 +2422,20 @@
     width: 12px;
     height: 12px;
 }
+
+.helpdesk-team-card.is-active {
+    border-color: #4c6a92;
+    box-shadow: inset 0 0 0 1px rgba(76, 106, 146, 0.18);
+    background: linear-gradient(180deg, #f9fbfd 0%, #eef3f8 100%);
+}
+
+.helpdesk-my-tickets-list .topiclist .row-item dd.posts,
+.helpdesk-my-tickets-list .topiclist .row-item dd.views,
+.helpdesk-my-tickets-list .topiclist .row-item dd.lastpost {
+    text-align: center;
+}
+
+.helpdesk-my-tickets-list .topictitle {
+    display: inline-block;
+    margin-bottom: 4px;
+}

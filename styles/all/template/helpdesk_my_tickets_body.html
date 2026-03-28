@@ -1,0 +1,129 @@
+<!-- INCLUDE overall_header.html -->
+<h2>{L_HELPDESK_MY_TICKETS_TITLE}</h2>
+<p>{L_HELPDESK_MY_TICKETS_EXPLAIN}</p>
+
+<div class="panel bg2 helpdesk-team-summary">
+    <div class="inner">
+        <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+            <a class="helpdesk-team-card<!-- IF HELPDESK_MY_TICKETS_SCOPE eq 'all' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_MY_TICKETS_ALL}">
+                <strong>{HELPDESK_MY_TICKETS_TOTAL}</strong>
+                <span>{L_HELPDESK_QUEUE_ALL}</span>
+            </a>
+            <a class="helpdesk-team-card<!-- IF HELPDESK_MY_TICKETS_SCOPE eq 'active' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_MY_TICKETS_ACTIVE}">
+                <strong>{HELPDESK_MY_TICKETS_ACTIVE_COUNT}</strong>
+                <span>{L_HELPDESK_MY_TICKETS_ACTIVE}</span>
+            </a>
+            <a class="helpdesk-team-card<!-- IF HELPDESK_MY_TICKETS_SCOPE eq 'completed' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_MY_TICKETS_COMPLETED}">
+                <strong>{HELPDESK_MY_TICKETS_COMPLETED_COUNT}</strong>
+                <span>{L_HELPDESK_MY_TICKETS_COMPLETED}</span>
+            </a>
+            <a class="helpdesk-team-card<!-- IF HELPDESK_MY_TICKETS_SCOPE eq 'waiting_team' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_MY_TICKETS_WAITING_TEAM}">
+                <strong>{HELPDESK_MY_TICKETS_WAITING_TEAM_COUNT}</strong>
+                <span>{L_HELPDESK_MY_TICKETS_WAITING_TEAM}</span>
+            </a>
+            <a class="helpdesk-team-card<!-- IF HELPDESK_MY_TICKETS_SCOPE eq 'overdue' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_MY_TICKETS_OVERDUE}">
+                <strong>{HELPDESK_MY_TICKETS_OVERDUE_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_OVERDUE}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-team-filter-box">
+    <div class="inner">
+        <form action="{U_HELPDESK_MY_TICKETS_RESET}" method="get" class="helpdesk-team-filter-grid">
+            <input type="hidden" name="scope" value="{HELPDESK_MY_TICKETS_SCOPE}" />
+            <label>
+                <span>{L_FORUM}</span>
+                <select name="forum_id">
+                    <option value="0">{L_ALL_FORUMS}</option>
+                    <!-- BEGIN helpdesk_my_ticket_forum_options -->
+                    <option value="{helpdesk_my_ticket_forum_options.VALUE}"<!-- IF helpdesk_my_ticket_forum_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_my_ticket_forum_options.LABEL}</option>
+                    <!-- END helpdesk_my_ticket_forum_options -->
+                </select>
+            </label>
+            <label>
+                <span>{L_HELPDESK_QUEUE_SORT}</span>
+                <select name="sort_by">
+                    <!-- BEGIN helpdesk_my_ticket_sort_options -->
+                    <option value="{helpdesk_my_ticket_sort_options.VALUE}"<!-- IF helpdesk_my_ticket_sort_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_my_ticket_sort_options.LABEL}</option>
+                    <!-- END helpdesk_my_ticket_sort_options -->
+                </select>
+            </label>
+            <label>
+                <span>{L_HELPDESK_QUEUE_PER_PAGE}</span>
+                <select name="per_page">
+                    <option value="25"<!-- IF HELPDESK_MY_TICKETS_PER_PAGE eq 25 --> selected="selected"<!-- ENDIF -->>25</option>
+                    <option value="50"<!-- IF HELPDESK_MY_TICKETS_PER_PAGE eq 50 --> selected="selected"<!-- ENDIF -->>50</option>
+                    <option value="100"<!-- IF HELPDESK_MY_TICKETS_PER_PAGE eq 100 --> selected="selected"<!-- ENDIF -->>100</option>
+                </select>
+            </label>
+            <div class="helpdesk-team-filter-actions">
+                <button class="button button-secondary" type="submit">{L_SUBMIT}</button>
+                <a class="button button-secondary" href="{U_HELPDESK_MY_TICKETS_RESET}">{L_RESET}</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- IF S_HELPDESK_MY_TICKETS_HAS_RESULTS -->
+<div class="action-bar bar-top">
+    <div class="pagination">{HELPDESK_MY_TICKETS_RESULTS_TEXT}</div>
+    <div class="pagination">
+        <!-- IF S_HELPDESK_MY_TICKETS_HAS_PREV_PAGE --><a class="button button-secondary button-small" href="{U_HELPDESK_MY_TICKETS_PAGE_PREV}">{L_PREVIOUS}</a><!-- ENDIF -->
+        <!-- IF S_HELPDESK_MY_TICKETS_HAS_NEXT_PAGE --><a class="button button-secondary button-small" href="{U_HELPDESK_MY_TICKETS_PAGE_NEXT}">{L_NEXT}</a><!-- ENDIF -->
+    </div>
+</div>
+
+<div class="forumbg forumbg-table helpdesk-my-tickets-list">
+    <div class="inner">
+        <ul class="topiclist">
+            <li class="header">
+                <dl class="row-item">
+                    <dt><div class="list-inner">{L_TOPICS}</div></dt>
+                    <dd class="posts">{L_HELPDESK_STATUS}</dd>
+                    <dd class="views">{L_HELPDESK_PRIORITY}</dd>
+                    <dd class="lastpost">{L_HELPDESK_LAST_UPDATE}</dd>
+                </dl>
+            </li>
+        </ul>
+        <ul class="topiclist topics">
+            <!-- BEGIN helpdesk_my_ticket_rows -->
+            <li class="row bg1">
+                <dl class="row-item topic_read">
+                    <dt>
+                        <div class="list-inner">
+                            <a class="topictitle helpdesk-team-topic-link" href="{helpdesk_my_ticket_rows.U_TOPIC}">{helpdesk_my_ticket_rows.TOPIC_TITLE}</a>
+                            <div class="helpdesk-team-topic-subline">{helpdesk_my_ticket_rows.META_LINE}</div>
+                            <!-- IF helpdesk_my_ticket_rows.ALERT_TEXT -->
+                            <div class="helpdesk-team-topic-subline">{helpdesk_my_ticket_rows.ALERT_TEXT}</div>
+                            <!-- ENDIF -->
+                        </div>
+                    </dt>
+                    <dd class="posts"><span class="helpdesk-badge {helpdesk_my_ticket_rows.STATUS_CLASS}">{helpdesk_my_ticket_rows.STATUS_LABEL}</span></dd>
+                    <dd class="views"><span class="helpdesk-badge {helpdesk_my_ticket_rows.PRIORITY_CLASS}">{helpdesk_my_ticket_rows.PRIORITY_LABEL}</span></dd>
+                    <dd class="lastpost">{helpdesk_my_ticket_rows.UPDATED_AT}</dd>
+                </dl>
+            </li>
+            <!-- END helpdesk_my_ticket_rows -->
+        </ul>
+    </div>
+</div>
+
+<div class="action-bar bar-bottom">
+    <div class="pagination">{HELPDESK_MY_TICKETS_RESULTS_TEXT}</div>
+    <div class="pagination">
+        <!-- IF S_HELPDESK_MY_TICKETS_HAS_PREV_PAGE --><a class="button button-secondary button-small" href="{U_HELPDESK_MY_TICKETS_PAGE_PREV}">{L_PREVIOUS}</a><!-- ENDIF -->
+        <!-- IF S_HELPDESK_MY_TICKETS_HAS_NEXT_PAGE --><a class="button button-secondary button-small" href="{U_HELPDESK_MY_TICKETS_PAGE_NEXT}">{L_NEXT}</a><!-- ENDIF -->
+    </div>
+</div>
+<!-- ELSE -->
+<div class="panel bg2 helpdesk-team-notice-box">
+    <div class="inner">
+        <h3>{L_HELPDESK_MY_TICKETS_EMPTY}</h3>
+        <p class="helpdesk-note">{L_HELPDESK_MY_TICKETS_EMPTY_EXPLAIN}</p>
+    </div>
+</div>
+<!-- ENDIF -->
+
+<!-- INCLUDE overall_footer.html -->

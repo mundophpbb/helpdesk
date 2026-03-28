@@ -267,6 +267,13 @@ $lang = array_merge($lang, [
     'HELPDESK_REPORT_FIRST_REPLY' => 'Sem primeira resposta',
     'HELPDESK_REPORT_AVG_AGE' => 'Idade média dos ativos',
 
+    'HELPDESK_MY_TICKETS_TITLE' => 'Meus tickets',
+    'HELPDESK_MY_TICKETS_EXPLAIN' => 'Uma visão pessoal dos tópicos que você abriu nos fóruns do Help Desk, incluindo o status atual e os tickets concluídos.',
+    'HELPDESK_MY_TICKETS_ACTIVE' => 'Ativos',
+    'HELPDESK_MY_TICKETS_COMPLETED' => 'Concluídos',
+    'HELPDESK_MY_TICKETS_WAITING_TEAM' => 'Aguardando equipe',
+    'HELPDESK_MY_TICKETS_EMPTY' => 'Nenhum ticket encontrado',
+    'HELPDESK_MY_TICKETS_EMPTY_EXPLAIN' => 'Não há tickets do Help Desk correspondendo aos filtros atuais.',
     'HELPDESK_QUEUE_SORT' => 'Ordenar por',
     'HELPDESK_QUEUE_PER_PAGE' => 'Linhas por página',
     'HELPDESK_QUEUE_SORT_QUEUE' => 'Score da fila',

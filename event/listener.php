@@ -103,10 +103,13 @@ class listener implements EventSubscriberInterface
     public function page_header($event)
     {
         $can_view_queue = $this->team_panel_enabled() && $this->can_view_team_queue();
+        $can_view_my_tickets = $this->can_view_my_tickets();
 
         $this->template->assign_vars([
             'S_HELPDESK_CAN_VIEW_TEAM_QUEUE' => $can_view_queue,
             'U_HELPDESK_TEAM_QUEUE' => $can_view_queue ? $this->team_queue_url() : '',
+            'S_HELPDESK_CAN_VIEW_MY_TICKETS' => $can_view_my_tickets,
+            'U_HELPDESK_MY_TICKETS' => $can_view_my_tickets ? $this->my_tickets_url() : '',
             'S_HELPDESK_ALERTS_ENABLED' => $this->alerts_enabled(),
         ]);
     }
@@ -2640,6 +2643,42 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
 
         return $this->helper->route('mundophpbb_helpdesk_queue_controller');
     }
+
+
+    protected function can_view_my_tickets()
+    {
+        if (!$this->extension_enabled())
+        {
+            return false;
+        }
+
+        $user_id = !empty($this->user->data['user_id']) ? (int) $this->user->data['user_id'] : ANONYMOUS;
+        if ($user_id === ANONYMOUS)
+        {
+            return false;
+        }
+
+        foreach ($this->enabled_forum_ids() as $forum_id)
+        {
+            if ($this->auth->acl_get('f_list', $forum_id) && $this->auth->acl_get('f_read', $forum_id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function my_tickets_url()
+    {
+        if (!$this->can_view_my_tickets())
+        {
+            return '';
+        }
+
+        return $this->helper->route('mundophpbb_helpdesk_my_tickets_controller');
+    }
+
 
     protected function default_status()
     {

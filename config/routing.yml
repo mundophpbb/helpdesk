@@ -1,3 +1,8 @@
 mundophpbb_helpdesk_queue_controller:
     path: /helpdesk/queue
     defaults: { _controller: mundophpbb.helpdesk.controller.queue:display }
+
+
+mundophpbb_helpdesk_my_tickets_controller:
+    path: /helpdesk/my-tickets
+    defaults: { _controller: mundophpbb.helpdesk.controller.queue:my_tickets }
