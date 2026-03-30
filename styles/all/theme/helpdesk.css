@@ -2531,3 +2531,23 @@ body.dark .helpdesk-history-box,
 body.phpbb-dark .helpdesk-history-box {
     border-top-color: rgba(255, 255, 255, 0.1);
 }
+
+/* 4.9.72 alerts by forum: avoid forum/category labels collapsing vertically */
+.helpdesk-team-alerts-box [data-helpdesk-collapse="alerts-forum"] .helpdesk-report-link {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.helpdesk-team-alerts-box [data-helpdesk-collapse="alerts-forum"] .helpdesk-report-main {
+    flex: 1 1 220px;
+    min-width: 180px;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.helpdesk-team-alerts-box [data-helpdesk-collapse="alerts-forum"] .helpdesk-report-meta {
+    flex: 0 1 100%;
+    text-align: left;
+    white-space: normal;
+}
