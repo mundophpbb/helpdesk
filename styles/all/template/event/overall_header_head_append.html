@@ -417,6 +417,13 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>';
         <!-- ENDIF -->
 
+        bulkFieldsHtml +=
+            '<div class="helpdesk-filter-field helpdesk-manage-field-wide">' +
+                '<label for="helpdesk-bulk-reason">{L_HELPDESK_CHANGE_REASON}</label>' +
+                '<textarea id="helpdesk-bulk-reason" name="helpdesk_bulk_reason" rows="2" placeholder="{L_HELPDESK_CHANGE_REASON_EXPLAIN}"></textarea>' +
+                <!-- IF S_HELPDESK_REASON_REQUIRED_ANY -->'<p class="helpdesk-note">{HELPDESK_CHANGE_REASON_RULES_TEXT}</p>' +<!-- ENDIF -->
+            '</div>';
+
         bulkWrapper.innerHTML =
             '<div class="inner">' +
                 '<h3>{L_HELPDESK_BULK_TITLE}</h3>' +
@@ -756,5 +763,300 @@ document.addEventListener('DOMContentLoaded', function () {
     renderAssigneeChips();
     <!-- ENDIF -->
     applyFilters();
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var params;
+    try {
+        params = new URLSearchParams(window.location.search || '');
+    } catch (error) {
+        params = null;
+    }
+
+    var shouldFocusReply = false;
+    if (params && params.get('helpdesk_focus_reply') === '1') {
+        shouldFocusReply = true;
+    }
+    if (!shouldFocusReply && window.location.hash === '#helpdesk-focus-reply') {
+        shouldFocusReply = true;
+    }
+    if (!shouldFocusReply) {
+        return;
+    }
+
+    var selectors = [
+        '#qr_postform textarea',
+        '#quickreply textarea',
+        '#quick-reply textarea',
+        'form[id*="quickreply"] textarea',
+        'form[id*="quick_reply"] textarea',
+        'form[id*="qr_"] textarea',
+        '#message-box textarea',
+        'textarea#message',
+        'form[action*="posting."] textarea'
+    ];
+
+    var target = null;
+    for (var i = 0; i < selectors.length; i++) {
+        target = document.querySelector(selectors[i]);
+        if (target) {
+            break;
+        }
+    }
+
+    if (!target) {
+        return;
+    }
+
+    var collapsedToggle = target.closest('details:not([open])');
+    if (collapsedToggle) {
+        collapsedToggle.open = true;
+    }
+
+    if (typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({behavior: 'smooth', block: 'center'});
+    }
+
+    window.setTimeout(function () {
+        target.focus();
+        if (typeof target.setSelectionRange === 'function') {
+            var position = target.value ? target.value.length : 0;
+            target.setSelectionRange(position, position);
+        }
+    }, 120);
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var widget = document.querySelector('[data-helpdesk-reply-templates="1"]');
+    if (!widget) {
+        return;
+    }
+
+    var picker = widget.querySelector('[data-helpdesk-reply-picker="1"]');
+    var insertButton = widget.querySelector('[data-helpdesk-reply-insert="1"]');
+    var preview = widget.querySelector('[data-helpdesk-reply-preview="1"]');
+    var entries = Array.prototype.slice.call(widget.querySelectorAll('[data-helpdesk-reply-key]'));
+    var templateMap = {};
+
+    function decodeBase64Utf8(encoded) {
+        var binary = window.atob(encoded);
+
+        if (typeof TextDecoder === 'function') {
+            var bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return new TextDecoder('utf-8').decode(bytes);
+        }
+
+        try {
+            return decodeURIComponent(Array.prototype.map.call(binary, function (char) {
+                return '%' + ('00' + char.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+        } catch (error) {
+            return binary;
+        }
+    }
+
+    entries.forEach(function (entry) {
+        var key = entry.getAttribute('data-helpdesk-reply-key') || '';
+        var encoded = entry.getAttribute('data-helpdesk-reply-body') || '';
+        if (!key) {
+            return;
+        }
+
+        try {
+            templateMap[key] = decodeBase64Utf8(encoded).replace(/\r\n/g, '\n');
+        } catch (error) {
+            templateMap[key] = '';
+        }
+    });
+
+    function currentBody() {
+        if (!picker) {
+            return '';
+        }
+
+        return templateMap[picker.value] || '';
+    }
+
+    function refreshPreview() {
+        if (!preview) {
+            return;
+        }
+
+        preview.textContent = currentBody();
+    }
+
+    function findReplyTarget() {
+        var selectors = [
+            '#qr_postform textarea',
+            '#quickreply textarea',
+            '#quick-reply textarea',
+            'form[id*="quickreply"] textarea',
+            'form[id*="quick_reply"] textarea',
+            'form[id*="qr_"] textarea',
+            '#message-box textarea',
+            'textarea#message',
+            'form[action*="posting."] textarea'
+        ];
+
+        for (var i = 0; i < selectors.length; i++) {
+            var target = document.querySelector(selectors[i]);
+            if (target) {
+                return target;
+            }
+        }
+
+        return null;
+    }
+
+    function insertCurrentBody(onlyIfEmpty) {
+        var body = currentBody();
+        if (!body) {
+            return false;
+        }
+
+        var target = findReplyTarget();
+        if (!target) {
+            return false;
+        }
+
+        var collapsedToggle = target.closest('details:not([open])');
+        if (collapsedToggle) {
+            collapsedToggle.open = true;
+        }
+
+        var currentValue = target.value || '';
+        if (onlyIfEmpty && currentValue.replace(/\s+/g, '') !== '') {
+            return false;
+        }
+
+        if (currentValue.replace(/\s+/g, '') === '') {
+            target.value = body;
+        } else {
+            var separator = /\n\s*$/.test(currentValue) ? '\n' : '\n\n';
+            target.value = currentValue + separator + body;
+        }
+
+        if (typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+
+        window.setTimeout(function () {
+            target.focus();
+            if (typeof target.setSelectionRange === 'function') {
+                var position = target.value ? target.value.length : 0;
+                target.setSelectionRange(position, position);
+            }
+        }, 80);
+
+        return true;
+    }
+
+    if (picker) {
+        picker.addEventListener('change', refreshPreview);
+        refreshPreview();
+    }
+
+    var params;
+    try {
+        params = new URLSearchParams(window.location.search || '');
+    } catch (error) {
+        params = null;
+    }
+
+    if (params && picker) {
+        var requestedTemplate = params.get('helpdesk_reply_template') || '';
+        if (requestedTemplate && Object.prototype.hasOwnProperty.call(templateMap, requestedTemplate)) {
+            picker.value = requestedTemplate;
+            refreshPreview();
+
+            if (params.get('helpdesk_reply_template_insert') === '1') {
+                window.setTimeout(function () {
+                    insertCurrentBody(true);
+                }, 140);
+            }
+        }
+    }
+
+    if (!insertButton) {
+        return;
+    }
+
+    insertButton.addEventListener('click', function () {
+        insertCurrentBody(false);
+    });
+});
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var widget = document.querySelector('[data-helpdesk-page-search="1"]');
+    if (!widget) {
+        return;
+    }
+
+    var input = widget.querySelector('[data-helpdesk-page-search-input]');
+    var clearButton = widget.querySelector('[data-helpdesk-page-search-clear]');
+    var countNode = widget.querySelector('[data-helpdesk-page-search-count]');
+    var emptyNode = document.querySelector('[data-helpdesk-page-search-empty]');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('tr[data-helpdesk-page-search-row="1"]'));
+
+    if (!input || !rows.length) {
+        return;
+    }
+
+    var total = rows.length;
+    var countTemplate = widget.getAttribute('data-helpdesk-page-search-count-template') || '%1$s / %2$s';
+
+    function updateCount(visible) {
+        if (!countNode) {
+            return;
+        }
+
+        countNode.textContent = countTemplate.replace('%1$s', String(visible)).replace('%2$s', String(total));
+    }
+
+    function applySearch() {
+        var query = (input.value || '').toLowerCase().trim();
+        var visible = 0;
+
+        rows.forEach(function (row) {
+            var haystack = (row.textContent || '').toLowerCase();
+            var match = !query || haystack.indexOf(query) !== -1;
+            row.hidden = !match;
+            row.classList.toggle('is-search-hidden', !match);
+            if (match) {
+                visible += 1;
+            }
+        });
+
+        updateCount(visible);
+
+        if (emptyNode) {
+            emptyNode.hidden = !query || visible !== 0;
+        }
+    }
+
+    input.addEventListener('input', applySearch);
+
+    if (clearButton) {
+        clearButton.addEventListener('click', function () {
+            input.value = '';
+            applySearch();
+            input.focus();
+        });
+    }
+
+    updateCount(total);
 });
 </script>

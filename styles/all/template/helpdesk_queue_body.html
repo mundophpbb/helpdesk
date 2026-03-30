@@ -74,6 +74,10 @@
                 <strong>{HELPDESK_QUEUE_OVERDUE_COUNT}</strong>
                 <span>{L_HELPDESK_QUEUE_OVERDUE}</span>
             </a>
+            <!-- IF S_HELPDESK_SLA_ENABLED --><a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_DUE_TODAY}">
+                <strong>{HELPDESK_QUEUE_DUE_TODAY_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_DUE_TODAY}</span>
+            </a><!-- ENDIF -->
             <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_AGING}">
                 <strong>{HELPDESK_QUEUE_AGING_COUNT}</strong>
                 <span>{L_HELPDESK_QUEUE_AGING}</span>
@@ -115,6 +119,37 @@
                 <span>{L_HELPDESK_CRITICALITY_ATTENTION}</span>
             </a>
         </div>
+<!-- IF S_HELPDESK_SLA_ENABLED --><div class="helpdesk-overview-health-box helpdesk-overview-sla-box">
+            <div class="helpdesk-overview-health-head">
+                <div>
+                    <h3>{L_HELPDESK_TEAM_QUEUE_SLA_PANEL_TITLE}</h3>
+                    <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_SLA_PANEL_EXPLAIN}</p>
+                </div>
+            </div>
+            <div class="helpdesk-team-cards helpdesk-team-cards-compact">
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_OVERDUE}">
+                    <strong>{HELPDESK_QUEUE_OVERDUE_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_OVERDUE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_DUE_TODAY}">
+                    <strong>{HELPDESK_QUEUE_DUE_TODAY_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_DUE_TODAY}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE}">
+                    <strong>{HELPDESK_QUEUE_STALE_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_STALE}</span>
+                </a>
+                <a class="helpdesk-team-card" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_ALL}">
+                    <strong>{HELPDESK_QUEUE_WITHIN_SLA_COUNT}</strong>
+                    <span>{L_HELPDESK_QUEUE_WITHIN_SLA}</span>
+                </a>
+            </div>
+            <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_QUEUE}">{L_HELPDESK_QUEUE_SECTION_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_ALERTS}">{L_HELPDESK_QUEUE_SECTION_ALERTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_REPORTS}">{L_HELPDESK_QUEUE_SECTION_REPORTS}</a>
+            </p>
+        </div><!-- ENDIF -->
     </div>
 </div>
 
@@ -518,6 +553,7 @@
                 <p class="helpdesk-quick-actions helpdesk-quick-actions-compact">
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_TRIAGE}">{L_HELPDESK_QUEUE_SECTION_TRIAGE}</a>
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_UNASSIGNED}">{L_HELPDESK_QUEUE_UNASSIGNED} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_UNASSIGNED_COUNT}</span></a>
+                    <!-- IF S_HELPDESK_SLA_ENABLED --><a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_DUE_TODAY}">{L_HELPDESK_QUEUE_DUE_TODAY} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_DUE_TODAY_COUNT}</span></a><!-- ENDIF -->
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE}">{L_HELPDESK_QUEUE_STALE} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_STALE_COUNT}</span></a>
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_VERY_OLD}">{L_HELPDESK_QUEUE_VERY_OLD} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_VERY_OLD_COUNT}</span></a>
                     <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_CRITICAL}">{L_HELPDESK_CRITICALITY_CRITICAL} <span class="helpdesk-inline-count">{HELPDESK_QUEUE_CRITICAL_COUNT}</span></a>
@@ -542,6 +578,7 @@
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'all' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_ALL}">{L_HELPDESK_QUEUE_ALL}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'unassigned' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_UNASSIGNED}">{L_HELPDESK_QUEUE_UNASSIGNED}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_OVERDUE}">{L_HELPDESK_QUEUE_OVERDUE}</a>
+                <!-- IF S_HELPDESK_SLA_ENABLED --><a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'due_today' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_DUE_TODAY}">{L_HELPDESK_QUEUE_DUE_TODAY}</a><!-- ENDIF -->
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'aging' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_AGING}">{L_HELPDESK_QUEUE_AGING}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'stale' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STALE}">{L_HELPDESK_QUEUE_STALE}</a>
                 <a class="helpdesk-tab<!-- IF HELPDESK_FILTER_SCOPE eq 'very_old' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_VERY_OLD}">{L_HELPDESK_QUEUE_VERY_OLD}</a>
@@ -1411,7 +1448,75 @@
     </div>
 </div>
 
-<div class="panel bg1 helpdesk-team-table-box">
+<div class="panel bg2 helpdesk-queue-focus-strip-box">
+    <div class="inner">
+        <div class="helpdesk-queue-focus-strip-head">
+            <div>
+                <h3>{L_HELPDESK_TEAM_QUEUE_FOCUS_STRIP_TITLE}</h3>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_FOCUS_STRIP_EXPLAIN}</p>
+            </div>
+            <a class="button button-secondary button-small" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_ALL}">{L_HELPDESK_QUEUE_ALL}</a>
+        </div>
+        <div class="helpdesk-queue-focus-strip">
+            <a class="helpdesk-team-card helpdesk-team-card-mini helpdesk-queue-focus-card is-overdue<!-- IF HELPDESK_FILTER_SCOPE eq 'overdue' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_OVERDUE}">
+                <strong>{HELPDESK_QUEUE_OVERDUE_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_OVERDUE}</span>
+            </a>
+            <!-- IF S_HELPDESK_SLA_ENABLED --><a class="helpdesk-team-card helpdesk-team-card-mini helpdesk-queue-focus-card is-due-today<!-- IF HELPDESK_FILTER_SCOPE eq 'due_today' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_DUE_TODAY}">
+                <strong>{HELPDESK_QUEUE_DUE_TODAY_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_DUE_TODAY}</span>
+            </a><!-- ENDIF -->
+            <a class="helpdesk-team-card helpdesk-team-card-mini helpdesk-queue-focus-card is-stale<!-- IF HELPDESK_FILTER_SCOPE eq 'stale' --> is-active<!-- ENDIF -->" href="{U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE}">
+                <strong>{HELPDESK_QUEUE_STALE_COUNT}</strong>
+                <span>{L_HELPDESK_QUEUE_STALE}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="panel bg2 helpdesk-queue-presets-box">
+    <div class="inner">
+        <div class="helpdesk-queue-presets-head">
+            <div>
+                <h3>{L_HELPDESK_TEAM_QUEUE_PRESETS_TITLE}</h3>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_PRESETS_EXPLAIN}</p>
+            </div>
+        </div>
+        <div class="helpdesk-queue-presets-grid">
+            <!-- BEGIN helpdesk_queue_preset_rows -->
+            <a class="helpdesk-queue-preset-card {helpdesk_queue_preset_rows.STATUS_CLASS}<!-- IF helpdesk_queue_preset_rows.S_ACTIVE --> is-active<!-- ENDIF -->" href="{helpdesk_queue_preset_rows.U_ROW}">
+                <span class="helpdesk-queue-preset-count">{helpdesk_queue_preset_rows.COUNT}</span>
+                <strong>{helpdesk_queue_preset_rows.TITLE}</strong>
+                <span class="helpdesk-queue-preset-meta">{helpdesk_queue_preset_rows.META}</span>
+                <span class="helpdesk-queue-preset-open">{L_HELPDESK_TEAM_QUEUE_PRESET_OPEN}</span>
+            </a>
+            <!-- END helpdesk_queue_preset_rows -->
+        </div>
+    </div>
+</div>
+
+<!-- IF S_HELPDESK_QUEUE_HAS_RESULTS -->
+<div class="panel bg2 helpdesk-team-page-search-box">
+    <div class="inner">
+        <div class="helpdesk-team-page-search-head">
+            <div>
+                <h3>{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_TITLE}</h3>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_EXPLAIN}</p>
+            </div>
+            <p class="helpdesk-note helpdesk-team-page-search-summary">{HELPDESK_QUEUE_RESULTS_SUMMARY_TEXT}</p>
+        </div>
+        <div class="helpdesk-team-page-search-controls" data-helpdesk-page-search="1" data-helpdesk-page-search-count-template="{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_COUNT}">
+            <label for="helpdesk-page-search-input">{L_SEARCH}</label>
+            <input class="inputbox helpdesk-team-page-search-input" type="search" id="helpdesk-page-search-input" placeholder="{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_PLACEHOLDER}" data-helpdesk-page-search-input />
+            <button type="button" class="button button-secondary button-small" data-helpdesk-page-search-clear>{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_CLEAR}</button>
+            <span class="helpdesk-context-pill is-muted helpdesk-team-page-search-count" data-helpdesk-page-search-count>{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_COUNT_DEFAULT}</span>
+        </div>
+        <p class="helpdesk-note helpdesk-team-page-search-empty" data-helpdesk-page-search-empty hidden="hidden">{L_HELPDESK_TEAM_QUEUE_PAGE_SEARCH_EMPTY}</p>
+    </div>
+</div>
+<!-- ENDIF -->
+
+<div class="panel bg1 helpdesk-team-table-box<!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE --> is-triage-view<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> is-topic-compact-view<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> is-inline-topic-view<!-- ENDIF -->">
     <div class="inner">
         <h3>{L_HELPDESK_TEAM_QUEUE_RESULTS}</h3>
         <p class="helpdesk-note">{HELPDESK_QUEUE_RESULTS_SUMMARY_TEXT}</p>
@@ -1500,6 +1605,7 @@
                         <div class="helpdesk-filter-field helpdesk-manage-field-wide">
                             <label for="helpdesk-queue-bulk-reason">{L_HELPDESK_CHANGE_REASON}</label>
                             <textarea id="helpdesk-queue-bulk-reason" name="queue_bulk_reason" rows="2" placeholder="{L_HELPDESK_CHANGE_REASON_EXPLAIN}"></textarea>
+                            <!-- IF S_HELPDESK_REASON_REQUIRED_ANY --><p class="helpdesk-note helpdesk-team-row-reason-note">{HELPDESK_CHANGE_REASON_RULES_TEXT}</p><!-- ENDIF -->
                         </div>
                     </div>
                     <fieldset class="submit-buttons helpdesk-team-bulk-submit">
@@ -1509,10 +1615,10 @@
             </details>
         </form>
         <!-- ENDIF -->
-        <div class="forumbg forumbg-table helpdesk-team-table-wrap">
-            <table class="table1 responsive helpdesk-team-table">
+        <div class="forumbg forumbg-table helpdesk-team-table-wrap<!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE --> is-triage-view<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> is-topic-compact-view<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> is-inline-topic-view<!-- ENDIF -->"<!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_BALANCE --> data-helpdesk-inline-actions="1"<!-- ENDIF -->>
+            <table class="table1 responsive helpdesk-team-table<!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE --> is-triage-view<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> is-topic-compact-view<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> is-inline-topic-view<!-- ENDIF -->">
                 <thead>
-                    <tr>
+                    <tr class="helpdesk-team-row">
                         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN and S_HELPDESK_QUEUE_VIEW_TRIAGE --><th class="helpdesk-team-table-check">{L_MARK}</th><!-- ENDIF -->
                         <th class="helpdesk-team-topic-head">{L_TOPIC}</th>
                         <th class="helpdesk-team-forum-head">{L_FORUM}</th>
@@ -1522,22 +1628,214 @@
                         <th class="helpdesk-team-assignee-head">{L_HELPDESK_ASSIGNED_TO}</th>
                         <th class="helpdesk-team-alerts-head">{L_HELPDESK_TEAM_QUEUE_ALERTS}</th>
                         <th class="helpdesk-team-updated-head">{L_HELPDESK_LAST_UPDATE}</th>
+                        <!-- IF S_HELPDESK_CAN_QUEUE_ASSIGN --><th class="helpdesk-team-actions-head">{L_HELPDESK_TEAM_QUEUE_ROW_ACTIONS}</th><!-- ENDIF -->
                     </tr>
                 </thead>
                 <tbody>
                     <!-- BEGIN helpdesk_queue_rows -->
-                    <tr>
+                    <tr class="helpdesk-team-row<!-- IF helpdesk_queue_rows.IS_OVERDUE --> is-overdue<!-- ENDIF --><!-- IF helpdesk_queue_rows.IS_DUE_TODAY --> is-due-today<!-- ENDIF --><!-- IF helpdesk_queue_rows.IS_STALE --> is-stale<!-- ENDIF --><!-- IF helpdesk_queue_rows.IS_UNASSIGNED --> is-unassigned<!-- ENDIF -->" data-helpdesk-page-search-row="1">
                         <!-- IF S_HELPDESK_CAN_QUEUE_BULK_ASSIGN and S_HELPDESK_QUEUE_VIEW_TRIAGE -->
                         <td class="helpdesk-team-table-check"><input type="checkbox" name="queue_bulk_items[]" value="{helpdesk_queue_rows.SELECTION_VALUE}" form="helpdesk-queue-bulk-form" class="helpdesk-queue-bulk-check" aria-label="{L_HELPDESK_BULK_SELECT_TICKET}" /></td>
                         <!-- ENDIF -->
-                        <td class="helpdesk-team-topic-cell"><a class="helpdesk-team-topic-link" href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a><!-- IF helpdesk_queue_rows.QUEUE_RULE_LABEL --><div class="helpdesk-topic-meta helpdesk-team-topic-subline">{helpdesk_queue_rows.QUEUE_RULE_LABEL} &middot; {L_HELPDESK_QUEUE_PRIORITY_SCORE}: {helpdesk_queue_rows.QUEUE_SCORE}</div><!-- ENDIF --></td>
+                        <td class="helpdesk-team-topic-cell<!-- IF helpdesk_queue_rows.IS_UNASSIGNED --> is-unassigned<!-- ENDIF -->"><a class="helpdesk-team-topic-link" href="{helpdesk_queue_rows.U_TOPIC}">{helpdesk_queue_rows.TOPIC_TITLE}</a><!-- IF helpdesk_queue_rows.QUEUE_RULE_LABEL --><div class="helpdesk-topic-meta helpdesk-team-topic-subline">{helpdesk_queue_rows.QUEUE_RULE_LABEL} &middot; {L_HELPDESK_QUEUE_PRIORITY_SCORE}: {helpdesk_queue_rows.QUEUE_SCORE}</div><!-- ENDIF --><!-- IF helpdesk_queue_rows.SLA_BADGE_LABEL or helpdesk_queue_rows.RESPONSE_BADGE_LABEL or helpdesk_queue_rows.IS_UNASSIGNED --><div class="helpdesk-topic-meta helpdesk-team-topic-subline helpdesk-team-topic-badges"><!-- IF helpdesk_queue_rows.IS_UNASSIGNED --><span class="helpdesk-badge helpdesk-badge-unassigned">{L_HELPDESK_QUEUE_UNASSIGNED}</span><!-- ENDIF --><!-- IF helpdesk_queue_rows.SLA_BADGE_LABEL --><span class="helpdesk-badge {helpdesk_queue_rows.SLA_BADGE_CLASS}">{helpdesk_queue_rows.SLA_BADGE_LABEL}</span><!-- ENDIF --><!-- IF helpdesk_queue_rows.RESPONSE_BADGE_LABEL --><span class="helpdesk-badge {helpdesk_queue_rows.RESPONSE_BADGE_CLASS}">{helpdesk_queue_rows.RESPONSE_BADGE_LABEL}</span><!-- ENDIF --><!-- IF helpdesk_queue_rows.SLA_DEADLINE_AT --><span class="helpdesk-team-topic-deadline">{L_HELPDESK_TEAM_QUEUE_SLA_DEADLINE}: {helpdesk_queue_rows.SLA_DEADLINE_AT}</span><!-- ENDIF --></div><!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --><div class="helpdesk-team-triage-meta"><span class="helpdesk-team-triage-meta-item"><strong>{L_FORUM}:</strong> {helpdesk_queue_rows.FORUM_NAME}</span><span class="helpdesk-team-triage-meta-item"><strong>{L_HELPDESK_DEPARTMENT}:</strong> {helpdesk_queue_rows.DEPARTMENT_LABEL}</span><span class="helpdesk-team-triage-meta-item"><strong>{L_HELPDESK_ASSIGNED_TO}:</strong> <!-- IF helpdesk_queue_rows.ASSIGNED_TO -->{helpdesk_queue_rows.ASSIGNED_TO}<!-- ELSE --><span class="helpdesk-badge helpdesk-badge-unassigned">{L_HELPDESK_QUEUE_UNASSIGNED}</span><!-- ENDIF --></span><span class="helpdesk-team-triage-meta-item"><strong>{L_HELPDESK_LAST_UPDATE}:</strong> {helpdesk_queue_rows.UPDATED_AT}</span></div><!-- IF helpdesk_queue_rows.ALERT_TEXT --><div class="helpdesk-team-triage-alerts"><span class="helpdesk-badge helpdesk-team-triage-alerts-label">{L_HELPDESK_QUEUE_SECTION_ALERTS}</span><span class="helpdesk-team-triage-alerts-text">{helpdesk_queue_rows.ALERT_TEXT}</span></div><!-- ENDIF --><!-- ENDIF --><!-- IF S_HELPDESK_CAN_QUEUE_ASSIGN --><div class="helpdesk-team-inline-actions-target<!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> helpdesk-team-topic-compact-inline-actions<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE --> helpdesk-team-triage-inline-actions<!-- ENDIF -->" data-helpdesk-inline-actions-target<!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE --> data-helpdesk-topic-compact-actions-target<!-- ENDIF --><!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE --> data-helpdesk-triage-actions-target<!-- ENDIF -->></div><!-- ENDIF --></td>
                         <td class="helpdesk-team-forum-cell">{helpdesk_queue_rows.FORUM_NAME}</td>
                         <td class="helpdesk-team-status-cell"><span class="helpdesk-badge {helpdesk_queue_rows.STATUS_CLASS}">{helpdesk_queue_rows.STATUS_LABEL}</span></td>
                         <td class="helpdesk-team-priority-cell"><span class="helpdesk-badge {helpdesk_queue_rows.PRIORITY_CLASS}">{helpdesk_queue_rows.PRIORITY_LABEL}</span></td>
                         <td class="helpdesk-team-department-cell">{helpdesk_queue_rows.DEPARTMENT_LABEL}</td>
-                        <td class="helpdesk-team-assignee-cell"><!-- IF helpdesk_queue_rows.ASSIGNED_TO --><strong class="helpdesk-team-assignee-name">{helpdesk_queue_rows.ASSIGNED_TO}</strong><div class="helpdesk-topic-meta helpdesk-team-topic-subline"><span class="helpdesk-badge {helpdesk_queue_rows.WORKLOAD_CLASS}">{helpdesk_queue_rows.WORKLOAD_LABEL}</span> &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_queue_rows.WORKLOAD_SCORE}</div><!-- ELSE -->{helpdesk_queue_rows.ASSIGNED_TO}<!-- ENDIF --></td>
-                        <td class="helpdesk-team-alerts-cell">{helpdesk_queue_rows.ALERT_TEXT}</td>
+                        <td class="helpdesk-team-assignee-cell<!-- IF helpdesk_queue_rows.IS_UNASSIGNED --> is-unassigned<!-- ENDIF -->"><!-- IF helpdesk_queue_rows.ASSIGNED_TO --><strong class="helpdesk-team-assignee-name">{helpdesk_queue_rows.ASSIGNED_TO}</strong><div class="helpdesk-topic-meta helpdesk-team-topic-subline"><span class="helpdesk-badge {helpdesk_queue_rows.WORKLOAD_CLASS}">{helpdesk_queue_rows.WORKLOAD_LABEL}</span> &middot; {L_HELPDESK_QUEUE_LOAD_SCORE}: {helpdesk_queue_rows.WORKLOAD_SCORE}</div><!-- ELSE --><span class="helpdesk-badge helpdesk-badge-unassigned">{L_HELPDESK_QUEUE_UNASSIGNED}</span><!-- ENDIF --></td>
+                        <td class="helpdesk-team-alerts-cell"><span class="helpdesk-team-alerts-text">{helpdesk_queue_rows.ALERT_TEXT}</span></td>
                         <td class="helpdesk-team-updated-cell">{helpdesk_queue_rows.UPDATED_AT}</td>
+                        <!-- IF S_HELPDESK_CAN_QUEUE_ASSIGN -->
+                        <td class="helpdesk-team-actions-cell" data-helpdesk-inline-actions-cell data-helpdesk-triage-actions-cell data-helpdesk-topic-compact-actions-cell>
+                            <div class="helpdesk-team-row-actions" data-helpdesk-inline-actions-source data-helpdesk-triage-actions-source data-helpdesk-topic-compact-actions-source>
+                                <!-- IF S_HELPDESK_QUEUE_VIEW_TRIAGE or S_HELPDESK_QUEUE_VIEW_QUEUE or S_HELPDESK_QUEUE_VIEW_PERSONAL or S_HELPDESK_QUEUE_VIEW_BALANCE -->
+                                <div class="helpdesk-team-triage-quick-bar">
+                                    <!-- IF helpdesk_queue_rows.S_CAN_ASSIGN_SELF -->
+                                    <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-team-row-action-form helpdesk-team-row-action-inline helpdesk-team-row-action-inline-compact">
+                                        <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+                                        <input type="hidden" name="scope" value="{HELPDESK_FILTER_SCOPE}" />
+                                        <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+                                        <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+                                        <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+                                        <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+                                        <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                                        <input type="hidden" name="sort_by" value="{HELPDESK_QUEUE_SORT_BY}" />
+                                        <input type="hidden" name="per_page" value="{HELPDESK_QUEUE_PER_PAGE}" />
+                                        <input type="hidden" name="page" value="{HELPDESK_QUEUE_CURRENT_PAGE}" />
+                                        <input type="hidden" name="topic_id" value="{helpdesk_queue_rows.TOPIC_ID}" />
+                                        <input type="hidden" name="row_forum_id" value="{helpdesk_queue_rows.FORUM_ID}" />
+                                        <input type="hidden" name="queue_row_reason" value="" />
+                                        {S_FORM_TOKEN}
+                                        <div class="helpdesk-team-row-action-group helpdesk-team-row-action-group-buttons">
+                                            <button class="button button-secondary<!-- IF helpdesk_queue_rows.IS_UNASSIGNED --> helpdesk-team-row-claim<!-- ENDIF -->" type="submit" name="helpdesk_queue_action" value="apply_row_assignment_self">{L_HELPDESK_TEAM_QUEUE_ROW_ASSIGN_SELF}</button>
+                                            <!-- IF helpdesk_queue_rows.S_CAN_UNASSIGN --><button class="button button-secondary helpdesk-team-row-unassign" type="submit" name="helpdesk_queue_action" value="apply_row_assignment_clear">{L_HELPDESK_TEAM_QUEUE_ROW_UNASSIGN}</button><!-- ENDIF -->
+                                        </div>
+                                    </form>
+                                    <!-- ENDIF -->
+                                    <!-- IF S_REPLY_ALLOWED -->
+                                    <!-- IF helpdesk_queue_rows.S_HAS_REPLY_TEMPLATES -->
+                                    <div class="helpdesk-team-row-reply-template" data-helpdesk-row-reply-template data-base-url="{helpdesk_queue_rows.U_TOPIC_REPLY_TEMPLATE_BASE}">
+                                        <label class="helpdesk-screen-reader" for="helpdesk-row-reply-template-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_REPLY_TEMPLATES}</label>
+                                        <select id="helpdesk-row-reply-template-{helpdesk_queue_rows.TOPIC_ID}" class="helpdesk-team-row-reply-template-picker" data-helpdesk-row-reply-picker>{helpdesk_queue_rows.ROW_REPLY_TEMPLATE_OPTIONS_HTML}</select>
+                                        <a class="button button-secondary helpdesk-team-row-reply" href="{helpdesk_queue_rows.U_TOPIC_REPLY}" data-helpdesk-row-reply-launch>{L_POST_REPLY}</a>
+                                    </div>
+                                    <!-- ELSE -->
+                                    <a class="button button-secondary helpdesk-team-row-reply" href="{helpdesk_queue_rows.U_TOPIC_REPLY}">{L_POST_REPLY}</a>
+                                    <!-- ENDIF -->
+                                    <!-- ENDIF --><a class="button button-secondary helpdesk-team-row-open" href="{helpdesk_queue_rows.U_TOPIC}">{L_HELPDESK_TEAM_QUEUE_ROW_OPEN_TOPIC}</a>
+                                    <!-- IF helpdesk_queue_rows.S_CAN_CHANGE_STATUS or helpdesk_queue_rows.S_CAN_CHANGE_PRIORITY -->
+                                    <details class="helpdesk-team-triage-more-actions" data-helpdesk-triage-more-actions data-topic-id="{helpdesk_queue_rows.TOPIC_ID}">
+                                        <summary class="button button-secondary">{L_HELPDESK_TEAM_QUEUE_ROW_MORE_ACTIONS}</summary>
+                                        <div class="helpdesk-team-triage-more-panel">
+                                            <!-- IF helpdesk_queue_rows.S_CAN_CHANGE_STATUS -->
+                                            <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-team-row-action-form helpdesk-team-row-action-form-advanced">
+                                                <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+                                                <input type="hidden" name="scope" value="{HELPDESK_FILTER_SCOPE}" />
+                                                <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+                                                <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+                                                <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+                                                <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+                                                <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                                                <input type="hidden" name="sort_by" value="{HELPDESK_QUEUE_SORT_BY}" />
+                                                <input type="hidden" name="per_page" value="{HELPDESK_QUEUE_PER_PAGE}" />
+                                                <input type="hidden" name="page" value="{HELPDESK_QUEUE_CURRENT_PAGE}" />
+                                                <input type="hidden" name="topic_id" value="{helpdesk_queue_rows.TOPIC_ID}" />
+                                                <input type="hidden" name="row_forum_id" value="{helpdesk_queue_rows.FORUM_ID}" />
+                                                {S_FORM_TOKEN}
+                                                <div class="helpdesk-team-row-action-stack">
+                                                    <label class="helpdesk-screen-reader" for="helpdesk-row-status-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_STATUS}</label>
+                                                    <div class="helpdesk-team-row-action-group">
+                                                        <select id="helpdesk-row-status-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_status">{helpdesk_queue_rows.ROW_STATUS_OPTIONS_HTML}</select>
+                                                        <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_row_status">{L_HELPDESK_TEAM_QUEUE_ROW_APPLY}</button>
+                                                    </div>
+                                                    <label class="helpdesk-screen-reader" for="helpdesk-row-reason-status-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_TEAM_QUEUE_ROW_REASON}</label>
+                                                    <input class="inputbox helpdesk-team-row-reason" type="text" id="helpdesk-row-reason-status-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_reason" maxlength="255" placeholder="{L_HELPDESK_TEAM_QUEUE_ROW_REASON_PLACEHOLDER}" />
+                                                </div>
+                                            </form>
+                                            <!-- ENDIF -->
+                                            <!-- IF helpdesk_queue_rows.S_CAN_CHANGE_PRIORITY -->
+                                            <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-team-row-action-form helpdesk-team-row-action-form-advanced">
+                                                <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+                                                <input type="hidden" name="scope" value="{HELPDESK_FILTER_SCOPE}" />
+                                                <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+                                                <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+                                                <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+                                                <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+                                                <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                                                <input type="hidden" name="sort_by" value="{HELPDESK_QUEUE_SORT_BY}" />
+                                                <input type="hidden" name="per_page" value="{HELPDESK_QUEUE_PER_PAGE}" />
+                                                <input type="hidden" name="page" value="{HELPDESK_QUEUE_CURRENT_PAGE}" />
+                                                <input type="hidden" name="topic_id" value="{helpdesk_queue_rows.TOPIC_ID}" />
+                                                <input type="hidden" name="row_forum_id" value="{helpdesk_queue_rows.FORUM_ID}" />
+                                                {S_FORM_TOKEN}
+                                                <div class="helpdesk-team-row-action-stack">
+                                                    <label class="helpdesk-screen-reader" for="helpdesk-row-priority-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_PRIORITY}</label>
+                                                    <div class="helpdesk-team-row-action-group">
+                                                        <select id="helpdesk-row-priority-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_priority">{helpdesk_queue_rows.ROW_PRIORITY_OPTIONS_HTML}</select>
+                                                        <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_row_priority">{L_HELPDESK_TEAM_QUEUE_ROW_APPLY}</button>
+                                                    </div>
+                                                    <label class="helpdesk-screen-reader" for="helpdesk-row-reason-priority-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_TEAM_QUEUE_ROW_REASON}</label>
+                                                    <input class="inputbox helpdesk-team-row-reason" type="text" id="helpdesk-row-reason-priority-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_reason" maxlength="255" placeholder="{L_HELPDESK_TEAM_QUEUE_ROW_REASON_PLACEHOLDER}" />
+                                                </div>
+                                            </form>
+                                            <!-- ENDIF -->
+                                        </div>
+                                    </details>
+                                    <!-- ENDIF -->
+                                </div>
+                                <!-- ELSE -->
+                                <!-- IF helpdesk_queue_rows.S_CAN_ASSIGN_SELF -->
+                                <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-team-row-action-form helpdesk-team-row-action-inline">
+                                    <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+                                    <input type="hidden" name="scope" value="{HELPDESK_FILTER_SCOPE}" />
+                                    <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+                                    <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+                                    <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+                                    <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+                                    <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                                    <input type="hidden" name="sort_by" value="{HELPDESK_QUEUE_SORT_BY}" />
+                                    <input type="hidden" name="per_page" value="{HELPDESK_QUEUE_PER_PAGE}" />
+                                    <input type="hidden" name="page" value="{HELPDESK_QUEUE_CURRENT_PAGE}" />
+                                    <input type="hidden" name="topic_id" value="{helpdesk_queue_rows.TOPIC_ID}" />
+                                    <input type="hidden" name="row_forum_id" value="{helpdesk_queue_rows.FORUM_ID}" />
+                                    {S_FORM_TOKEN}
+                                    <div class="helpdesk-team-row-action-stack">
+                                        <label class="helpdesk-screen-reader" for="helpdesk-row-reason-assign-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_TEAM_QUEUE_ROW_REASON}</label>
+                                        <input class="inputbox helpdesk-team-row-reason" type="text" id="helpdesk-row-reason-assign-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_reason" maxlength="255" placeholder="{L_HELPDESK_TEAM_QUEUE_ROW_REASON_PLACEHOLDER}" />
+                                        <div class="helpdesk-team-row-action-group helpdesk-team-row-action-group-buttons">
+                                            <button class="button button-secondary<!-- IF helpdesk_queue_rows.IS_UNASSIGNED --> helpdesk-team-row-claim<!-- ENDIF -->" type="submit" name="helpdesk_queue_action" value="apply_row_assignment_self">{L_HELPDESK_TEAM_QUEUE_ROW_ASSIGN_SELF}</button>
+                                            <!-- IF helpdesk_queue_rows.S_CAN_UNASSIGN --><button class="button button-secondary helpdesk-team-row-unassign" type="submit" name="helpdesk_queue_action" value="apply_row_assignment_clear">{L_HELPDESK_TEAM_QUEUE_ROW_UNASSIGN}</button><!-- ENDIF -->
+                                        </div>
+                                    </div>
+                                </form>
+                                <!-- ENDIF -->
+                                <!-- IF helpdesk_queue_rows.S_CAN_CHANGE_STATUS -->
+                                <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-team-row-action-form">
+                                    <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+                                    <input type="hidden" name="scope" value="{HELPDESK_FILTER_SCOPE}" />
+                                    <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+                                    <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+                                    <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+                                    <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+                                    <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                                    <input type="hidden" name="sort_by" value="{HELPDESK_QUEUE_SORT_BY}" />
+                                    <input type="hidden" name="per_page" value="{HELPDESK_QUEUE_PER_PAGE}" />
+                                    <input type="hidden" name="page" value="{HELPDESK_QUEUE_CURRENT_PAGE}" />
+                                    <input type="hidden" name="topic_id" value="{helpdesk_queue_rows.TOPIC_ID}" />
+                                    <input type="hidden" name="row_forum_id" value="{helpdesk_queue_rows.FORUM_ID}" />
+                                    {S_FORM_TOKEN}
+                                    <div class="helpdesk-team-row-action-stack">
+                                        <label class="helpdesk-screen-reader" for="helpdesk-row-status-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_STATUS}</label>
+                                        <div class="helpdesk-team-row-action-group">
+                                            <select id="helpdesk-row-status-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_status">{helpdesk_queue_rows.ROW_STATUS_OPTIONS_HTML}</select>
+                                            <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_row_status">{L_HELPDESK_TEAM_QUEUE_ROW_APPLY}</button>
+                                        </div>
+                                        <label class="helpdesk-screen-reader" for="helpdesk-row-reason-status-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_TEAM_QUEUE_ROW_REASON}</label>
+                                        <input class="inputbox helpdesk-team-row-reason" type="text" id="helpdesk-row-reason-status-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_reason" maxlength="255" placeholder="{L_HELPDESK_TEAM_QUEUE_ROW_REASON_PLACEHOLDER}" />
+                                    </div>
+                                </form>
+                                <!-- ENDIF -->
+                                <!-- IF helpdesk_queue_rows.S_CAN_CHANGE_PRIORITY -->
+                                <form method="post" action="{U_HELPDESK_TEAM_QUEUE}" class="helpdesk-team-row-action-form">
+                                    <input type="hidden" name="qview" value="{HELPDESK_QUEUE_VIEW}" />
+                                    <input type="hidden" name="scope" value="{HELPDESK_FILTER_SCOPE}" />
+                                    <input type="hidden" name="forum_id" value="{HELPDESK_FILTER_FORUM_ID}" />
+                                    <input type="hidden" name="status_key" value="{HELPDESK_FILTER_STATUS}" />
+                                    <input type="hidden" name="department_key" value="{HELPDESK_FILTER_DEPARTMENT}" />
+                                    <input type="hidden" name="priority_key" value="{HELPDESK_FILTER_PRIORITY}" />
+                                    <input type="hidden" name="assigned_to" value="{HELPDESK_FILTER_ASSIGNED_TO}" />
+                                    <input type="hidden" name="sort_by" value="{HELPDESK_QUEUE_SORT_BY}" />
+                                    <input type="hidden" name="per_page" value="{HELPDESK_QUEUE_PER_PAGE}" />
+                                    <input type="hidden" name="page" value="{HELPDESK_QUEUE_CURRENT_PAGE}" />
+                                    <input type="hidden" name="topic_id" value="{helpdesk_queue_rows.TOPIC_ID}" />
+                                    <input type="hidden" name="row_forum_id" value="{helpdesk_queue_rows.FORUM_ID}" />
+                                    {S_FORM_TOKEN}
+                                    <div class="helpdesk-team-row-action-stack">
+                                        <label class="helpdesk-screen-reader" for="helpdesk-row-priority-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_PRIORITY}</label>
+                                        <div class="helpdesk-team-row-action-group">
+                                            <select id="helpdesk-row-priority-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_priority">{helpdesk_queue_rows.ROW_PRIORITY_OPTIONS_HTML}</select>
+                                            <button class="button button-secondary" type="submit" name="helpdesk_queue_action" value="apply_row_priority">{L_HELPDESK_TEAM_QUEUE_ROW_APPLY}</button>
+                                        </div>
+                                        <label class="helpdesk-screen-reader" for="helpdesk-row-reason-priority-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_TEAM_QUEUE_ROW_REASON}</label>
+                                        <input class="inputbox helpdesk-team-row-reason" type="text" id="helpdesk-row-reason-priority-{helpdesk_queue_rows.TOPIC_ID}" name="queue_row_reason" maxlength="255" placeholder="{L_HELPDESK_TEAM_QUEUE_ROW_REASON_PLACEHOLDER}" />
+                                    </div>
+                                </form>
+                                <!-- ENDIF -->
+                                <!-- IF S_REPLY_ALLOWED -->
+                                <!-- IF helpdesk_queue_rows.S_HAS_REPLY_TEMPLATES -->
+                                <div class="helpdesk-team-row-reply-template" data-helpdesk-row-reply-template data-base-url="{helpdesk_queue_rows.U_TOPIC_REPLY_TEMPLATE_BASE}">
+                                    <label class="helpdesk-screen-reader" for="helpdesk-row-reply-template-fallback-{helpdesk_queue_rows.TOPIC_ID}">{L_HELPDESK_REPLY_TEMPLATES}</label>
+                                    <select id="helpdesk-row-reply-template-fallback-{helpdesk_queue_rows.TOPIC_ID}" class="helpdesk-team-row-reply-template-picker" data-helpdesk-row-reply-picker>{helpdesk_queue_rows.ROW_REPLY_TEMPLATE_OPTIONS_HTML}</select>
+                                    <a class="button button-secondary helpdesk-team-row-reply" href="{helpdesk_queue_rows.U_TOPIC_REPLY}" data-helpdesk-row-reply-launch>{L_POST_REPLY}</a>
+                                </div>
+                                <!-- ELSE -->
+                                <a class="button button-secondary helpdesk-team-row-reply" href="{helpdesk_queue_rows.U_TOPIC_REPLY}">{L_POST_REPLY}</a>
+                                <!-- ENDIF -->
+                                <!-- ENDIF --><a class="button button-secondary helpdesk-team-row-open" href="{helpdesk_queue_rows.U_TOPIC}">{L_HELPDESK_TEAM_QUEUE_ROW_OPEN_TOPIC}</a>
+                                <!-- ENDIF -->
+                            </div>
+                        </td>
+                        <!-- ENDIF -->
                     </tr>
                     <!-- END helpdesk_queue_rows -->
                 </tbody>
@@ -1559,7 +1857,30 @@
         </div>
         <!-- ENDIF -->
         <!-- ELSE -->
-        <p class="helpdesk-note">{L_HELPDESK_FILTER_NO_RESULTS}</p>
+        <div class="helpdesk-empty-state helpdesk-empty-state-queue">
+            <div class="helpdesk-empty-state-copy">
+                <h4>{L_HELPDESK_TEAM_EMPTY_STATE_TITLE}</h4>
+                <p class="helpdesk-note">{L_HELPDESK_FILTER_NO_RESULTS}</p>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_EMPTY_STATE_EXPLAIN}</p>
+                <div class="helpdesk-team-context-pills helpdesk-empty-state-pills">
+                    <span class="helpdesk-context-pill is-primary"><strong>{L_HELPDESK_TEAM_EMPTY_STATE_CURRENT_VIEW}:</strong> {HELPDESK_QUEUE_VIEW_LABEL}</span>
+                    <span class="helpdesk-context-pill"><strong>{L_HELPDESK_TEAM_QUEUE_SCOPE}:</strong> {HELPDESK_FILTER_SCOPE_LABEL}</span>
+                    <!-- IF HELPDESK_FILTER_FORUM_LABEL --><span class="helpdesk-context-pill"><strong>{L_FORUM}:</strong> {HELPDESK_FILTER_FORUM_LABEL}</span><!-- ENDIF -->
+                    <!-- IF HELPDESK_FILTER_STATUS_LABEL --><span class="helpdesk-context-pill"><strong>{L_HELPDESK_STATUS}:</strong> {HELPDESK_FILTER_STATUS_LABEL}</span><!-- ENDIF -->
+                    <!-- IF HELPDESK_FILTER_DEPARTMENT_LABEL --><span class="helpdesk-context-pill"><strong>{L_HELPDESK_DEPARTMENT}:</strong> {HELPDESK_FILTER_DEPARTMENT_LABEL}</span><!-- ENDIF -->
+                    <!-- IF HELPDESK_FILTER_PRIORITY_LABEL --><span class="helpdesk-context-pill"><strong>{L_HELPDESK_PRIORITY}:</strong> {HELPDESK_FILTER_PRIORITY_LABEL}</span><!-- ENDIF -->
+                    <!-- IF HELPDESK_FILTER_ASSIGNED_TO --><span class="helpdesk-context-pill"><strong>{L_HELPDESK_ASSIGNED_TO}:</strong> {HELPDESK_FILTER_ASSIGNED_TO}</span><!-- ENDIF -->
+                </div>
+            </div>
+            <div class="helpdesk-empty-state-actions">
+                <!-- IF S_HELPDESK_QUEUE_CONTEXT_HAS_OVERRIDES --><a class="button button-primary" href="{U_HELPDESK_TEAM_QUEUE_RESET_CURRENT}">{L_HELPDESK_TEAM_EMPTY_STATE_RESET_CURRENT}</a><!-- ENDIF -->
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_QUEUE}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_PERSONAL}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_PERSONAL}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_TRIAGE}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_TRIAGE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_REPORTS}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_REPORTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_ALERTS}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_ALERTS}</a>
+            </div>
+        </div>
         <!-- ENDIF -->
     </div>
 </div>
@@ -1572,6 +1893,13 @@
         <h3>{L_HELPDESK_REPORTS_TITLE}</h3>
         <p class="helpdesk-note">{L_HELPDESK_REPORTS_EXPLAIN}</p>
         <!-- IF S_HELPDESK_REPORT_HAS_DATA -->
+        <div class="helpdesk-report-actions">
+            <p class="helpdesk-note helpdesk-report-actions-note">{L_HELPDESK_REPORT_EXPORT_EXPLAIN}</p>
+            <div class="helpdesk-report-actions-buttons">
+                <a class="button button-secondary" href="{U_HELPDESK_REPORT_EXPORT_SUMMARY}">{L_HELPDESK_REPORT_EXPORT_SUMMARY}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_REPORT_EXPORT_TICKETS}">{L_HELPDESK_REPORT_EXPORT_TICKETS}</a>
+            </div>
+        </div>
         <div class="helpdesk-team-cards helpdesk-team-cards-report">
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_TOTAL}"><strong>{HELPDESK_REPORT_TOTAL}</strong><span>{L_HELPDESK_REPORT_TOTAL}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_REPORT_ACTIVE}"><strong>{HELPDESK_REPORT_ACTIVE}</strong><span>{L_HELPDESK_REPORT_ACTIVE}</span></a>
@@ -1753,7 +2081,17 @@
         </div>
 
         <!-- ELSE -->
-        <p class="helpdesk-note">{L_HELPDESK_FILTER_NO_RESULTS}</p>
+        <div class="helpdesk-empty-state helpdesk-empty-state-report">
+            <div class="helpdesk-empty-state-copy">
+                <h4>{L_HELPDESK_TEAM_EMPTY_STATE_REPORTS_TITLE}</h4>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_EMPTY_STATE_REPORTS_EXPLAIN}</p>
+            </div>
+            <div class="helpdesk-empty-state-actions">
+                <a class="button button-primary" href="{U_HELPDESK_TEAM_QUEUE_RESET_QUEUE}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_OVERVIEW}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_OVERVIEW}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_ALERTS}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_ALERTS}</a>
+            </div>
+        </div>
         <!-- ENDIF -->
     </div>
 </div>
@@ -1771,6 +2109,7 @@
             <div class="helpdesk-team-card helpdesk-report-card"><strong>{HELPDESK_ALERT_TOTAL_COUNT}</strong><span>{L_HELPDESK_TEAM_ALERTS_TOTAL}</span></div>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_NO_REPLY}"><strong>{HELPDESK_ALERT_FIRST_REPLY_COUNT}</strong><span>{L_HELPDESK_QUEUE_FIRST_REPLY}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_OVERDUE}"><strong>{HELPDESK_ALERT_OVERDUE_COUNT}</strong><span>{L_HELPDESK_QUEUE_OVERDUE}</span></a>
+            <!-- IF S_HELPDESK_SLA_ENABLED --><a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_DUE_TODAY}"><strong>{HELPDESK_ALERT_DUE_TODAY_COUNT}</strong><span>{L_HELPDESK_QUEUE_DUE_TODAY}</span></a><!-- ENDIF -->
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STALE}"><strong>{HELPDESK_ALERT_STALE_COUNT}</strong><span>{L_HELPDESK_QUEUE_STALE}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_VERY_OLD}"><strong>{HELPDESK_ALERT_VERY_OLD_COUNT}</strong><span>{L_HELPDESK_QUEUE_VERY_OLD}</span></a>
             <a class="helpdesk-team-card helpdesk-report-card helpdesk-report-card-link" href="{U_HELPDESK_TEAM_QUEUE_SCOPE_STAFF_REPLY}"><strong>{HELPDESK_ALERT_STAFF_REPLY_COUNT}</strong><span>{L_HELPDESK_QUEUE_STAFF_REPLY}</span></a>
@@ -1835,7 +2174,18 @@
             </details>
         </div>
         <!-- ELSE -->
-        <p class="helpdesk-note">{L_HELPDESK_TEAM_ALERTS_NO_ACTIVE}</p>
+        <div class="helpdesk-empty-state helpdesk-empty-state-alerts">
+            <div class="helpdesk-empty-state-copy">
+                <h4>{L_HELPDESK_TEAM_EMPTY_STATE_ALERTS_TITLE}</h4>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_EMPTY_STATE_ALERTS_EXPLAIN}</p>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_ALERTS_NO_ACTIVE}</p>
+            </div>
+            <div class="helpdesk-empty-state-actions">
+                <a class="button button-primary" href="{U_HELPDESK_TEAM_QUEUE_RESET_QUEUE}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_REPORTS}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_REPORTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_HISTORY}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_HISTORY}</a>
+            </div>
+        </div>
         <!-- ENDIF -->
     </div>
 </div>
@@ -1885,7 +2235,18 @@
             </div>
         </details>
         <!-- ELSE -->
-        <p class="helpdesk-note">{L_HELPDESK_TEAM_HISTORY_EMPTY}</p>
+        <div class="helpdesk-empty-state helpdesk-empty-state-history">
+            <div class="helpdesk-empty-state-copy">
+                <h4>{L_HELPDESK_TEAM_EMPTY_STATE_HISTORY_TITLE}</h4>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_EMPTY_STATE_HISTORY_EXPLAIN}</p>
+                <p class="helpdesk-note">{L_HELPDESK_TEAM_HISTORY_EMPTY}</p>
+            </div>
+            <div class="helpdesk-empty-state-actions">
+                <a class="button button-primary" href="{U_HELPDESK_TEAM_QUEUE_RESET_QUEUE}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_QUEUE}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_ALERTS}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_ALERTS}</a>
+                <a class="button button-secondary" href="{U_HELPDESK_TEAM_QUEUE_RESET_OVERVIEW}">{L_HELPDESK_TEAM_EMPTY_STATE_OPEN_OVERVIEW}</a>
+            </div>
+        </div>
         <!-- ENDIF -->
     </div>
 </div>
@@ -1918,6 +2279,128 @@ document.addEventListener('DOMContentLoaded', function () {
     var sectionJumpList = document.querySelector('[data-helpdesk-section-jump-list]');
     var savedViewsJumpWrap = document.querySelector('[data-helpdesk-saved-views-jump-wrap]');
     var savedViewsJumpButton = document.querySelector('[data-helpdesk-jump-saved-views]');
+
+    function relocateInlineRowActions() {
+        Array.prototype.forEach.call(document.querySelectorAll('.helpdesk-team-table-wrap[data-helpdesk-inline-actions]'), function (wrap) {
+            var table = wrap.querySelector('.helpdesk-team-table');
+            var movedCount = 0;
+            var activeClasses = [wrap.classList.contains('is-topic-compact-view') ? 'has-inline-compact-actions' : 'has-inline-row-actions'];
+
+            if (wrap.classList.contains('is-triage-view')) {
+                activeClasses.push('has-inline-triage-actions');
+            }
+
+            if (!table) {
+                return;
+            }
+
+            Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (row) {
+                var target = row.querySelector('[data-helpdesk-inline-actions-target]');
+                var source = row.querySelector('[data-helpdesk-inline-actions-source]');
+                var sourceCell = row.querySelector('[data-helpdesk-inline-actions-cell]');
+
+                if (!target || !source || !sourceCell || target.contains(source)) {
+                    return;
+                }
+
+                target.appendChild(source);
+                sourceCell.setAttribute('hidden', 'hidden');
+                row.classList.add('helpdesk-team-row-has-inline-actions');
+                movedCount += 1;
+            });
+
+            if (movedCount > 0) {
+                wrap.classList.add.apply(wrap.classList, activeClasses);
+            }
+        });
+    }
+
+    relocateInlineRowActions();
+
+    var triageMoreStateKey = 'helpdesk-team-triage-more-state';
+
+    function getTriageMorePanels() {
+        return Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-triage-more-actions]'));
+    }
+
+    function readTriageMoreState() {
+        if (!window.localStorage) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(localStorage.getItem(triageMoreStateKey) || 'null');
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function writeTriageMoreState(state) {
+        if (!window.localStorage) {
+            return;
+        }
+
+        try {
+            if (!state || !state.topicId) {
+                localStorage.removeItem(triageMoreStateKey);
+                return;
+            }
+
+            localStorage.setItem(triageMoreStateKey, JSON.stringify(state));
+        } catch (error) {
+        }
+    }
+
+    function restoreTriageMoreState() {
+        if (!getTriageMorePanels().length) {
+            return;
+        }
+
+        var state = readTriageMoreState();
+
+        if (!state || !state.topicId) {
+            return;
+        }
+
+        getTriageMorePanels().forEach(function (panel) {
+            if (panel.getAttribute('data-topic-id') === String(state.topicId)) {
+                panel.open = true;
+            }
+        });
+    }
+
+    function bindTriageMoreActionsState() {
+        getTriageMorePanels().forEach(function (panel) {
+            panel.addEventListener('toggle', function () {
+                if (panel.open) {
+                    writeTriageMoreState({
+                        topicId: panel.getAttribute('data-topic-id'),
+                        view: currentView || 'triage'
+                    });
+                    return;
+                }
+
+                var state = readTriageMoreState();
+
+                if (state && String(state.topicId) === String(panel.getAttribute('data-topic-id'))) {
+                    writeTriageMoreState(null);
+                }
+            });
+
+            Array.prototype.forEach.call(panel.querySelectorAll('form'), function (form) {
+                form.addEventListener('submit', function () {
+                    writeTriageMoreState({
+                        topicId: panel.getAttribute('data-topic-id'),
+                        view: currentView || 'triage'
+                    });
+                });
+            });
+        });
+
+        restoreTriageMoreState();
+    }
+
+    bindTriageMoreActionsState();
 
     function setLayoutFeedback(message, isError) {
         if (!layoutFeedback) {
@@ -4060,6 +4543,60 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+});
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var replyTemplateRows = Array.prototype.slice.call(document.querySelectorAll('[data-helpdesk-row-reply-template]'));
+    if (!replyTemplateRows.length) {
+        return;
+    }
+
+    var buildReplyUrl = function (baseUrl, templateKey) {
+        if (!baseUrl) {
+            return '#';
+        }
+
+        try {
+            var url = new URL(baseUrl, window.location.href);
+            url.searchParams.set('helpdesk_focus_reply', '1');
+            if (templateKey) {
+                url.searchParams.set('helpdesk_reply_template', templateKey);
+                url.searchParams.set('helpdesk_reply_template_insert', '1');
+            } else {
+                url.searchParams.delete('helpdesk_reply_template');
+                url.searchParams.delete('helpdesk_reply_template_insert');
+            }
+            url.hash = 'helpdesk-focus-reply';
+            return url.toString();
+        } catch (error) {
+            var separator = baseUrl.indexOf('?') === -1 ? '?' : '&';
+            var urlString = baseUrl;
+            if (templateKey) {
+                urlString += separator + 'helpdesk_reply_template=' + encodeURIComponent(templateKey) + '&helpdesk_reply_template_insert=1';
+            }
+            return urlString + '#helpdesk-focus-reply';
+        }
+    };
+
+    replyTemplateRows.forEach(function (row) {
+        var picker = row.querySelector('[data-helpdesk-row-reply-picker]');
+        var launcher = row.querySelector('[data-helpdesk-row-reply-launch]');
+        var baseUrl = row.getAttribute('data-base-url') || '';
+
+        if (!picker || !launcher || !baseUrl) {
+            return;
+        }
+
+        var syncLauncher = function () {
+            launcher.setAttribute('href', buildReplyUrl(baseUrl, picker.value || ''));
+        };
+
+        picker.addEventListener('change', syncLauncher);
+        syncLauncher();
+    });
 });
 </script>
 

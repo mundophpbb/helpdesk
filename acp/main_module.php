@@ -54,6 +54,7 @@ class main_module
             'mundophpbb_helpdesk_departments_en',
         ], $this->default_departments());
         $parsed_departments = $this->parse_keyed_list_definitions($department_definitions);
+        $department_reply_templates = isset($config['mundophpbb_helpdesk_department_reply_templates']) ? (string) $config['mundophpbb_helpdesk_department_reply_templates'] : '';
         $priority_high_status = $this->configured_optional_status($config, 'mundophpbb_helpdesk_priority_high_status', $parsed_statuses);
         $priority_critical_status = $this->configured_optional_status($config, 'mundophpbb_helpdesk_priority_critical_status', $parsed_statuses);
         $category_definitions = $this->configured_list($config, 'mundophpbb_helpdesk_categories', [
@@ -152,6 +153,9 @@ class main_module
                 $config->set('mundophpbb_helpdesk_category_enable', $request->variable('mundophpbb_helpdesk_category_enable', 1));
                 $config->set('mundophpbb_helpdesk_department_enable', $request->variable('mundophpbb_helpdesk_department_enable', 1));
                 $config->set('mundophpbb_helpdesk_assignment_enable', $request->variable('mundophpbb_helpdesk_assignment_enable', 1));
+                $config->set('mundophpbb_helpdesk_require_reason_status', $request->variable('mundophpbb_helpdesk_require_reason_status', 0));
+                $config->set('mundophpbb_helpdesk_require_reason_priority', $request->variable('mundophpbb_helpdesk_require_reason_priority', 0));
+                $config->set('mundophpbb_helpdesk_require_reason_assignment', $request->variable('mundophpbb_helpdesk_require_reason_assignment', 0));
                 $config->set('mundophpbb_helpdesk_team_panel_enable', $team_panel_enable);
                 $config->set('mundophpbb_helpdesk_alerts_enable', $alerts_enable);
                 $config->set('mundophpbb_helpdesk_alert_hours', $alert_hours);
@@ -159,7 +163,15 @@ class main_module
                 $config->set('mundophpbb_helpdesk_sla_enable', $request->variable('mundophpbb_helpdesk_sla_enable', 1));
                 $config->set('mundophpbb_helpdesk_sla_hours', $sla_hours);
                 $config->set('mundophpbb_helpdesk_stale_hours', $stale_hours);
+                $removed = 0;
+                $department_reply_templates = $this->sanitize_department_reply_templates(trim($request->variable('mundophpbb_helpdesk_department_reply_templates', '', true)), $parsed_departments, $removed);
+                if ($removed > 0)
+                {
+                    $messages[] = $user->lang('ACP_HELPDESK_VALIDATION_LINES_IGNORED', $user->lang('ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES'), $removed);
+                }
+
                 $config->set('mundophpbb_helpdesk_old_hours', $old_hours);
+                $config->set('mundophpbb_helpdesk_department_reply_templates', $department_reply_templates);
             }
             else if ($section === 'automation')
             {
@@ -489,6 +501,9 @@ class main_module
             'HELPDESK_CATEGORY_ENABLE' => !empty($config['mundophpbb_helpdesk_category_enable']),
             'HELPDESK_DEPARTMENT_ENABLE' => !empty($config['mundophpbb_helpdesk_department_enable']),
             'HELPDESK_ASSIGNMENT_ENABLE' => !empty($config['mundophpbb_helpdesk_assignment_enable']),
+            'HELPDESK_REQUIRE_REASON_STATUS' => !empty($config['mundophpbb_helpdesk_require_reason_status']),
+            'HELPDESK_REQUIRE_REASON_PRIORITY' => !empty($config['mundophpbb_helpdesk_require_reason_priority']),
+            'HELPDESK_REQUIRE_REASON_ASSIGNMENT' => !empty($config['mundophpbb_helpdesk_require_reason_assignment']),
             'HELPDESK_TEAM_PANEL_ENABLE' => !empty($config['mundophpbb_helpdesk_team_panel_enable']),
             'HELPDESK_ALERTS_ENABLE' => !empty($config['mundophpbb_helpdesk_alerts_enable']),
             'HELPDESK_ALERT_HOURS' => isset($config['mundophpbb_helpdesk_alert_hours']) ? (int) $config['mundophpbb_helpdesk_alert_hours'] : 24,
@@ -497,6 +512,7 @@ class main_module
             'HELPDESK_SLA_HOURS' => isset($config['mundophpbb_helpdesk_sla_hours']) ? (int) $config['mundophpbb_helpdesk_sla_hours'] : 24,
             'HELPDESK_STALE_HOURS' => isset($config['mundophpbb_helpdesk_stale_hours']) ? (int) $config['mundophpbb_helpdesk_stale_hours'] : 72,
             'HELPDESK_OLD_HOURS' => isset($config['mundophpbb_helpdesk_old_hours']) ? (int) $config['mundophpbb_helpdesk_old_hours'] : 168,
+            'HELPDESK_DEPARTMENT_REPLY_TEMPLATES' => $department_reply_templates,
             'HELPDESK_AUTOMATION_ENABLE' => !empty($config['mundophpbb_helpdesk_automation_enable']),
             'HELPDESK_AUTO_LOCK_CLOSED' => !empty($config['mundophpbb_helpdesk_auto_lock_closed']),
             'HELPDESK_AUTO_UNLOCK_REOPENED' => !empty($config['mundophpbb_helpdesk_auto_unlock_reopened']),
@@ -1091,6 +1107,90 @@ class main_module
 ", $normalized), $definitions, $errors];
     }
 
+
+    protected function sanitize_department_reply_templates($raw, array $departments, &$removed)
+    {
+        $lines = preg_split('/\r\n|\r|\n/', (string) $raw);
+        $cleaned = [];
+        $removed = 0;
+
+        foreach ($lines as $line)
+        {
+            $line = trim((string) $line);
+            if ($line === '' || strpos($line, '#') === 0)
+            {
+                continue;
+            }
+            $parts = $this->split_escaped_pipe_parts($line, 3);
+            if (count($parts) !== 3)
+            {
+                $removed++;
+                continue;
+            }
+
+            $department_key = trim(str_replace('\\|', '|', $parts[0]));
+            $template_label = trim(str_replace('\\|', '|', $parts[1]));
+            $template_body = trim(str_replace('\\|', '|', $parts[2]));
+
+            if ($department_key === '' || $template_label === '' || $template_body === '')
+            {
+                $removed++;
+                continue;
+            }
+
+            if ($department_key !== '*' && !isset($departments[$department_key]))
+            {
+                $removed++;
+                continue;
+            }
+
+            $cleaned[] = $department_key . '|' . $template_label . '|' . $template_body;
+        }
+
+        return implode("\n", $cleaned);
+    }
+
+
+    protected function split_escaped_pipe_parts($line, $limit)
+    {
+        $parts = [];
+        $buffer = '';
+        $length = function_exists('utf8_strlen') ? utf8_strlen((string) $line) : strlen((string) $line);
+        $escape = false;
+
+        for ($i = 0; $i < $length; $i++)
+        {
+            $char = function_exists('utf8_substr') ? utf8_substr($line, $i, 1) : substr($line, $i, 1);
+
+            if ($escape)
+            {
+                $buffer .= $char;
+                $escape = false;
+                continue;
+            }
+
+            if ($char === '\\')
+            {
+                $escape = true;
+                $buffer .= $char;
+                continue;
+            }
+
+            if ($char === '|' && count($parts) < ($limit - 1))
+            {
+                $parts[] = $buffer;
+                $buffer = '';
+                continue;
+            }
+
+            $buffer .= $char;
+        }
+
+        $parts[] = $buffer;
+
+        return $parts;
+    }
+
     protected function sanitize_department_rule_definitions($raw, array $departments, array $statuses, &$removed)
     {
         $removed = 0;
@@ -1363,6 +1463,9 @@ class main_module
             $config->set('mundophpbb_helpdesk_category_enable', 1);
             $config->set('mundophpbb_helpdesk_department_enable', 1);
             $config->set('mundophpbb_helpdesk_assignment_enable', 1);
+            $config->set('mundophpbb_helpdesk_require_reason_status', 0);
+            $config->set('mundophpbb_helpdesk_require_reason_priority', 0);
+            $config->set('mundophpbb_helpdesk_require_reason_assignment', 0);
             $config->set('mundophpbb_helpdesk_team_panel_enable', 1);
             $config->set('mundophpbb_helpdesk_alerts_enable', 1);
             $config->set('mundophpbb_helpdesk_alert_hours', 24);
@@ -1371,6 +1474,7 @@ class main_module
             $config->set('mundophpbb_helpdesk_sla_hours', 24);
             $config->set('mundophpbb_helpdesk_stale_hours', 72);
             $config->set('mundophpbb_helpdesk_old_hours', 168);
+            $config->set('mundophpbb_helpdesk_department_reply_templates', '');
             return $messages;
         }
 

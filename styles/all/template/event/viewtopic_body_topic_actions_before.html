@@ -35,6 +35,34 @@
         <p class="helpdesk-note helpdesk-topic-link"><a class="button2" href="{U_HELPDESK_TEAM_QUEUE}">{L_HELPDESK_TEAM_QUEUE_LINK}</a></p>
         <!-- ENDIF -->
 
+
+
+        <!-- IF S_HELPDESK_CAN_USE_REPLY_TEMPLATES -->
+        <div class="helpdesk-reply-templates-box" data-helpdesk-reply-templates="1">
+            <h4>{L_HELPDESK_REPLY_TEMPLATES}</h4>
+            <div class="helpdesk-reply-templates-grid">
+                <div class="helpdesk-reply-templates-field">
+                    <label for="helpdesk_reply_template_picker">{L_HELPDESK_REPLY_TEMPLATES}{L_COLON}</label>
+                    <select id="helpdesk_reply_template_picker" data-helpdesk-reply-picker="1">
+                        <!-- BEGIN helpdesk_reply_templates -->
+                        <option value="{helpdesk_reply_templates.KEY}">{helpdesk_reply_templates.LABEL}</option>
+                        <!-- END helpdesk_reply_templates -->
+                    </select>
+                </div>
+                <div class="helpdesk-reply-templates-actions">
+                    <button type="button" class="button2" data-helpdesk-reply-insert="1">{L_HELPDESK_REPLY_TEMPLATE_INSERT}</button>
+                </div>
+            </div>
+            <p class="helpdesk-note">{L_HELPDESK_REPLY_TEMPLATES_EXPLAIN}</p>
+            <div class="helpdesk-reply-templates-preview" data-helpdesk-reply-preview="1">{HELPDESK_REPLY_TEMPLATE_PREVIEW}</div>
+            <div class="helpdesk-reply-templates-data" hidden="hidden">
+                <!-- BEGIN helpdesk_reply_templates -->
+                <span data-helpdesk-reply-key="{helpdesk_reply_templates.KEY}" data-helpdesk-reply-body="{helpdesk_reply_templates.BODY_B64}"></span>
+                <!-- END helpdesk_reply_templates -->
+            </div>
+        </div>
+        <!-- ENDIF -->
+
         <!-- IF S_HELPDESK_CAN_MANAGE_PANEL -->
         <div class="helpdesk-manage-box">
             <h4>{L_HELPDESK_MANAGE_STATUS}</h4>
@@ -83,7 +111,7 @@
                     <div class="helpdesk-manage-field helpdesk-manage-field-wide">
                         <label for="helpdesk_change_reason">{L_HELPDESK_CHANGE_REASON}{L_COLON}</label>
                         <textarea name="helpdesk_change_reason" id="helpdesk_change_reason" rows="2">{HELPDESK_CHANGE_REASON_VALUE}</textarea>
-                        <p class="helpdesk-note">{L_HELPDESK_CHANGE_REASON_EXPLAIN}</p>
+                        <p class="helpdesk-note">{L_HELPDESK_CHANGE_REASON_EXPLAIN}<!-- IF S_HELPDESK_REASON_REQUIRED_ANY --><br />{HELPDESK_CHANGE_REASON_RULES_TEXT}<!-- ENDIF --></p>
                     </div>
                     <div class="helpdesk-manage-actions">
                         <input type="submit" class="button1" name="helpdesk_save_management" value="{L_HELPDESK_SAVE_CHANGES}" />
@@ -99,14 +127,38 @@
             <h4>{L_HELPDESK_ACTIVITY_HISTORY}</h4>
             <ul class="helpdesk-history-list">
                 <!-- BEGIN helpdesk_activity_history -->
-                <li>
-                    <span class="helpdesk-history-type {helpdesk_activity_history.ACTION_CLASS}">{helpdesk_activity_history.ACTION_LABEL}</span>
+                <li class="helpdesk-history-item {helpdesk_activity_history.ACTION_CLASS}">
+                    <span class="helpdesk-history-marker" aria-hidden="true"></span>
                     <div class="helpdesk-history-body">
-                        <span class="helpdesk-history-status">{helpdesk_activity_history.LOG_TEXT}</span>
-                        <!-- IF helpdesk_activity_history.LOG_REASON -->
-                        <span class="helpdesk-history-reason">{L_HELPDESK_CHANGE_REASON}{L_COLON} {helpdesk_activity_history.LOG_REASON}</span>
+                        <div class="helpdesk-history-head">
+                            <span class="helpdesk-history-type {helpdesk_activity_history.ACTION_CLASS}">{helpdesk_activity_history.ACTION_LABEL}</span>
+                            <span class="helpdesk-history-meta">{helpdesk_activity_history.LOG_TIME}</span>
+                        </div>
+                        <div class="helpdesk-history-main">
+                            <strong class="helpdesk-history-actor">{helpdesk_activity_history.LOG_USERNAME}</strong>
+                            <span class="helpdesk-history-status">{helpdesk_activity_history.LOG_TEXT}</span>
+                        </div>
+                        <!-- IF helpdesk_activity_history.S_HAS_CHANGE_PAIR -->
+                        <div class="helpdesk-history-change-pair">
+                            <span class="helpdesk-history-change from">{helpdesk_activity_history.LOG_OLD_LABEL}</span>
+                            <span class="helpdesk-history-change-arrow" aria-hidden="true">&rarr;</span>
+                            <span class="helpdesk-history-change to">{helpdesk_activity_history.LOG_NEW_LABEL}</span>
+                        </div>
+                        <!-- ELSEIF helpdesk_activity_history.S_CHANGE_SET and helpdesk_activity_history.S_HAS_CHANGE_TARGET -->
+                        <div class="helpdesk-history-change-pair is-single">
+                            <span class="helpdesk-history-change to">{helpdesk_activity_history.LOG_NEW_LABEL}</span>
+                        </div>
+                        <!-- ELSEIF helpdesk_activity_history.S_CHANGE_CLEAR and helpdesk_activity_history.S_HAS_CHANGE_SOURCE -->
+                        <div class="helpdesk-history-change-pair is-single">
+                            <span class="helpdesk-history-change from">{helpdesk_activity_history.LOG_OLD_LABEL}</span>
+                        </div>
                         <!-- ENDIF -->
-                        <span class="helpdesk-history-meta">{helpdesk_activity_history.LOG_USERNAME} &middot; {helpdesk_activity_history.LOG_TIME}</span>
+                        <!-- IF helpdesk_activity_history.LOG_REASON -->
+                        <div class="helpdesk-history-reason">
+                            <span class="helpdesk-history-reason-label">{L_HELPDESK_CHANGE_REASON}</span>
+                            <span class="helpdesk-history-reason-text">{helpdesk_activity_history.LOG_REASON}</span>
+                        </div>
+                        <!-- ENDIF -->
                     </div>
                 </li>
                 <!-- END helpdesk_activity_history -->

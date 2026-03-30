@@ -63,6 +63,21 @@ class queue_controller
         $this->priority_cache = null;
     }
 
+    protected function safe_array($value)
+    {
+        return is_array($value) ? $value : [];
+    }
+
+    protected function safe_bucket(array $source, $key)
+    {
+        return (isset($source[$key]) && is_array($source[$key])) ? $source[$key] : [];
+    }
+
+    protected function safe_count($value)
+    {
+        return is_countable($value) ? count($value) : 0;
+    }
+
     public function display()
     {
         $this->user->add_lang_ext('mundophpbb/helpdesk', 'common');
@@ -98,7 +113,7 @@ class queue_controller
             'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
         ];
 
-        if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+        if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
         {
             $filters['scope'] = 'all';
         }
@@ -132,7 +147,7 @@ class queue_controller
         $overview_health = $this->build_overview_health($counts);
         $filtered_rows = $this->filter_rows($rows, $filters);
         $sorted_rows = $this->sort_queue_rows($filtered_rows, $sort_by);
-        $queue_total_results = count($sorted_rows);
+        $queue_total_results = $this->safe_count($sorted_rows);
         $queue_total_pages = max(1, (int) ceil($queue_total_results / max(1, $per_page)));
         $queue_page = max(1, (int) $this->request->variable('page', 1));
         if ($queue_page > $queue_total_pages)
@@ -142,9 +157,9 @@ class queue_controller
         $queue_offset = max(0, ($queue_page - 1) * $per_page);
         $paged_rows = array_slice($sorted_rows, $queue_offset, $per_page);
         $queue_results_from = ($queue_total_results > 0) ? ($queue_offset + 1) : 0;
-        $queue_results_to = ($queue_total_results > 0) ? min($queue_offset + count($paged_rows), $queue_total_results) : 0;
+        $queue_results_to = ($queue_total_results > 0) ? min($queue_offset + $this->safe_count($paged_rows), $queue_total_results) : 0;
 
-        $recent_alerts = $this->alerts_enabled() ? $this->load_recent_alerts($forum_ids) : [];
+        $recent_alerts = $this->safe_array($this->alerts_enabled() ? $this->load_recent_alerts($forum_ids) : []);
         $history_overview = $this->build_history_overview($recent_alerts);
         $alert_overview = $this->build_alert_overview($filtered_rows);
         $filtered_assignee_load = $this->build_assignee_load($filtered_rows);
@@ -218,6 +233,12 @@ class queue_controller
         $preview_top_impacts = ($preview_mode !== '') ? $this->build_preview_top_impact_rows($preview_impact) : [];
         $preview_groups = ($preview_mode !== '') ? $this->build_preview_group_rows($preview_impact) : [];
         $preview_departments = ($preview_mode !== '') ? $this->build_preview_department_rows($preview_plan) : [];
+
+        $export_type = $this->normalize_queue_export((string) $this->request->variable('export', '', true));
+        if ($export_type !== '')
+        {
+            return $this->export_queue_csv_response($export_type, $queue_view, $filters, $report, $sorted_rows, $executive_summary, $shift_plan, $team_productivity);
+        }
 
         $queue_forums = $this->forum_info($forum_ids);
         $selected_forum_label = '';
@@ -380,70 +401,70 @@ class queue_controller
             $this->template->assign_block_vars('helpdesk_recent_alerts', $alert);
         }
 
-        foreach ($alert_overview['type_rows'] as $type_row)
+        foreach ($this->safe_bucket($alert_overview, 'type_rows') as $type_row)
         {
             $this->template->assign_block_vars('helpdesk_alert_type_rows', $type_row);
         }
-        foreach ($alert_overview['assignee_rows'] as $assignee_row)
+        foreach ($this->safe_bucket($alert_overview, 'assignee_rows') as $assignee_row)
         {
             $this->template->assign_block_vars('helpdesk_alert_assignee_rows', $assignee_row);
         }
-        foreach ($alert_overview['forum_rows'] as $forum_row)
+        foreach ($this->safe_bucket($alert_overview, 'forum_rows') as $forum_row)
         {
             $this->template->assign_block_vars('helpdesk_alert_forum_rows', $forum_row);
         }
-        foreach ($alert_overview['ticket_rows'] as $ticket_row)
+        foreach ($this->safe_bucket($alert_overview, 'ticket_rows') as $ticket_row)
         {
             $this->template->assign_block_vars('helpdesk_alert_ticket_rows', $ticket_row);
         }
 
-        foreach ($report['status_rows'] as $status_row)
+        foreach ($this->safe_bucket($report, 'status_rows') as $status_row)
         {
             $this->template->assign_block_vars('helpdesk_report_status_rows', $status_row);
         }
 
-        foreach ($report['department_rows'] as $department_row)
+        foreach ($this->safe_bucket($report, 'department_rows') as $department_row)
         {
             $this->template->assign_block_vars('helpdesk_report_department_rows', $department_row);
         }
-        foreach ($report['priority_rows'] as $priority_row)
+        foreach ($this->safe_bucket($report, 'priority_rows') as $priority_row)
         {
             $this->template->assign_block_vars('helpdesk_report_priority_rows', $priority_row);
         }
-        foreach ($report['assignee_rows'] as $assignee_row)
+        foreach ($this->safe_bucket($report, 'assignee_rows') as $assignee_row)
         {
             $this->template->assign_block_vars('helpdesk_report_assignee_rows', $assignee_row);
         }
-        foreach ($report['workload_rows'] as $workload_row)
+        foreach ($this->safe_bucket($report, 'workload_rows') as $workload_row)
         {
             $this->template->assign_block_vars('helpdesk_report_workload_rows', $workload_row);
         }
-        foreach ($report['workload_relief_rows'] as $relief_row)
+        foreach ($this->safe_bucket($report, 'workload_relief_rows') as $relief_row)
         {
             $this->template->assign_block_vars('helpdesk_report_workload_relief_rows', $relief_row);
         }
-        foreach ($report['workload_support_rows'] as $support_row)
+        foreach ($this->safe_bucket($report, 'workload_support_rows') as $support_row)
         {
             $this->template->assign_block_vars('helpdesk_report_workload_support_rows', $support_row);
         }
-        foreach ($load_distribution['rows'] as $load_distribution_row)
+        foreach ($this->safe_bucket($load_distribution, 'rows') as $load_distribution_row)
         {
             $this->template->assign_block_vars('helpdesk_load_distribution_rows', $load_distribution_row);
         }
-        foreach ($load_distribution['relief_rows'] as $relief_row)
+        foreach ($this->safe_bucket($load_distribution, 'relief_rows') as $relief_row)
         {
             $this->template->assign_block_vars('helpdesk_load_distribution_relief_rows', $relief_row);
         }
-        foreach ($load_distribution['support_rows'] as $support_row)
+        foreach ($this->safe_bucket($load_distribution, 'support_rows') as $support_row)
         {
             $this->template->assign_block_vars('helpdesk_load_distribution_support_rows', $support_row);
         }
-        foreach ($department_pressure['focus_rows'] as $focus_row)
+        foreach ($this->safe_bucket($department_pressure, 'focus_rows') as $focus_row)
         {
             $this->template->assign_block_vars('helpdesk_department_focus_rows', $focus_row);
         }
         $department_pressure_index = 0;
-        foreach ($department_pressure['rows'] as $department_pressure_row)
+        foreach ($this->safe_bucket($department_pressure, 'rows') as $department_pressure_row)
         {
             if ($department_pressure_index >= 8)
             {
@@ -453,12 +474,12 @@ class queue_controller
             $this->template->assign_block_vars('helpdesk_department_pressure_rows', $department_pressure_row);
             $department_pressure_index++;
         }
-        foreach ($forum_backlog['focus_rows'] as $forum_focus_row)
+        foreach ($this->safe_bucket($forum_backlog, 'focus_rows') as $forum_focus_row)
         {
             $this->template->assign_block_vars('helpdesk_forum_backlog_focus_rows', $forum_focus_row);
         }
         $forum_backlog_index = 0;
-        foreach ($forum_backlog['rows'] as $forum_backlog_row)
+        foreach ($this->safe_bucket($forum_backlog, 'rows') as $forum_backlog_row)
         {
             if ($forum_backlog_index >= 8)
             {
@@ -469,7 +490,7 @@ class queue_controller
             $forum_backlog_index++;
         }
         $forum_department_index = 0;
-        foreach ($forum_department_backlog['rows'] as $forum_department_row)
+        foreach ($this->safe_bucket($forum_department_backlog, 'rows') as $forum_department_row)
         {
             if ($forum_department_index >= 8)
             {
@@ -479,47 +500,47 @@ class queue_controller
             $this->template->assign_block_vars('helpdesk_forum_department_backlog_rows', $forum_department_row);
             $forum_department_index++;
         }
-        foreach ($backlog_aging['focus_rows'] as $backlog_aging_focus_row)
+        foreach ($this->safe_bucket($backlog_aging, 'focus_rows') as $backlog_aging_focus_row)
         {
             $this->template->assign_block_vars('helpdesk_backlog_aging_focus_rows', $backlog_aging_focus_row);
         }
-        foreach ($backlog_aging['rows'] as $backlog_aging_row)
+        foreach ($this->safe_bucket($backlog_aging, 'rows') as $backlog_aging_row)
         {
             $this->template->assign_block_vars('helpdesk_backlog_aging_rows', $backlog_aging_row);
         }
-        foreach ($team_productivity['focus_rows'] as $productivity_focus_row)
+        foreach ($this->safe_bucket($team_productivity, 'focus_rows') as $productivity_focus_row)
         {
             $this->template->assign_block_vars('helpdesk_team_productivity_focus_rows', $productivity_focus_row);
         }
-        foreach ($team_productivity['rows'] as $productivity_row)
+        foreach ($this->safe_bucket($team_productivity, 'rows') as $productivity_row)
         {
             $this->template->assign_block_vars('helpdesk_report_productivity_rows', $productivity_row);
         }
-        foreach ($team_productivity['assignee_rows'] as $response_row)
+        foreach ($this->safe_bucket($team_productivity, 'assignee_rows') as $response_row)
         {
             $this->template->assign_block_vars('helpdesk_report_response_rows', $response_row);
         }
-        foreach ($executive_summary['focus_rows'] as $executive_focus_row)
+        foreach ($this->safe_bucket($executive_summary, 'focus_rows') as $executive_focus_row)
         {
             $this->template->assign_block_vars('helpdesk_executive_focus_rows', $executive_focus_row);
         }
-        foreach ($executive_summary['report_rows'] as $executive_report_row)
+        foreach ($this->safe_bucket($executive_summary, 'report_rows') as $executive_report_row)
         {
             $this->template->assign_block_vars('helpdesk_report_executive_rows', $executive_report_row);
         }
-        foreach ($shift_plan['focus_rows'] as $shift_focus_row)
+        foreach ($this->safe_bucket($shift_plan, 'focus_rows') as $shift_focus_row)
         {
             $this->template->assign_block_vars('helpdesk_shift_plan_focus_rows', $shift_focus_row);
         }
-        foreach ($shift_plan['report_rows'] as $shift_report_row)
+        foreach ($this->safe_bucket($shift_plan, 'report_rows') as $shift_report_row)
         {
             $this->template->assign_block_vars('helpdesk_report_shift_plan_rows', $shift_report_row);
         }
-        foreach ($shift_plan['pull_rows'] as $shift_pull_row)
+        foreach ($this->safe_bucket($shift_plan, 'pull_rows') as $shift_pull_row)
         {
             $this->template->assign_block_vars('helpdesk_shift_plan_pull_rows', $shift_pull_row);
         }
-        foreach ($shift_plan['relief_rows'] as $shift_relief_row)
+        foreach ($this->safe_bucket($shift_plan, 'relief_rows') as $shift_relief_row)
         {
             $this->template->assign_block_vars('helpdesk_shift_plan_relief_rows', $shift_relief_row);
         }
@@ -567,7 +588,7 @@ class queue_controller
         {
             $this->template->assign_block_vars('helpdesk_preview_department_rows', $preview_department_row);
         }
-        foreach ($overview_health['rows'] as $overview_health_row)
+        foreach ($this->safe_bucket($overview_health, 'rows') as $overview_health_row)
         {
             $this->template->assign_block_vars('helpdesk_overview_health_rows', $overview_health_row);
         }
@@ -579,6 +600,7 @@ class queue_controller
         $priority_label = ($filters['priority_key'] !== '') ? $this->priority_meta($filters['priority_key'])['label'] : '';
         $scope_label = $this->queue_scope_label($filters['scope']);
         $sort_label = $this->queue_sort_options()[$sort_by] ?? $this->queue_sort_options()['queue'];
+        $queue_view_label = $this->queue_view_label($queue_view);
         $default_scope = $this->default_scope_for_queue_view($queue_view);
         $scope_is_default = ($filters['scope'] === $default_scope);
         $context_has_extra_filters = ((int) $filters['forum_id'] > 0 || $filters['status_key'] !== '' || $filters['department_key'] !== '' || $filters['priority_key'] !== '' || $filters['assigned_to'] !== '');
@@ -590,9 +612,15 @@ class queue_controller
             $this->template->assign_block_vars('helpdesk_queue_context_actions', $context_action);
         }
 
+        foreach ($this->build_queue_preset_rows($queue_view, $filters, $counts, !empty($config['helpdesk_sla_enabled'])) as $preset_row)
+        {
+            $this->template->assign_block_vars('helpdesk_queue_preset_rows', $preset_row);
+        }
+
         $this->template->assign_vars([
             'S_HELPDESK_TEAM_QUEUE' => true,
             'HELPDESK_QUEUE_VIEW' => $queue_view,
+            'HELPDESK_QUEUE_VIEW_LABEL' => $queue_view_label,
             'S_HELPDESK_QUEUE_VIEW_OVERVIEW' => ($queue_view === 'overview'),
             'S_HELPDESK_QUEUE_VIEW_QUEUE' => ($queue_view === 'queue'),
             'S_HELPDESK_QUEUE_VIEW_PERSONAL' => ($queue_view === 'personal'),
@@ -603,8 +631,10 @@ class queue_controller
             'S_HELPDESK_QUEUE_VIEW_HISTORY' => ($queue_view === 'history'),
             'HELPDESK_QUEUE_TOTAL' => $counts['total'],
             'HELPDESK_QUEUE_OPEN_COUNT' => $counts['open'],
+            'HELPDESK_QUEUE_WITHIN_SLA_COUNT' => $counts['within_sla'],
             'HELPDESK_QUEUE_UNASSIGNED_COUNT' => $counts['unassigned'],
             'HELPDESK_QUEUE_OVERDUE_COUNT' => $counts['overdue'],
+            'HELPDESK_QUEUE_DUE_TODAY_COUNT' => $counts['due_today'],
             'HELPDESK_QUEUE_AGING_COUNT' => $counts['aging'],
             'HELPDESK_QUEUE_STALE_COUNT' => $counts['stale'],
             'HELPDESK_QUEUE_VERY_OLD_COUNT' => $counts['very_old'],
@@ -619,7 +649,7 @@ class queue_controller
             'HELPDESK_QUEUE_REDISTRIBUTION_COUNT' => $counts['redistribute'],
             'HELPDESK_QUEUE_REDISTRIBUTION_SMART_COUNT' => $smart_redistribution_count,
             'HELPDESK_QUEUE_REDISTRIBUTION_BALANCED_COUNT' => $balanced_redistribution_count,
-            'HELPDESK_QUEUE_PREVIEW_COUNT' => count($preview_plan),
+            'HELPDESK_QUEUE_PREVIEW_COUNT' => $this->safe_count($preview_plan),
             'HELPDESK_QUEUE_PREVIEW_SOURCE_COUNT' => $this->count_preview_sources($preview_impact),
             'HELPDESK_QUEUE_PREVIEW_TARGET_COUNT' => $this->count_preview_targets($preview_impact),
             'HELPDESK_QUEUE_MY_COUNT' => $counts['my'],
@@ -642,6 +672,7 @@ class queue_controller
             'HELPDESK_ALERT_TOTAL_COUNT' => $alert_overview['alert_total'],
             'HELPDESK_ALERT_FIRST_REPLY_COUNT' => $alert_overview['first_reply'],
             'HELPDESK_ALERT_OVERDUE_COUNT' => $alert_overview['overdue'],
+            'HELPDESK_ALERT_DUE_TODAY_COUNT' => $alert_overview['due_today'],
             'HELPDESK_ALERT_STALE_COUNT' => $alert_overview['stale'],
             'HELPDESK_ALERT_VERY_OLD_COUNT' => $alert_overview['very_old'],
             'HELPDESK_ALERT_STAFF_REPLY_COUNT' => $alert_overview['staff_reply'],
@@ -745,11 +776,21 @@ class queue_controller
             'HELPDESK_QUEUE_RESULTS_TOTAL' => $queue_total_results,
             'HELPDESK_QUEUE_RESULTS_SUMMARY_TEXT' => sprintf($this->user->lang('HELPDESK_QUEUE_RESULTS_SUMMARY'), $queue_results_from, $queue_results_to, $queue_total_results),
             'U_HELPDESK_TEAM_QUEUE' => $this->queue_view_url('queue'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_CURRENT' => $this->queue_preset_url($queue_view, $this->default_scope_for_queue_view($queue_view)),
+            'U_HELPDESK_TEAM_QUEUE_RESET_OVERVIEW' => $this->queue_preset_url('overview', 'all'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_QUEUE' => $this->queue_preset_url('queue', 'all'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_PERSONAL' => $this->queue_preset_url('personal', 'my'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_TRIAGE' => $this->queue_preset_url('triage', 'all'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_BALANCE' => $this->queue_preset_url('balance', 'all'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_REPORTS' => $this->queue_preset_url('reports', 'all'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_ALERTS' => $this->queue_preset_url('alerts', 'all'),
+            'U_HELPDESK_TEAM_QUEUE_RESET_HISTORY' => $this->queue_preset_url('history', 'all'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_ALL' => $this->queue_scope_url('all'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_MY' => $this->queue_scope_url('my', 'personal'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_UNASSIGNED' => $this->queue_scope_url('unassigned'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_NO_REPLY' => $this->queue_scope_url('no_reply'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_OVERDUE' => $this->queue_scope_url('overdue'),
+            'U_HELPDESK_TEAM_QUEUE_SCOPE_DUE_TODAY' => $this->queue_scope_url('due_today'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_AGING' => $this->queue_scope_url('aging'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_STALE' => $this->queue_scope_url('stale'),
             'U_HELPDESK_TEAM_QUEUE_SCOPE_VERY_OLD' => $this->queue_scope_url('very_old'),
@@ -771,6 +812,7 @@ class queue_controller
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_MY' => $this->queue_scope_url('my', 'personal'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_UNASSIGNED' => $this->queue_scope_url('unassigned', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_OVERDUE' => $this->queue_scope_url('overdue', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
+            'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_DUE_TODAY' => $this->queue_scope_url('due_today', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_AGING' => $this->queue_scope_url('aging', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_STALE' => $this->queue_scope_url('stale', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
             'U_HELPDESK_TEAM_QUEUE_NAV_SCOPE_VERY_OLD' => $this->queue_scope_url('very_old', in_array($queue_view, ['queue', 'triage', 'balance'], true) ? $queue_view : 'queue'),
@@ -822,6 +864,7 @@ class queue_controller
             'U_HELPDESK_SHIFT_PLAN_BALANCE' => $this->queue_view_url('balance'),
             'U_HELPDESK_SHIFT_PLAN_REPORTS' => $this->queue_view_url('reports'),
             'S_HELPDESK_ALERTS_ENABLED' => $this->alerts_enabled(),
+            'S_HELPDESK_SLA_ENABLED' => $this->sla_enabled(),
             'S_HELPDESK_ALERT_OVERVIEW_HAS_DATA' => ($alert_overview['alert_total'] > 0),
             'S_HELPDESK_HISTORY_HAS_DATA' => ($history_overview['total'] > 0),
             'S_HELPDESK_QUEUE_HAS_RESULTS' => !empty($paged_rows),
@@ -867,6 +910,11 @@ class queue_controller
             'S_HELPDESK_QUEUE_BULK_PRIORITY_ENABLED' => $this->can_assign_any_queue($forum_ids) && $this->priority_enabled(),
             'S_HELPDESK_QUEUE_BULK_DEPARTMENT_ENABLED' => $this->can_assign_any_queue($forum_ids) && $this->department_enabled(),
             'S_HELPDESK_QUEUE_BULK_ASSIGNMENT_ENABLED' => $this->can_assign_any_queue($forum_ids) && $this->assignment_enabled(),
+            'S_HELPDESK_REASON_REQUIRED_STATUS' => $this->status_reason_required(),
+            'S_HELPDESK_REASON_REQUIRED_PRIORITY' => $this->priority_reason_required(),
+            'S_HELPDESK_REASON_REQUIRED_ASSIGNMENT' => $this->assignment_reason_required(),
+            'S_HELPDESK_REASON_REQUIRED_ANY' => $this->any_change_reason_required(),
+            'HELPDESK_CHANGE_REASON_RULES_TEXT' => $this->change_reason_requirements_text(),
             'U_HELPDESK_TEAM_QUEUE' => $this->helper->route('mundophpbb_helpdesk_queue_controller'),
             'S_HELPDESK_QUEUE_NOTICE' => $this->queue_notice_text() !== '',
             'HELPDESK_QUEUE_NOTICE_TEXT' => $this->queue_notice_text(),
@@ -900,12 +948,396 @@ class queue_controller
             'U_HELPDESK_REPORT_STALE' => $this->queue_report_scope_url('stale'),
             'U_HELPDESK_REPORT_VERY_OLD' => $this->queue_report_scope_url('very_old'),
             'U_HELPDESK_REPORT_STAFF_REPLY' => $this->queue_report_scope_url('staff_reply'),
+            'U_HELPDESK_REPORT_EXPORT_SUMMARY' => $this->queue_export_url('report_summary', 'reports'),
+            'U_HELPDESK_REPORT_EXPORT_TICKETS' => $this->queue_export_url('ticket_rows', 'reports'),
             'U_HELPDESK_BACKLOG_AGING_REPORT' => $this->queue_view_url('reports'),
             'U_HELPDESK_BACKLOG_AGING_QUEUE' => $this->queue_view_url('queue'),
             'U_HELPDESK_BACKLOG_AGING_ALERTS' => $this->queue_view_url('alerts'),
         ]);
 
         return $this->helper->render('helpdesk_queue_body.html', $this->user->lang('HELPDESK_TEAM_QUEUE_TITLE'));
+    }
+
+
+    protected function normalize_queue_export($value)
+    {
+        $value = trim((string) $value);
+        return in_array($value, ['report_summary', 'ticket_rows'], true) ? $value : '';
+    }
+
+    protected function queue_export_url($export_type, $view = 'reports', array $overrides = [])
+    {
+        $export_type = $this->normalize_queue_export($export_type);
+        if ($export_type === '')
+        {
+            return $this->queue_view_url((string) $view);
+        }
+
+        $allowed_views = ['overview', 'queue', 'personal', 'triage', 'balance', 'reports', 'alerts', 'history'];
+        $view = in_array((string) $view, $allowed_views, true) ? (string) $view : 'reports';
+
+        return $this->queue_list_url(array_merge([
+            'qview' => $view,
+            'page' => 1,
+            'export' => $export_type,
+        ], $overrides), ['preview', 'queue_notice']);
+    }
+
+    protected function export_queue_csv_response($export_type, $queue_view, array $filters, array $report, array $rows, array $executive_summary = [], array $shift_plan = [], array $team_productivity = [])
+    {
+        $filename = $this->queue_export_filename($export_type, $queue_view);
+        $csv_rows = ($export_type === 'ticket_rows')
+            ? $this->build_queue_ticket_export_rows($rows)
+            : $this->build_queue_report_export_rows($queue_view, $filters, $report, $rows, $executive_summary, $shift_plan, $team_productivity);
+
+        $csv = $this->build_csv_content($csv_rows);
+        $response = new \Symfony\Component\HttpFoundation\Response($csv);
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Cache-Control', 'private, max-age=0, must-revalidate');
+
+        return $response;
+    }
+
+    protected function queue_export_filename($export_type, $queue_view)
+    {
+        $base = 'helpdesk_' . $this->slugify((string) $queue_view) . '_' . $this->slugify((string) $export_type);
+        if ($base === 'helpdesk__')
+        {
+            $base = 'helpdesk_export';
+        }
+
+        return $base . '_' . gmdate('Ymd_His') . '.csv';
+    }
+
+    protected function build_queue_report_export_rows($queue_view, array $filters, array $report, array $rows, array $executive_summary = [], array $shift_plan = [], array $team_productivity = [])
+    {
+        $csv_rows = [];
+        $csv_rows[] = [$this->user->lang('HELPDESK_REPORT_EXPORT_SECTION'), $this->user->lang('HELPDESK_REPORT_EXPORT_LABEL'), $this->user->lang('HELPDESK_REPORT_EXPORT_VALUE'), $this->user->lang('HELPDESK_REPORT_EXPORT_EXTRA')];
+
+        $filter_labels = [
+            'qview' => $this->queue_view_label($queue_view),
+            'scope' => $this->queue_scope_label(isset($filters['scope']) ? (string) $filters['scope'] : 'all'),
+            'forum_id' => $this->queue_filter_forum_label(isset($filters['forum_id']) ? (int) $filters['forum_id'] : 0),
+            'status_key' => $this->queue_filter_status_label(isset($filters['status_key']) ? (string) $filters['status_key'] : ''),
+            'department_key' => $this->queue_filter_department_label(isset($filters['department_key']) ? (string) $filters['department_key'] : ''),
+            'priority_key' => $this->queue_filter_priority_label(isset($filters['priority_key']) ? (string) $filters['priority_key'] : ''),
+            'assigned_to' => $this->queue_filter_assignee_label(isset($filters['assigned_to']) ? (string) $filters['assigned_to'] : ''),
+            'generated_at' => $this->user->format_date(time()),
+            'ticket_count' => $this->safe_count($rows),
+        ];
+
+        foreach ($filter_labels as $filter_key => $filter_value)
+        {
+            $csv_rows[] = [$this->user->lang('HELPDESK_REPORT_EXPORT_FILTERS'), $filter_key, (string) $filter_value, ''];
+        }
+
+        $metric_map = [
+            'HELPDESK_REPORT_TOTAL' => isset($report['total']) ? $report['total'] : 0,
+            'HELPDESK_REPORT_ACTIVE' => isset($report['active']) ? $report['active'] : 0,
+            'HELPDESK_REPORT_RESOLVED' => isset($report['resolved']) ? $report['resolved'] : 0,
+            'HELPDESK_REPORT_CLOSED' => isset($report['closed']) ? $report['closed'] : 0,
+            'HELPDESK_REPORT_UNASSIGNED' => isset($report['unassigned']) ? $report['unassigned'] : 0,
+            'HELPDESK_REPORT_FIRST_REPLY' => isset($report['first_reply']) ? $report['first_reply'] : 0,
+            'HELPDESK_REPORT_UPDATED_24H' => isset($report['updated_24h']) ? $report['updated_24h'] : 0,
+            'HELPDESK_REPORT_CREATED_24H' => isset($report['created_24h']) ? $report['created_24h'] : 0,
+            'HELPDESK_REPORT_OVERDUE' => isset($report['overdue']) ? $report['overdue'] : 0,
+            'HELPDESK_REPORT_AGING' => isset($report['aging']) ? $report['aging'] : 0,
+            'HELPDESK_QUEUE_STALE' => isset($report['stale']) ? $report['stale'] : 0,
+            'HELPDESK_QUEUE_VERY_OLD' => isset($report['very_old']) ? $report['very_old'] : 0,
+            'HELPDESK_REPORT_STAFF_REPLY' => isset($report['staff_reply']) ? $report['staff_reply'] : 0,
+            'HELPDESK_REPORT_AVG_AGE' => isset($report['avg_age_label']) ? $report['avg_age_label'] : '',
+            'HELPDESK_REPORT_AVG_IDLE' => isset($report['avg_idle_label']) ? $report['avg_idle_label'] : '',
+        ];
+
+        foreach ($metric_map as $metric_lang => $metric_value)
+        {
+            $csv_rows[] = [$this->user->lang('HELPDESK_REPORT_EXPORT_METRICS'), $this->user->lang($metric_lang), (string) $metric_value, ''];
+        }
+
+        $list_sections = [
+            'status_rows' => $this->user->lang('HELPDESK_REPORT_BY_STATUS'),
+            'department_rows' => $this->user->lang('HELPDESK_REPORT_BY_DEPARTMENT'),
+            'priority_rows' => $this->user->lang('HELPDESK_REPORT_BY_PRIORITY'),
+            'assignee_rows' => $this->user->lang('HELPDESK_REPORT_BY_ASSIGNEE'),
+            'workload_rows' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_BUCKETS'),
+            'workload_relief_rows' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_RELIEF_TITLE'),
+            'workload_support_rows' => $this->user->lang('HELPDESK_TEAM_QUEUE_LOAD_DISTRIBUTION_SUPPORT_TITLE'),
+        ];
+
+        foreach ($list_sections as $section_key => $section_label)
+        {
+            if (empty($report[$section_key]) || !is_array($report[$section_key]))
+            {
+                continue;
+            }
+
+            foreach ($report[$section_key] as $row)
+            {
+                $csv_rows[] = [
+                    $section_label,
+                    isset($row['LABEL']) ? (string) $row['LABEL'] : '',
+                    isset($row['COUNT']) ? (string) $row['COUNT'] : '',
+                    $this->queue_export_row_extra($row),
+                ];
+            }
+        }
+
+        if (!empty($executive_summary['report_rows']) && is_array($executive_summary['report_rows']))
+        {
+            foreach ($executive_summary['report_rows'] as $row)
+            {
+                $csv_rows[] = [
+                    $this->user->lang('HELPDESK_TEAM_QUEUE_EXECUTIVE_REPORT_TITLE'),
+                    isset($row['LABEL']) ? (string) $row['LABEL'] : '',
+                    isset($row['COUNT']) ? (string) $row['COUNT'] : '',
+                    $this->queue_export_row_extra($row),
+                ];
+            }
+        }
+
+        if (!empty($shift_plan['report_rows']) && is_array($shift_plan['report_rows']))
+        {
+            foreach ($shift_plan['report_rows'] as $row)
+            {
+                $csv_rows[] = [
+                    $this->user->lang('HELPDESK_TEAM_QUEUE_SHIFT_PLAN_REPORT_TITLE'),
+                    isset($row['LABEL']) ? (string) $row['LABEL'] : '',
+                    isset($row['COUNT']) ? (string) $row['COUNT'] : '',
+                    $this->queue_export_row_extra($row),
+                ];
+            }
+        }
+
+        if (!empty($team_productivity['rows']) && is_array($team_productivity['rows']))
+        {
+            foreach ($team_productivity['rows'] as $row)
+            {
+                $csv_rows[] = [
+                    $this->user->lang('HELPDESK_TEAM_QUEUE_PRODUCTIVITY_TITLE'),
+                    isset($row['LABEL']) ? (string) $row['LABEL'] : '',
+                    isset($row['COUNT']) ? (string) $row['COUNT'] : '',
+                    $this->queue_export_row_extra($row),
+                ];
+            }
+        }
+
+        return $csv_rows;
+    }
+
+    protected function build_queue_ticket_export_rows(array $rows)
+    {
+        $csv_rows = [[
+            'topic_id',
+            'forum',
+            'topic_title',
+            'status',
+            'priority',
+            'department',
+            'assigned_to',
+            'reply_count',
+            'queue_score',
+            'created_at',
+            'updated_at',
+            'last_activity_at',
+            'sla_deadline_at',
+            'overdue',
+            'stale',
+            'staff_reply',
+            'unassigned',
+            'topic_url',
+            'reply_url',
+        ]];
+
+        foreach ($rows as $row)
+        {
+            $csv_rows[] = [
+                isset($row['TOPIC_ID']) ? (string) $row['TOPIC_ID'] : '',
+                isset($row['FORUM_NAME']) ? (string) $row['FORUM_NAME'] : '',
+                isset($row['TOPIC_TITLE']) ? (string) $row['TOPIC_TITLE'] : '',
+                isset($row['STATUS_LABEL']) ? (string) $row['STATUS_LABEL'] : '',
+                isset($row['PRIORITY_LABEL']) ? (string) $row['PRIORITY_LABEL'] : '',
+                isset($row['DEPARTMENT_LABEL']) ? (string) $row['DEPARTMENT_LABEL'] : '',
+                isset($row['ASSIGNED_TO']) ? (string) $row['ASSIGNED_TO'] : '',
+                isset($row['REPLY_COUNT']) ? (string) $row['REPLY_COUNT'] : '0',
+                isset($row['QUEUE_SCORE']) ? (string) $row['QUEUE_SCORE'] : '0',
+                $this->queue_export_format_timestamp(isset($row['CREATED_TS']) ? (int) $row['CREATED_TS'] : 0),
+                isset($row['UPDATED_AT']) ? (string) $row['UPDATED_AT'] : '',
+                isset($row['LAST_ACTIVITY_AT']) ? (string) $row['LAST_ACTIVITY_AT'] : '',
+                isset($row['SLA_DEADLINE_AT']) ? (string) $row['SLA_DEADLINE_AT'] : '',
+                !empty($row['IS_OVERDUE']) ? '1' : '0',
+                !empty($row['IS_STALE']) ? '1' : '0',
+                !empty($row['IS_STAFF_REPLY']) ? '1' : '0',
+                !empty($row['IS_UNASSIGNED']) ? '1' : '0',
+                isset($row['U_TOPIC']) ? (string) $row['U_TOPIC'] : '',
+                isset($row['U_TOPIC_REPLY']) ? (string) $row['U_TOPIC_REPLY'] : '',
+            ];
+        }
+
+        return $csv_rows;
+    }
+
+    protected function build_csv_content(array $rows)
+    {
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+
+        foreach ($rows as $row)
+        {
+            if (!is_array($row))
+            {
+                continue;
+            }
+
+            fputcsv($stream, array_map(function ($value) {
+                return $this->queue_export_cell($value);
+            }, array_values($row)));
+        }
+
+        rewind($stream);
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+
+        return (string) $csv;
+    }
+
+    protected function queue_export_cell($value)
+    {
+        if (is_bool($value))
+        {
+            return $value ? '1' : '0';
+        }
+
+        if ($value === null)
+        {
+            return '';
+        }
+
+        $value = str_replace(["\r\n", "\r", "\n"], ' ', (string) $value);
+        return trim($value);
+    }
+
+    protected function queue_export_row_extra(array $row)
+    {
+        $extra = [];
+
+        if (isset($row['PERCENT']) && (string) $row['PERCENT'] !== '')
+        {
+            $extra[] = (string) $row['PERCENT'];
+        }
+        if (isset($row['SECTION_LABEL']) && (string) $row['SECTION_LABEL'] !== '')
+        {
+            $extra[] = (string) $row['SECTION_LABEL'];
+        }
+        if (isset($row['STATUS_LABEL']) && (string) $row['STATUS_LABEL'] !== '')
+        {
+            $extra[] = (string) $row['STATUS_LABEL'];
+        }
+        if (isset($row['WORKLOAD_LABEL']) && (string) $row['WORKLOAD_LABEL'] !== '')
+        {
+            $extra[] = (string) $row['WORKLOAD_LABEL'];
+        }
+        if (isset($row['ACTIVE_COUNT']) && (string) $row['ACTIVE_COUNT'] !== '')
+        {
+            $extra[] = $this->user->lang('HELPDESK_QUEUE_LOAD_ACTIVE') . ': ' . (string) $row['ACTIVE_COUNT'];
+        }
+        if (isset($row['OVERDUE_COUNT']) && (string) $row['OVERDUE_COUNT'] !== '')
+        {
+            $extra[] = $this->user->lang('HELPDESK_QUEUE_OVERDUE') . ': ' . (string) $row['OVERDUE_COUNT'];
+        }
+        if (isset($row['CRITICAL_COUNT']) && (string) $row['CRITICAL_COUNT'] !== '')
+        {
+            $extra[] = $this->user->lang('HELPDESK_CRITICALITY_CRITICAL') . ': ' . (string) $row['CRITICAL_COUNT'];
+        }
+        if (isset($row['SCORE']) && (string) $row['SCORE'] !== '')
+        {
+            $extra[] = $this->user->lang('HELPDESK_QUEUE_LOAD_SCORE') . ': ' . (string) $row['SCORE'];
+        }
+
+        return implode(' | ', array_unique($extra));
+    }
+
+    protected function queue_export_format_timestamp($timestamp)
+    {
+        $timestamp = (int) $timestamp;
+        return ($timestamp > 0) ? $this->user->format_date($timestamp) : '';
+    }
+
+    protected function queue_view_label($queue_view)
+    {
+        $map = [
+            'overview' => 'HELPDESK_QUEUE_SECTION_OVERVIEW',
+            'queue' => 'HELPDESK_QUEUE_SECTION_QUEUE',
+            'personal' => 'HELPDESK_QUEUE_SECTION_PERSONAL',
+            'triage' => 'HELPDESK_QUEUE_SECTION_TRIAGE',
+            'balance' => 'HELPDESK_QUEUE_SECTION_BALANCE',
+            'reports' => 'HELPDESK_QUEUE_SECTION_REPORTS',
+            'alerts' => 'HELPDESK_QUEUE_SECTION_ALERTS',
+            'history' => 'HELPDESK_QUEUE_SECTION_HISTORY',
+        ];
+
+        return isset($map[$queue_view]) ? $this->user->lang($map[$queue_view]) : (string) $queue_view;
+    }
+
+    protected function queue_filter_forum_label($forum_id)
+    {
+        $forum_id = (int) $forum_id;
+        if ($forum_id <= 0)
+        {
+            return $this->user->lang('HELPDESK_FILTER_ALL');
+        }
+
+        foreach ($this->forum_info($this->accessible_forum_ids()) as $forum)
+        {
+            if ((int) $forum['forum_id'] === $forum_id)
+            {
+                return (string) $forum['forum_name'];
+            }
+        }
+
+        return (string) $forum_id;
+    }
+
+    protected function queue_filter_status_label($status_key)
+    {
+        $status_key = (string) $status_key;
+        if ($status_key === '')
+        {
+            return $this->user->lang('HELPDESK_FILTER_ALL');
+        }
+
+        $definitions = $this->status_definitions();
+        return isset($definitions[$status_key]) ? $this->status_label_from_definition($definitions[$status_key]) : $status_key;
+    }
+
+    protected function queue_filter_department_label($department_key)
+    {
+        $department_key = (string) $department_key;
+        if ($department_key === '')
+        {
+            return $this->user->lang('HELPDESK_FILTER_ALL');
+        }
+
+        $options = $this->department_options();
+        return isset($options[$department_key]) ? (string) $options[$department_key] : $department_key;
+    }
+
+    protected function queue_filter_priority_label($priority_key)
+    {
+        $priority_key = (string) $priority_key;
+        if ($priority_key === '')
+        {
+            return $this->user->lang('HELPDESK_FILTER_ALL');
+        }
+
+        $definitions = $this->priority_definitions();
+        return isset($definitions[$priority_key]) ? $this->priority_label_from_definition($definitions[$priority_key]) : $priority_key;
+    }
+
+    protected function queue_filter_assignee_label($assigned_to)
+    {
+        $assigned_to = trim((string) $assigned_to);
+        return ($assigned_to !== '') ? $assigned_to : $this->user->lang('HELPDESK_FILTER_ALL');
     }
 
 
@@ -953,7 +1385,7 @@ class queue_controller
         $filtered_rows = $this->filter_my_ticket_rows($my_rows, $scope, $forum_id);
         $sorted_rows = $this->sort_queue_rows($filtered_rows, $sort_by);
 
-        $total_results = count($sorted_rows);
+        $total_results = $this->safe_count($sorted_rows);
         $total_pages = max(1, (int) ceil($total_results / max(1, $per_page)));
         $page = max(1, (int) $this->request->variable('page', 1));
         if ($page > $total_pages)
@@ -963,7 +1395,7 @@ class queue_controller
         $offset = max(0, ($page - 1) * $per_page);
         $paged_rows = array_slice($sorted_rows, $offset, $per_page);
         $results_from = ($total_results > 0) ? ($offset + 1) : 0;
-        $results_to = ($total_results > 0) ? min($offset + count($paged_rows), $total_results) : 0;
+        $results_to = ($total_results > 0) ? min($offset + $this->safe_count($paged_rows), $total_results) : 0;
 
         $forums = $this->forum_info($forum_ids);
         $selected_forum_label = '';
@@ -1068,6 +1500,7 @@ class queue_controller
         $this->db->sql_freeresult($result);
 
         $reply_counts = $this->load_reply_counts(array_column($source_rows, 'topic_id'));
+        $topic_authors = $this->load_usernames_by_ids(array_column($source_rows, 'topic_poster'));
 
         $rows = [];
         foreach ($source_rows as $row)
@@ -1078,7 +1511,9 @@ class queue_controller
             $reply_count = $this->topic_reply_count($row);
             $reopen_count = $this->get_reopen_count((int) $row['topic_id']);
             $staff_reply_pending = $this->is_waiting_staff_response($row, $status_meta['tone']);
+            $sla_deadline_ts = $this->sla_enabled() ? $this->ticket_sla_deadline($row) : 0;
             $is_overdue = $this->sla_enabled() && $this->is_ticket_overdue($row);
+            $is_due_today = $this->sla_enabled() && !$is_overdue && $this->is_ticket_due_today($row, $status_meta['tone']);
             $is_aging = $this->sla_enabled() && $this->is_ticket_aging($row);
             $is_stale = $this->sla_enabled() && $this->is_ticket_stale($row);
             $is_very_old = $this->is_ticket_very_old($row);
@@ -1118,6 +1553,10 @@ class queue_controller
             if ($is_overdue)
             {
                 $alerts[] = $this->user->lang('HELPDESK_QUEUE_OVERDUE');
+            }
+            if ($is_due_today)
+            {
+                $alerts[] = $this->user->lang('HELPDESK_QUEUE_DUE_TODAY');
             }
             if ($is_aging)
             {
@@ -1166,6 +1605,64 @@ class queue_controller
                 $queue_rule_labels[] = sprintf($this->user->lang('HELPDESK_QUEUE_ASSIGNEE_MATCH'), $this->extract_assigned_to($row));
             }
 
+
+            $sla_badge_label = '';
+            $sla_badge_class = '';
+            if ($this->is_active_status_tone($status_meta['tone']))
+            {
+                if ($is_overdue)
+                {
+                    $sla_badge_label = $this->user->lang('HELPDESK_QUEUE_OVERDUE');
+                    $sla_badge_class = 'helpdesk-tag-sla-overdue';
+                }
+                else if ($is_due_today)
+                {
+                    $sla_badge_label = $this->user->lang('HELPDESK_QUEUE_DUE_TODAY');
+                    $sla_badge_class = 'helpdesk-tag-sla-due-today';
+                }
+                else
+                {
+                    $sla_badge_label = $this->user->lang('HELPDESK_QUEUE_WITHIN_SLA');
+                    $sla_badge_class = 'helpdesk-tag-sla-within';
+                }
+            }
+
+            $response_badge_label = '';
+            $response_badge_class = '';
+            if ($is_stale)
+            {
+                $response_badge_label = $this->user->lang('HELPDESK_QUEUE_STALE');
+                $response_badge_class = 'helpdesk-tag-sla-stale';
+            }
+            else if ($staff_reply_pending)
+            {
+                $response_badge_label = $this->user->lang('HELPDESK_QUEUE_STAFF_REPLY');
+                $response_badge_class = 'helpdesk-tag-staff';
+            }
+            else if ($reply_count <= 0 && $this->is_active_status_tone($status_meta['tone']))
+            {
+                $response_badge_label = $this->user->lang('HELPDESK_QUEUE_FIRST_REPLY');
+                $response_badge_class = 'helpdesk-tag-criticality-attention';
+            }
+
+            $topic_author = isset($topic_authors[(int) $row['topic_poster']]) ? (string) $topic_authors[(int) $row['topic_poster']] : $this->user->lang('HELPDESK_REPLY_TEMPLATE_GENERIC_USER');
+            $department_key = $this->extract_department_key($row);
+            $department_label = $this->resolve_option_label($department_key, $this->department_options(), '');
+            $assigned_to_label = $this->extract_assigned_to($row);
+            $reply_templates = $this->department_reply_templates_for_topic(
+                $department_key,
+                [
+                    'USERNAME' => $topic_author !== '' ? $topic_author : $this->user->lang('HELPDESK_REPLY_TEMPLATE_GENERIC_USER'),
+                    'TOPIC_TITLE' => isset($row['topic_title']) ? (string) $row['topic_title'] : '',
+                    'TICKET_ID' => (string) ((int) $row['topic_id']),
+                    'DEPARTMENT' => $department_label,
+                    'STATUS' => $status_meta['label'],
+                    'PRIORITY' => $priority_meta['label'],
+                    'ASSIGNED_TO' => $assigned_to_label !== '' ? $assigned_to_label : $this->user->lang('HELPDESK_QUEUE_UNASSIGNED'),
+                    'BOARD_NAME' => isset($this->config['sitename']) ? (string) $this->config['sitename'] : '',
+                ]
+            );
+
             $rows[] = [
                 'TOPIC_ID' => (int) $row['topic_id'],
                 'FORUM_ID' => (int) $row['forum_id'],
@@ -1174,6 +1671,7 @@ class queue_controller
                 'TOPIC_POSTER_ID' => (int) $row['topic_poster'],
                 'TOPIC_LAST_POSTER_ID' => (int) $row['topic_last_poster_id'],
                 'U_TOPIC' => $this->topic_url((int) $row['forum_id'], (int) $row['topic_id']),
+                'U_TOPIC_REPLY' => $this->topic_reply_url((int) $row['forum_id'], (int) $row['topic_id']),
                 'U_FORUM' => $this->forum_url((int) $row['forum_id']),
                 'SELECTION_VALUE' => (int) $row['forum_id'] . ':' . (int) $row['topic_id'],
                 'STATUS_KEY' => (string) $row['status_key'],
@@ -1184,16 +1682,23 @@ class queue_controller
                 'PRIORITY_LABEL' => $priority_meta['label'],
                 'PRIORITY_CLASS' => $priority_meta['class'],
                 'PRIORITY_TONE' => $priority_meta['tone'],
-                'DEPARTMENT_KEY' => $this->extract_department_key($row),
-                'DEPARTMENT_LABEL' => $this->resolve_option_label($this->extract_department_key($row), $this->department_options(), ''),
-                'ASSIGNED_TO' => $this->extract_assigned_to($row),
+                'DEPARTMENT_KEY' => $department_key,
+                'DEPARTMENT_LABEL' => $department_label,
+                'ASSIGNED_TO' => $assigned_to_label,
                 'CREATED_TS' => !empty($row['created_time']) ? (int) $row['created_time'] : 0,
                 'UPDATED_TS' => !empty($row['updated_time']) ? (int) $row['updated_time'] : 0,
                 'REPLY_COUNT' => $reply_count,
                 'UPDATED_AT' => !empty($row['updated_time']) ? $this->user->format_date((int) $row['updated_time']) : '',
                 'LAST_ACTIVITY_AT' => $this->user->format_date($this->topic_last_activity_time($row)),
+                'SLA_DEADLINE_TS' => $sla_deadline_ts,
+                'SLA_DEADLINE_AT' => ($sla_deadline_ts > 0) ? $this->user->format_date($sla_deadline_ts) : '',
+                'SLA_BADGE_LABEL' => $sla_badge_label,
+                'SLA_BADGE_CLASS' => $sla_badge_class,
+                'RESPONSE_BADGE_LABEL' => $response_badge_label,
+                'RESPONSE_BADGE_CLASS' => $response_badge_class,
                 'IS_UNASSIGNED' => $this->extract_assigned_to($row) === '',
                 'IS_OVERDUE' => $is_overdue,
+                'IS_DUE_TODAY' => $is_due_today,
                 'IS_AGING' => $is_aging,
                 'IS_STALE' => $is_stale,
                 'IS_VERY_OLD' => $is_very_old,
@@ -1209,6 +1714,15 @@ class queue_controller
                 'QUEUE_SCORE' => $queue_score,
                 'QUEUE_RULE_LABEL' => !empty($queue_rule_labels) ? implode(' · ', $queue_rule_labels) : '',
                 'ALERT_TEXT' => implode(' · ', $alerts),
+                'ROW_STATUS_OPTIONS_HTML' => $this->build_queue_row_status_options_html((string) $row['status_key']),
+                'ROW_PRIORITY_OPTIONS_HTML' => $this->build_queue_row_priority_options_html(isset($row['priority_key']) ? (string) $row['priority_key'] : 'normal'),
+                'S_HAS_REPLY_TEMPLATES' => !empty($reply_templates),
+                'ROW_REPLY_TEMPLATE_OPTIONS_HTML' => $this->build_queue_row_reply_template_options_html($reply_templates),
+                'U_TOPIC_REPLY_TEMPLATE_BASE' => $this->topic_reply_template_base_url((int) $row['forum_id'], (int) $row['topic_id']),
+                'S_CAN_ASSIGN_SELF' => $this->can_assign_forum((int) $row['forum_id']) && $this->sanitize_assignee(isset($this->user->data['username']) ? (string) $this->user->data['username'] : '') !== '' && strtolower($this->extract_assigned_to($row)) !== strtolower($this->sanitize_assignee(isset($this->user->data['username']) ? (string) $this->user->data['username'] : '')),
+                'S_CAN_UNASSIGN' => $this->can_assign_forum((int) $row['forum_id']) && $this->extract_assigned_to($row) !== '',
+                'S_CAN_CHANGE_PRIORITY' => $this->can_assign_forum((int) $row['forum_id']) && $this->priority_enabled(),
+                'S_CAN_CHANGE_STATUS' => $this->can_assign_forum((int) $row['forum_id']),
             ];
         }
 
@@ -1250,21 +1764,7 @@ class queue_controller
         if ($apply_default_sort)
         {
             usort($rows, function ($a, $b) {
-                $scoreA = isset($a['QUEUE_SCORE']) ? (int) $a['QUEUE_SCORE'] : 0;
-                $scoreB = isset($b['QUEUE_SCORE']) ? (int) $b['QUEUE_SCORE'] : 0;
-                if ($scoreA !== $scoreB)
-                {
-                    return ($scoreA > $scoreB) ? -1 : 1;
-                }
-
-                $activityA = !empty($a['UPDATED_TS']) ? (int) $a['UPDATED_TS'] : (!empty($a['CREATED_TS']) ? (int) $a['CREATED_TS'] : 0);
-                $activityB = !empty($b['UPDATED_TS']) ? (int) $b['UPDATED_TS'] : (!empty($b['CREATED_TS']) ? (int) $b['CREATED_TS'] : 0);
-                if ($activityA !== $activityB)
-                {
-                    return ($activityA < $activityB) ? -1 : 1;
-                }
-
-                return ((int) $a['TOPIC_ID'] > (int) $b['TOPIC_ID']) ? -1 : 1;
+                return $this->compare_queue_operational_rows($a, $b);
             });
         }
 
@@ -1275,7 +1775,7 @@ class queue_controller
     protected function handle_queue_post_actions(array $forum_ids)
     {
         $action = $this->request->variable('helpdesk_queue_action', '', true);
-        if (!in_array($action, ['apply_bulk_triage', 'apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced', 'apply_redistribution_overload', 'apply_redistribution_department', 'apply_redistribution_critical', 'apply_redistribution_priority_high', 'apply_redistribution_priority_filtered', 'apply_redistribution_department_priority', 'apply_redistribution_cleanup', 'apply_redistribution_assignee', 'apply_redistribution_assignee_priority'], true))
+        if (!in_array($action, ['apply_bulk_triage', 'apply_row_assignment_self', 'apply_row_status', 'apply_row_priority', 'apply_redistribution', 'apply_redistribution_bulk', 'apply_redistribution_balanced', 'apply_redistribution_overload', 'apply_redistribution_department', 'apply_redistribution_critical', 'apply_redistribution_priority_high', 'apply_redistribution_priority_filtered', 'apply_redistribution_department_priority', 'apply_redistribution_cleanup', 'apply_redistribution_assignee', 'apply_redistribution_assignee_priority'], true))
         {
             return;
         }
@@ -1350,6 +1850,16 @@ class queue_controller
             }
 
             $change_reason = $this->sanitize_change_reason($this->request->variable('queue_bulk_reason', '', true));
+
+            if ($change_reason === '' && (
+                ($new_status !== '' && $this->status_reason_required())
+                || ($priority_has_change && $this->priority_reason_required())
+                || ($assignment_has_change && $this->assignment_reason_required())
+            ))
+            {
+                
+edirect($this->queue_redirect_url('bulk_reason_required'));
+            }
 
             if ($new_status === '' && !$priority_has_change && !$department_has_change && !$assignment_has_change)
             {
@@ -1445,6 +1955,85 @@ class queue_controller
             \redirect($this->queue_redirect_url($updated_count > 0 ? 'bulk_updated' : 'noop'));
         }
 
+        if (in_array($action, ['apply_row_assignment_self', 'apply_row_assignment_clear', 'apply_row_status', 'apply_row_priority'], true))
+        {
+            $topic_id = (int) $this->request->variable('topic_id', 0);
+            $forum_id = (int) $this->request->variable('row_forum_id', 0);
+            $change_reason = $this->sanitize_change_reason($this->request->variable('queue_row_reason', '', true));
+
+            if ($change_reason === '' && (
+                (in_array($action, ['apply_row_assignment_self', 'apply_row_assignment_clear'], true) && $this->assignment_reason_required())
+                || ($action === 'apply_row_status' && $this->status_reason_required())
+                || ($action === 'apply_row_priority' && $this->priority_reason_required())
+            ))
+            {
+                
+edirect($this->queue_redirect_url('row_reason_required'));
+            }
+
+            if ($topic_id <= 0 || $forum_id <= 0 || !in_array((int) $forum_id, array_map('intval', $forum_ids), true) || !$this->can_assign_forum($forum_id))
+            {
+                
+\redirect($this->queue_redirect_url('invalid'));
+            }
+
+            if ($action === 'apply_row_assignment_self')
+            {
+                $current_username = isset($this->user->data['username']) ? (string) $this->user->data['username'] : '';
+                $normalized_username = $this->sanitize_assignee($current_username);
+                if ($normalized_username === '')
+                {
+                    
+\redirect($this->queue_redirect_url('invalid'));
+                }
+
+                $updated = $this->apply_queue_row_assignment((int) $topic_id, (int) $forum_id, $normalized_username, $change_reason);
+                
+\redirect($this->queue_redirect_url($updated ? 'row_assignment_updated' : 'noop'));
+            }
+
+            if ($action === 'apply_row_assignment_clear')
+            {
+                $updated = $this->apply_queue_row_assignment((int) $topic_id, (int) $forum_id, '', $change_reason);
+
+                \redirect($this->queue_redirect_url($updated ? 'row_assignment_cleared' : 'noop'));
+            }
+
+            if ($action === 'apply_row_status')
+            {
+                $status_key = $this->normalize_queue_bulk_status($this->request->variable('queue_row_status', '', true));
+                if ($status_key === '')
+                {
+                    
+\redirect($this->queue_redirect_url('invalid'));
+                }
+
+                $updated = $this->apply_queue_row_status((int) $topic_id, (int) $forum_id, $status_key, $change_reason);
+                
+\redirect($this->queue_redirect_url($updated ? 'row_status_updated' : 'noop'));
+            }
+
+            if ($action === 'apply_row_priority')
+            {
+                if (!$this->priority_enabled())
+                {
+                    
+\redirect($this->queue_redirect_url('invalid'));
+                }
+
+                $priority_key = $this->normalize_priority($this->request->variable('queue_row_priority', '', true));
+                if ($priority_key === '')
+                {
+                    
+\redirect($this->queue_redirect_url('invalid'));
+                }
+
+                $updated = $this->apply_queue_row_priority((int) $topic_id, (int) $forum_id, $priority_key, $change_reason);
+                
+\redirect($this->queue_redirect_url($updated ? 'row_priority_updated' : 'noop'));
+            }
+        }
+
         if ($action === 'apply_redistribution')
         {
             $topic_id = $this->request->variable('topic_id', 0);
@@ -1472,7 +2061,7 @@ class queue_controller
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1518,7 +2107,7 @@ class queue_controller
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1531,7 +2120,7 @@ class queue_controller
             if ((string) $filters['department_key'] === '')
             {
                 
-edirect($this->queue_redirect_url('invalid'));
+\redirect($this->queue_redirect_url('invalid'));
             }
 
             $all_rows = $this->load_ticket_rows($forum_ids);
@@ -1555,7 +2144,7 @@ edirect($this->queue_redirect_url('invalid'));
             }
 
             
-edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department' : 'noop'));
+\redirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department' : 'noop'));
         }
 
         if ($action === 'apply_redistribution_overload')
@@ -1570,7 +2159,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1617,7 +2206,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1662,7 +2251,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1707,7 +2296,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1758,7 +2347,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1808,7 +2397,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1853,7 +2442,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -1903,7 +2492,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 'assigned_to' => $this->sanitize_assignee($this->request->variable('assigned_to', '', true)),
             ];
 
-            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+            if (!in_array($filters['scope'], ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
             {
                 $filters['scope'] = 'redistribute';
             }
@@ -2059,7 +2648,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
     protected function queue_scope_url($scope = 'all', $view = 'queue')
     {
         $scope = (string) $scope;
-        if (!in_array($scope, ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+        if (!in_array($scope, ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
         {
             $scope = 'all';
         }
@@ -2069,6 +2658,113 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
             'scope' => $scope,
             'page' => 1,
         ], ['preview', 'queue_notice']);
+    }
+
+    protected function queue_preset_url($view = 'queue', $scope = 'all', array $overrides = [])
+    {
+        $view = (string) $view;
+        if (!in_array($view, ['overview', 'queue', 'personal', 'triage', 'balance', 'reports', 'alerts', 'history'], true))
+        {
+            $view = 'queue';
+        }
+
+        $scope = (string) $scope;
+        if (!in_array($scope, ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'reopened', 'critical', 'attention', 'staff_reply', 'my', 'my_overdue', 'my_staff_reply', 'my_critical', 'my_prioritized', 'my_alerts', 'priority_high', 'priority_critical', 'prioritized', 'overloaded', 'redistribute'], true))
+        {
+            $scope = 'all';
+        }
+
+        return $this->queue_list_url(array_merge([
+            'qview' => $view,
+            'scope' => $scope,
+            'forum_id' => 0,
+            'status_key' => '',
+            'department_key' => '',
+            'priority_key' => '',
+            'assigned_to' => '',
+            'sort_by' => 'queue',
+            'per_page' => 25,
+            'page' => 1,
+        ], $overrides), ['preview', 'queue_notice']);
+    }
+
+    protected function build_queue_preset_rows($queue_view, array $filters, array $counts, $sla_enabled = false)
+    {
+        $queue_view = (string) $queue_view;
+        $current_scope = (string) ($filters['scope'] ?? 'all');
+        $sla_enabled = (bool) $sla_enabled;
+
+        $preset_definitions = [
+            [
+                'title' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_MY_TRIAGE_TITLE'),
+                'meta' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_MY_TRIAGE_EXPLAIN'),
+                'count' => (int) ($counts['my_alerts'] ?? 0),
+                'view' => 'personal',
+                'scope' => 'my_alerts',
+                'class' => ((int) ($counts['my_alerts'] ?? 0) > 0) ? 'attention' : 'stable',
+            ],
+            [
+                'title' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_OVERDUE_TITLE'),
+                'meta' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_OVERDUE_EXPLAIN'),
+                'count' => (int) ($counts['overdue'] ?? 0),
+                'view' => 'queue',
+                'scope' => 'overdue',
+                'class' => ((int) ($counts['overdue'] ?? 0) > 0) ? 'critical' : 'stable',
+            ],
+            [
+                'title' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_DUE_TODAY_TITLE'),
+                'meta' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_DUE_TODAY_EXPLAIN'),
+                'count' => (int) ($counts['due_today'] ?? 0),
+                'view' => 'queue',
+                'scope' => 'due_today',
+                'class' => ((int) ($counts['due_today'] ?? 0) > 0) ? 'attention' : 'stable',
+                'enabled' => $sla_enabled,
+            ],
+            [
+                'title' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_UNASSIGNED_TITLE'),
+                'meta' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_UNASSIGNED_EXPLAIN'),
+                'count' => (int) ($counts['unassigned'] ?? 0),
+                'view' => 'triage',
+                'scope' => 'unassigned',
+                'class' => ((int) ($counts['unassigned'] ?? 0) >= 3) ? 'critical' : (((int) ($counts['unassigned'] ?? 0) > 0) ? 'attention' : 'stable'),
+            ],
+            [
+                'title' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_CRITICAL_TITLE'),
+                'meta' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_CRITICAL_EXPLAIN'),
+                'count' => (int) ($counts['critical'] ?? 0),
+                'view' => 'alerts',
+                'scope' => 'critical',
+                'class' => ((int) ($counts['critical'] ?? 0) > 0) ? 'critical' : 'stable',
+            ],
+            [
+                'title' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_REDISTRIBUTE_TITLE'),
+                'meta' => $this->user->lang('HELPDESK_TEAM_QUEUE_PRESET_REDISTRIBUTE_EXPLAIN'),
+                'count' => (int) ($counts['redistribute'] ?? 0),
+                'view' => 'balance',
+                'scope' => 'redistribute',
+                'class' => ((int) ($counts['redistribute'] ?? 0) >= 6) ? 'critical' : (((int) ($counts['redistribute'] ?? 0) > 0) ? 'attention' : 'stable'),
+            ],
+        ];
+
+        $rows = [];
+        foreach ($preset_definitions as $preset)
+        {
+            if (isset($preset['enabled']) && !$preset['enabled'])
+            {
+                continue;
+            }
+
+            $rows[] = [
+                'TITLE' => (string) $preset['title'],
+                'META' => (string) $preset['meta'],
+                'COUNT' => (int) $preset['count'],
+                'STATUS_CLASS' => 'is-' . (string) $preset['class'],
+                'U_ROW' => $this->queue_preset_url((string) $preset['view'], (string) $preset['scope']),
+                'S_ACTIVE' => ($queue_view === (string) $preset['view'] && $current_scope === (string) $preset['scope']),
+            ];
+        }
+
+        return $rows;
     }
 
     protected function queue_reset_url()
@@ -2089,7 +2785,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
 
     protected function queue_report_scope_url($scope = 'all', array $extra = [])
     {
-        $valid_scopes = ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'aging', 'stale', 'very_old', 'staff_reply'];
+        $valid_scopes = ['all', 'active', 'resolved', 'closed', 'no_reply', 'updated_24h', 'created_24h', 'unassigned', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'staff_reply'];
         $scope = in_array((string) $scope, $valid_scopes, true) ? (string) $scope : 'all';
 
         return $this->queue_report_filter_url(array_merge([
@@ -2109,7 +2805,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
     protected function queue_assignee_filter_url($assigned_to, $scope = 'all', array $overrides = [], $view = 'queue')
     {
         $assigned_to = $this->sanitize_assignee($assigned_to);
-        $valid_scopes = ['all', 'overdue', 'aging', 'stale', 'very_old', 'critical', 'staff_reply', 'attention', 'priority_high', 'priority_critical', 'redistribute'];
+        $valid_scopes = ['all', 'overdue', 'due_today', 'aging', 'stale', 'very_old', 'critical', 'staff_reply', 'attention', 'priority_high', 'priority_critical', 'redistribute'];
         $scope = in_array((string) $scope, $valid_scopes, true) ? (string) $scope : 'all';
 
         $defaults = [
@@ -2193,6 +2889,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
             'page' => max(1, (int) $this->request->variable('page', 1)),
             'preview' => (string) $this->request->variable('preview', '', true),
             'queue_notice' => (string) $this->request->variable('queue_notice', '', true),
+            'export' => $this->normalize_queue_export((string) $this->request->variable('export', '', true)),
         ];
 
         if (!in_array((int) $params['per_page'], [25, 50, 100], true))
@@ -2245,6 +2942,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
     {
         return ((string) $queue_view === 'personal') ? 'my' : 'all';
     }
+
 
     protected function build_queue_context_actions($queue_view, array $filters, $scope_label, $forum_label, $status_label, $department_label, $priority_label, $sort_by, $sort_label, $per_page, $queue_page)
     {
@@ -2370,6 +3068,8 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 return $this->user->lang('HELPDESK_QUEUE_UNASSIGNED');
             case 'overdue':
                 return $this->user->lang('HELPDESK_QUEUE_OVERDUE');
+            case 'due_today':
+                return $this->user->lang('HELPDESK_QUEUE_DUE_TODAY');
             case 'aging':
                 return $this->user->lang('HELPDESK_QUEUE_AGING');
             case 'stale':
@@ -2493,15 +3193,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
 
                 case 'queue':
                 default:
-                    $cmp = $this->compare_numbers((int) ($a['QUEUE_SCORE'] ?? 0), (int) ($b['QUEUE_SCORE'] ?? 0), false);
-                    if ($cmp === 0)
-                    {
-                        $cmp = $this->compare_numbers($this->queue_activity_ts($a), $this->queue_activity_ts($b), true);
-                    }
-                    if ($cmp === 0)
-                    {
-                        $cmp = $this->compare_numbers($this->priority_sort_weight((string) ($a['PRIORITY_TONE'] ?? 'normal')), $this->priority_sort_weight((string) ($b['PRIORITY_TONE'] ?? 'normal')), false);
-                    }
+                    $cmp = $this->compare_queue_operational_rows($a, $b);
                     break;
             }
 
@@ -2526,6 +3218,60 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
         if (!empty($row['CREATED_TS']))
         {
             return (int) $row['CREATED_TS'];
+        }
+
+        return 0;
+    }
+
+    protected function compare_queue_operational_rows(array $a, array $b)
+    {
+        $cmp = $this->compare_numbers($this->queue_operational_rank($a), $this->queue_operational_rank($b), false);
+        if ($cmp !== 0)
+        {
+            return $cmp;
+        }
+
+        $cmp = $this->compare_numbers($this->priority_sort_weight((string) ($a['PRIORITY_TONE'] ?? 'normal')), $this->priority_sort_weight((string) ($b['PRIORITY_TONE'] ?? 'normal')), false);
+        if ($cmp !== 0)
+        {
+            return $cmp;
+        }
+
+        $cmp = $this->compare_numbers((int) ($a['QUEUE_SCORE'] ?? 0), (int) ($b['QUEUE_SCORE'] ?? 0), false);
+        if ($cmp !== 0)
+        {
+            return $cmp;
+        }
+
+        $cmp = $this->compare_numbers($this->queue_activity_ts($a), $this->queue_activity_ts($b), true);
+        if ($cmp !== 0)
+        {
+            return $cmp;
+        }
+
+        return $this->compare_numbers((int) ($a['TOPIC_ID'] ?? 0), (int) ($b['TOPIC_ID'] ?? 0), false);
+    }
+
+    protected function queue_operational_rank(array $row)
+    {
+        if (!empty($row['IS_OVERDUE']))
+        {
+            return 400;
+        }
+
+        if (!empty($row['IS_DUE_TODAY']))
+        {
+            return 300;
+        }
+
+        if (!empty($row['IS_STALE']))
+        {
+            return 200;
+        }
+
+        if (!empty($row['IS_OPEN']))
+        {
+            return 100;
         }
 
         return 0;
@@ -2662,10 +3408,317 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 return $this->user->lang('HELPDESK_BULK_NOTHING_TO_APPLY');
             case 'bulk_assignee_required':
                 return $this->user->lang('HELPDESK_BULK_ASSIGNEE_REQUIRED');
+            case 'bulk_reason_required':
+                return $this->user->lang('HELPDESK_CHANGE_REASON_REQUIRED_NOTICE', $this->change_reason_requirements_text());
+            case 'row_reason_required':
+                return $this->user->lang('HELPDESK_CHANGE_REASON_REQUIRED_NOTICE', $this->change_reason_requirements_text());
+            case 'row_assignment_updated':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_ROW_ASSIGNMENT_UPDATED');
+            case 'row_assignment_cleared':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_ROW_ASSIGNMENT_CLEARED');
+            case 'row_status_updated':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_ROW_STATUS_UPDATED');
+            case 'row_priority_updated':
+                return $this->user->lang('HELPDESK_QUEUE_NOTICE_ROW_PRIORITY_UPDATED');
             default:
                 return '';
         }
     }
+
+    protected function build_queue_row_status_options_html($selected_status)
+    {
+        $selected_status = (string) $selected_status;
+        $options = '';
+
+        foreach ($this->status_definitions() as $key => $definition)
+        {
+            $label = $this->status_label_from_definition($definition);
+            $options .= '<option value="' . htmlspecialchars((string) $key, ENT_COMPAT, 'UTF-8') . '"' . (($selected_status === (string) $key) ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label, ENT_COMPAT, 'UTF-8') . '</option>';
+        }
+
+        return $options;
+    }
+
+    protected function build_queue_row_priority_options_html($selected_priority)
+    {
+        $selected_priority = $this->normalize_priority($selected_priority);
+        $options = '';
+
+        foreach ($this->priority_definitions() as $key => $definition)
+        {
+            $label = $this->priority_label_from_definition($definition);
+            $options .= '<option value="' . htmlspecialchars((string) $key, ENT_COMPAT, 'UTF-8') . '"' . (($selected_priority === (string) $key) ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label, ENT_COMPAT, 'UTF-8') . '</option>';
+        }
+
+        return $options;
+    }
+
+
+    protected function build_queue_row_reply_template_options_html(array $reply_templates)
+    {
+        $options = '<option value="">' . htmlspecialchars((string) $this->user->lang('HELPDESK_TEAM_QUEUE_ROW_REPLY_NO_TEMPLATE'), ENT_COMPAT, 'UTF-8') . '</option>';
+
+        foreach ($reply_templates as $index => $reply_template)
+        {
+            $label = isset($reply_template['label']) ? (string) $reply_template['label'] : '';
+            if ($label === '')
+            {
+                $label = $this->user->lang('HELPDESK_REPLY_TEMPLATES');
+            }
+
+            $options .= '<option value="' . htmlspecialchars('t' . (int) $index, ENT_COMPAT, 'UTF-8') . '">' . htmlspecialchars($label, ENT_COMPAT, 'UTF-8') . '</option>';
+        }
+
+        return $options;
+    }
+
+    protected function department_reply_templates_for_topic($department_key, array $placeholders)
+    {
+        $raw = isset($this->config['mundophpbb_helpdesk_department_reply_templates']) ? (string) $this->config['mundophpbb_helpdesk_department_reply_templates'] : '';
+        $department_key = $this->normalize_option_key($department_key);
+        $templates = [];
+
+        if ($raw === '')
+        {
+            return $templates;
+        }
+
+        $lines = preg_split('/
+|
+|
+/', $raw);
+        foreach ($lines as $line)
+        {
+            $line = trim((string) $line);
+            if ($line === '' || strpos($line, '#') === 0)
+            {
+                continue;
+            }
+
+            $parts = $this->split_escaped_pipe_parts($line, 3);
+            if (count($parts) < 3)
+            {
+                continue;
+            }
+
+            $template_department = $this->normalize_option_key($parts[0]);
+            $title = trim((string) $parts[1]);
+            $body = str_replace(['\n', '\r'], ["
+", "
+"], (string) $parts[2]);
+            $body = str_replace('\|', '|', $body);
+
+            if ($title === '' || $body === '')
+            {
+                continue;
+            }
+
+            if ($template_department !== '*' && $template_department !== '' && $template_department !== $department_key)
+            {
+                continue;
+            }
+
+            $templates[] = [
+                'label' => $title,
+                'body' => $this->expand_reply_template_body($body, $placeholders),
+            ];
+        }
+
+        return $templates;
+    }
+
+    protected function expand_reply_template_body($body, array $placeholders)
+    {
+        $body = (string) $body;
+
+        foreach ($placeholders as $key => $value)
+        {
+            $body = str_replace('{' . strtoupper((string) $key) . '}', (string) $value, $body);
+        }
+
+        return trim($body);
+    }
+
+    protected function split_escaped_pipe_parts($line, $limit)
+    {
+        $parts = [];
+        $buffer = '';
+        $length = function_exists('utf8_strlen') ? utf8_strlen((string) $line) : strlen((string) $line);
+        $escape = false;
+
+        for ($i = 0; $i < $length; $i++)
+        {
+            $char = function_exists('utf8_substr') ? utf8_substr($line, $i, 1) : substr($line, $i, 1);
+
+            if ($escape)
+            {
+                $buffer .= $char;
+                $escape = false;
+                continue;
+            }
+
+            if ($char === '\\')
+            {
+                $buffer .= $char;
+                $escape = true;
+                continue;
+            }
+
+            if ($char === '|' && count($parts) < ($limit - 1))
+            {
+                $parts[] = $buffer;
+                $buffer = '';
+                continue;
+            }
+
+            $buffer .= $char;
+        }
+
+        $parts[] = $buffer;
+
+        return $parts;
+    }
+
+    protected function load_usernames_by_ids(array $user_ids)
+    {
+        $user_ids = array_values(array_unique(array_filter(array_map('intval', $user_ids))));
+        if (empty($user_ids))
+        {
+            return [];
+        }
+
+        $sql = 'SELECT user_id, username
+            FROM ' . USERS_TABLE . '
+            WHERE ' . $this->db->sql_in_set('user_id', $user_ids);
+        $result = $this->db->sql_query($sql);
+
+        $usernames = [];
+        while ($row = $this->db->sql_fetchrow($result))
+        {
+            $usernames[(int) $row['user_id']] = (string) $row['username'];
+        }
+        $this->db->sql_freeresult($result);
+
+        return $usernames;
+    }
+
+    protected function apply_queue_row_assignment($topic_id, $forum_id, $new_assigned_to, $reason_text = '')
+    {
+        $sql = 'SELECT *
+            FROM ' . $this->topics_table() . '
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id;
+        $result = $this->db->sql_query_limit($sql, 1);
+        $meta = $this->db->sql_fetchrow($result);
+        $this->db->sql_freeresult($result);
+
+        if (!$meta)
+        {
+            return false;
+        }
+
+        $reason_text = $this->sanitize_change_reason($reason_text);
+
+        $old_assigned_to = $this->extract_assigned_to($meta);
+        $new_assigned_to = $this->sanitize_assignee($new_assigned_to);
+        if ($old_assigned_to === $new_assigned_to)
+        {
+            return false;
+        }
+
+        $this->db->sql_query('UPDATE ' . $this->topics_table() . '
+            SET ' . $this->db->sql_build_array('UPDATE', [
+                'assigned_to' => $new_assigned_to,
+                'assigned_time' => ($new_assigned_to !== '') ? time() : 0,
+                'updated_time' => time(),
+            ]) . '
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id);
+
+        $this->insert_queue_history_log((int) $topic_id, (int) $forum_id, 'assignment_change', $old_assigned_to, $new_assigned_to, $reason_text);
+        return true;
+    }
+
+    protected function apply_queue_row_status($topic_id, $forum_id, $new_status, $reason_text = '')
+    {
+        $reason_text = $this->sanitize_change_reason($reason_text);
+        $new_status = $this->normalize_queue_bulk_status($new_status);
+        if ($new_status === '')
+        {
+            return false;
+        }
+
+        $sql = 'SELECT *
+            FROM ' . $this->topics_table() . '
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id;
+        $result = $this->db->sql_query_limit($sql, 1);
+        $meta = $this->db->sql_fetchrow($result);
+        $this->db->sql_freeresult($result);
+
+        if (!$meta)
+        {
+            return false;
+        }
+
+        $old_status = isset($meta['status_key']) ? (string) $meta['status_key'] : 'open';
+        if ($old_status === $new_status)
+        {
+            return false;
+        }
+
+        $this->db->sql_query('UPDATE ' . $this->topics_table() . '
+            SET ' . $this->db->sql_build_array('UPDATE', [
+                'status_key' => $new_status,
+                'updated_time' => time(),
+            ]) . '
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id);
+
+        $this->insert_queue_history_log((int) $topic_id, (int) $forum_id, 'status_change', $old_status, $new_status, $reason_text);
+        return true;
+    }
+
+    protected function apply_queue_row_priority($topic_id, $forum_id, $new_priority, $reason_text = '')
+    {
+        $reason_text = $this->sanitize_change_reason($reason_text);
+        $new_priority = $this->normalize_priority($new_priority);
+        if ($new_priority === '')
+        {
+            return false;
+        }
+
+        $sql = 'SELECT *
+            FROM ' . $this->topics_table() . '
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id;
+        $result = $this->db->sql_query_limit($sql, 1);
+        $meta = $this->db->sql_fetchrow($result);
+        $this->db->sql_freeresult($result);
+
+        if (!$meta)
+        {
+            return false;
+        }
+
+        $old_priority = isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal';
+        if ($old_priority === $new_priority)
+        {
+            return false;
+        }
+
+        $this->db->sql_query('UPDATE ' . $this->topics_table() . '
+            SET ' . $this->db->sql_build_array('UPDATE', [
+                'priority_key' => $new_priority,
+                'updated_time' => time(),
+            ]) . '
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id);
+
+        $this->insert_queue_history_log((int) $topic_id, (int) $forum_id, 'priority_change', $old_priority, $new_priority, $reason_text);
+        return true;
+    }
+
 
     protected function can_assign_any_queue(array $forum_ids)
     {
@@ -2764,11 +3817,13 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
     {
         $me = isset($this->user->data['username']) ? strtolower((string) $this->user->data['username']) : '';
         $counts = [
-            'total' => count($rows),
+            'total' => $this->safe_count($rows),
             'open' => 0,
             'active' => 0,
+            'within_sla' => 0,
             'unassigned' => 0,
             'overdue' => 0,
+            'due_today' => 0,
             'aging' => 0,
             'stale' => 0,
             'very_old' => 0,
@@ -2796,6 +3851,10 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
                 $counts['open']++;
                 $counts['active']++;
             }
+            if (!empty($row['IS_OPEN']) && empty($row['IS_OVERDUE']))
+            {
+                $counts['within_sla']++;
+            }
             if (!empty($row['IS_UNASSIGNED']) && !empty($row['IS_OPEN']))
             {
                 $counts['unassigned']++;
@@ -2803,6 +3862,10 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
             if (!empty($row['IS_OVERDUE']))
             {
                 $counts['overdue']++;
+            }
+            if (!empty($row['IS_DUE_TODAY']))
+            {
+                $counts['due_today']++;
             }
             if (!empty($row['IS_AGING']))
             {
@@ -2969,7 +4032,7 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
             foreach ($rows_by_assignee[$source_key] as $ticket_row)
             {
                 $target = null;
-                $pool_count = count($target_pool);
+                $pool_count = $this->safe_count($target_pool);
                 for ($attempt = 0; $attempt < $pool_count; $attempt++)
                 {
                     $candidate = $target_pool[$target_index % $pool_count];
@@ -3258,7 +4321,7 @@ protected function build_overload_preview_plan(array $plan, array $assignee_load
         return array_values($filtered);
     }
 
-    return array_slice(array_values($plan), 0, min(12, count($plan)));
+    return array_slice(array_values($plan), 0, min(12, $this->safe_count($plan)));
 }
 
 protected function build_critical_preview_plan(array $plan)
@@ -4287,7 +5350,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
     {
         $now = time();
         $report = [
-            'total' => count($rows),
+            'total' => $this->safe_count($rows),
             'active' => 0,
             'resolved' => 0,
             'closed' => 0,
@@ -4296,6 +5359,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             'updated_24h' => 0,
             'created_24h' => 0,
             'overdue' => 0,
+            'due_today' => 0,
             'aging' => 0,
             'stale' => 0,
             'very_old' => 0,
@@ -4778,7 +5842,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
 
         foreach ($departments as $department_index => $department)
         {
-            $assignee_count = count($department['ASSIGNEES']);
+            $assignee_count = $this->safe_count(isset($department['ASSIGNEES']) ? $department['ASSIGNEES'] : []);
             $overloaded_assignee_count = 0;
             $high_assignee_count = 0;
             $support_assignee_count = 0;
@@ -4919,7 +5983,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             $summary['index'][$this->department_index_key(isset($row['DEPARTMENT_KEY']) ? $row['DEPARTMENT_KEY'] : '', isset($row['LABEL']) ? $row['LABEL'] : '')] = $row;
         }
 
-        $summary['total_departments'] = count($summary['rows']);
+        $summary['total_departments'] = $this->safe_count(isset($summary['rows']) ? $summary['rows'] : []);
         if ($summary['critical_count'] > 0 || $summary['coverage_gap_count'] > 0)
         {
             $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_DEPARTMENT_OPERATIONS_STATUS_CRITICAL');
@@ -5035,7 +6099,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
 
         foreach ($forums as $forum)
         {
-            $department_count = !empty($forum['DEPARTMENT_COUNTS']) ? count($forum['DEPARTMENT_COUNTS']) : 0;
+            $department_count = !empty($forum['DEPARTMENT_COUNTS']) ? $this->safe_count($forum['DEPARTMENT_COUNTS']) : 0;
             $primary_department_label = $this->user->lang('HELPDESK_REPORT_UNSET_LABEL');
             $primary_department_count = 0;
             foreach ((array) $forum['DEPARTMENT_COUNTS'] as $department_label => $department_count_value)
@@ -5127,7 +6191,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             return ((int) ($a['PRESSURE_SCORE'] ?? 0) > (int) ($b['PRESSURE_SCORE'] ?? 0)) ? -1 : 1;
         });
 
-        $summary['total_forums'] = count($summary['rows']);
+        $summary['total_forums'] = $this->safe_count(isset($summary['rows']) ? $summary['rows'] : []);
         if ($summary['critical_count'] > 0)
         {
             $summary['status_label'] = $this->user->lang('HELPDESK_TEAM_QUEUE_FORUM_BACKLOG_STATUS_CRITICAL');
@@ -5345,6 +6409,14 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_OVERVIEW_HINT_MY_ALERTS'), (int) $counts['my_alerts']),
                 'url' => $this->queue_scope_url('my_alerts', 'personal'),
                 'count' => (int) $counts['my_alerts'],
+            ],
+            [
+                'key' => 'due_today',
+                'priority' => !empty($counts['due_today']) ? (625 + (int) $counts['due_today']) : 0,
+                'label' => $this->user->lang('HELPDESK_QUEUE_DUE_TODAY'),
+                'text' => sprintf($this->user->lang('HELPDESK_TEAM_QUEUE_OVERVIEW_HINT_DUE_TODAY'), (int) $counts['due_today']),
+                'url' => $this->queue_scope_url('due_today', 'queue'),
+                'count' => (int) $counts['due_today'],
             ],
             [
                 'key' => 'critical',
@@ -5930,7 +7002,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'U_ROW' => (string) ($row['url'] ?? ''),
             ];
 
-            if (count($summary['focus_rows']) >= 4)
+            if ($this->safe_count(isset($summary['focus_rows']) ? $summary['focus_rows'] : []) >= 4)
             {
                 break;
             }
@@ -6137,7 +7209,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             }
         }
 
-        $summary['engaged_assignees_count'] = count($engaged_assignees);
+        $summary['engaged_assignees_count'] = $this->safe_count($engaged_assignees);
         $pending_total = (int) $summary['first_reply_count'] + (int) $summary['staff_reply_count'];
         $recent_movement = (int) $summary['recent_activity_count'] + (int) $summary['recent_completed_count'];
         $activity_floor = max(1, (int) ceil(max(1, (int) $summary['total_active']) * 0.25));
@@ -6227,7 +7299,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'U_ROW' => (string) $row['U_FILTER'],
             ];
 
-            if (count($summary['focus_rows']) >= 4)
+            if ($this->safe_count(isset($summary['focus_rows']) ? $summary['focus_rows'] : []) >= 4)
             {
                 break;
             }
@@ -6333,7 +7405,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             return $distribution;
         }
 
-        $distribution['total_assignees'] = count($assignee_load);
+        $distribution['total_assignees'] = $this->safe_count($assignee_load);
         $bucket_rows = [
             'overload' => [
                 'LABEL' => $this->user->lang('HELPDESK_WORKLOAD_OVERLOAD'),
@@ -6481,6 +7553,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
         $rows = [];
         $critical_count = (int) ($counts['critical'] ?? 0);
         $overdue_count = (int) ($counts['overdue'] ?? 0);
+        $due_today_count = (int) ($counts['due_today'] ?? 0);
         $unassigned_count = (int) ($counts['unassigned'] ?? 0);
         $stale_count = (int) ($counts['stale'] ?? 0);
         $very_old_count = (int) ($counts['very_old'] ?? 0);
@@ -6498,6 +7571,12 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             $overdue_count,
             $this->queue_scope_url('overdue', 'alerts'),
             ($overdue_count >= 5) ? 'critical' : (($overdue_count > 0) ? 'attention' : 'stable')
+        );
+        $rows[] = $this->build_overview_health_row(
+            $this->user->lang('HELPDESK_QUEUE_DUE_TODAY'),
+            $due_today_count,
+            $this->queue_scope_url('due_today', 'queue'),
+            ($due_today_count >= 8) ? 'attention' : 'stable'
         );
         $rows[] = $this->build_overview_health_row(
             $this->user->lang('HELPDESK_QUEUE_STALE'),
@@ -6529,7 +7608,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
         {
             $overall_level = 'critical';
         }
-        else if ($overdue_count > 0 || $stale_count > 0 || $unassigned_count >= 3 || $redistribute_count > 0 || (int) ($counts['attention'] ?? 0) > 0)
+        else if ($overdue_count > 0 || $due_today_count > 0 || $stale_count > 0 || $unassigned_count >= 3 || $redistribute_count > 0 || (int) ($counts['attention'] ?? 0) > 0)
         {
             $overall_level = 'attention';
         }
@@ -6561,6 +7640,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             'alert_total' => 0,
             'first_reply' => 0,
             'overdue' => 0,
+            'due_today' => 0,
             'aging' => 0,
             'stale' => 0,
             'very_old' => 0,
@@ -6590,6 +7670,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             $is_first_reply = !empty($row['IS_OPEN']) && isset($row['REPLY_COUNT']) && (int) $row['REPLY_COUNT'] <= 0;
             $has_alert = $is_first_reply
                 || !empty($row['IS_OVERDUE'])
+                || !empty($row['IS_DUE_TODAY'])
                 || !empty($row['IS_STALE'])
                 || !empty($row['IS_VERY_OLD'])
                 || !empty($row['IS_STAFF_REPLY'])
@@ -6612,6 +7693,10 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
             if (!empty($row['IS_OVERDUE']))
             {
                 $overview['overdue']++;
+            }
+            if (!empty($row['IS_DUE_TODAY']))
+            {
+                $overview['due_today']++;
             }
             if (!empty($row['IS_STALE']))
             {
@@ -6721,6 +7806,11 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                 'label' => $this->user->lang('HELPDESK_QUEUE_OVERDUE'),
                 'count' => (int) $overview['overdue'],
                 'url' => $this->queue_scope_url('overdue'),
+            ],
+            [
+                'label' => $this->user->lang('HELPDESK_QUEUE_DUE_TODAY'),
+                'count' => (int) $overview['due_today'],
+                'url' => $this->queue_scope_url('due_today'),
             ],
             [
                 'label' => $this->user->lang('HELPDESK_QUEUE_STALE'),
@@ -7007,6 +8097,8 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
                     return !empty($row['IS_UNASSIGNED']) && !empty($row['IS_OPEN']);
                 case 'overdue':
                     return !empty($row['IS_OVERDUE']);
+                case 'due_today':
+                    return !empty($row['IS_DUE_TODAY']);
                 case 'aging':
                     return !empty($row['IS_AGING']);
                 case 'stale':
@@ -7470,7 +8562,7 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
     protected function build_my_ticket_counts(array $rows)
     {
         $counts = [
-            'total' => count($rows),
+            'total' => $this->safe_count($rows),
             'active' => 0,
             'completed' => 0,
             'resolved' => 0,
@@ -7666,6 +8758,47 @@ protected function smart_redistribution_reason(array $ticket_row, array $target)
     protected function assignment_enabled()
     {
         return !empty($this->config['mundophpbb_helpdesk_assignment_enable']);
+    }
+
+    protected function status_reason_required()
+    {
+        return !empty($this->config['mundophpbb_helpdesk_require_reason_status']);
+    }
+
+    protected function priority_reason_required()
+    {
+        return !empty($this->config['mundophpbb_helpdesk_require_reason_priority']);
+    }
+
+    protected function assignment_reason_required()
+    {
+        return !empty($this->config['mundophpbb_helpdesk_require_reason_assignment']);
+    }
+
+    protected function any_change_reason_required()
+    {
+        return $this->status_reason_required() || $this->priority_reason_required() || $this->assignment_reason_required();
+    }
+
+    protected function change_reason_requirements_text()
+    {
+        $labels = [];
+        if ($this->status_reason_required())
+        {
+            $labels[] = $this->user->lang('HELPDESK_STATUS');
+        }
+        if ($this->priority_reason_required())
+        {
+            $labels[] = $this->user->lang('HELPDESK_PRIORITY');
+        }
+        if ($this->assignment_reason_required())
+        {
+            $labels[] = $this->user->lang('HELPDESK_ASSIGNED_TO');
+        }
+
+        return !empty($labels)
+            ? $this->user->lang('HELPDESK_CHANGE_REASON_REQUIRED_FOR', implode(', ', $labels))
+            : '';
     }
 
     protected function alert_hours()
@@ -8431,11 +9564,48 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
         return $topic_poster_id > 0 && $last_poster_id > 0 && $topic_poster_id === $last_poster_id;
     }
 
-    protected function is_ticket_overdue(array $row)
+
+    protected function ticket_sla_deadline(array $row)
     {
+        $created_time = !empty($row['created_time']) ? (int) $row['created_time'] : 0;
+        if ($created_time <= 0)
+        {
+            return 0;
+        }
+
         $department_key = $this->extract_department_key($row);
         $priority_key = isset($row['priority_key']) ? (string) $row['priority_key'] : 'normal';
-        return !empty($row['created_time']) && (time() - (int) $row['created_time']) > ($this->effective_sla_hours($department_key, $priority_key) * 3600);
+
+        return $created_time + ($this->effective_sla_hours($department_key, $priority_key) * 3600);
+    }
+
+    protected function is_ticket_due_today(array $row, $status_tone = '')
+    {
+        if (!$this->is_active_status_tone($status_tone))
+        {
+            return false;
+        }
+
+        $deadline = $this->ticket_sla_deadline($row);
+        if ($deadline <= 0)
+        {
+            return false;
+        }
+
+        $now = time();
+        return $deadline > $now && $deadline <= ($now + 86400);
+    }
+
+    protected function is_ticket_overdue(array $row)
+    {
+        $status_meta = $this->status_meta(isset($row['status_key']) ? (string) $row['status_key'] : 'open');
+        if (!$this->is_active_status_tone($status_meta['tone']))
+        {
+            return false;
+        }
+
+        $deadline = $this->ticket_sla_deadline($row);
+        return $deadline > 0 && time() > $deadline;
     }
 
     protected function is_ticket_aging(array $row)
@@ -8817,6 +9987,17 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
     {
         global $phpbb_root_path, $phpEx;
         return append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . (int) $forum_id . '&t=' . (int) $topic_id . '#helpdesk-topic-panel');
+    }
+
+    protected function topic_reply_url($forum_id, $topic_id)
+    {
+        return $this->topic_reply_template_base_url($forum_id, $topic_id) . '#helpdesk-focus-reply';
+    }
+
+    protected function topic_reply_template_base_url($forum_id, $topic_id)
+    {
+        global $phpbb_root_path, $phpEx;
+        return append_sid("{$phpbb_root_path}viewtopic.$phpEx", 'f=' . (int) $forum_id . '&t=' . (int) $topic_id . '&helpdesk_focus_reply=1');
     }
 
     protected function forum_url($forum_id)

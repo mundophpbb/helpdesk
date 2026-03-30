@@ -75,16 +75,6 @@ class listener implements EventSubscriberInterface
         $this->table_prefix = (string) $table_prefix;
     }
 
-    protected function safe_array($value)
-    {
-        return is_array($value) ? $value : [];
-    }
-
-    protected function safe_count($value)
-    {
-        return is_countable($value) ? count($value) : 0;
-    }
-
     public static function getSubscribedEvents()
     {
         return [
@@ -353,7 +343,7 @@ class listener implements EventSubscriberInterface
         );
 
         $topic_author = $this->resolve_topic_author_name($topic_data);
-        $reply_templates = $this->safe_array($this->department_reply_templates_for_topic(
+        $reply_templates = $this->department_reply_templates_for_topic(
             $current_department_key,
             [
                 'USERNAME' => $topic_author !== '' ? $topic_author : $this->user->lang('HELPDESK_REPLY_TEMPLATE_GENERIC_USER'),
@@ -365,7 +355,7 @@ class listener implements EventSubscriberInterface
                 'ASSIGNED_TO' => $assigned_to !== '' ? $assigned_to : $this->user->lang('HELPDESK_QUEUE_UNASSIGNED'),
                 'BOARD_NAME' => isset($this->config['sitename']) ? (string) $this->config['sitename'] : '',
             ]
-        ));
+        );
         $can_use_reply_templates = $this->team_panel_enabled() && $this->can_view_team_queue();
 
         $this->template->assign_vars([
@@ -404,7 +394,7 @@ class listener implements EventSubscriberInterface
             'S_HELPDESK_CAN_VIEW_TEAM_QUEUE' => $this->team_panel_enabled() && $this->can_view_team_queue(),
             'U_HELPDESK_TEAM_QUEUE' => $this->team_queue_url(),
             'S_HELPDESK_CAN_USE_REPLY_TEMPLATES' => $can_use_reply_templates && !empty($reply_templates),
-            'HELPDESK_REPLY_TEMPLATE_COUNT' => $this->safe_count($reply_templates),
+            'HELPDESK_REPLY_TEMPLATE_COUNT' => count($reply_templates),
             'HELPDESK_REPLY_TEMPLATE_PREVIEW' => !empty($reply_templates) ? $reply_templates[0]['body'] : '',
         ]);
 
@@ -452,7 +442,7 @@ class listener implements EventSubscriberInterface
 
         if ($can_manage_assignment)
         {
-            $assignable_users = $this->safe_array($this->get_assignable_users([$forum_id]));
+            $assignable_users = $this->get_assignable_users([$forum_id]);
             $selected_assignee_key = $this->normalize_assignee_key($assigned_to);
 
             $this->template->assign_block_vars('helpdesk_manage_assignee_options', [
@@ -489,7 +479,7 @@ class listener implements EventSubscriberInterface
             ]);
         }
 
-        foreach ($this->safe_array($this->get_activity_history($topic_id, $this->activity_limit())) as $entry)
+        foreach ($this->get_activity_history($topic_id, $this->activity_limit()) as $entry)
         {
             $this->template->assign_block_vars('helpdesk_activity_history', $entry);
         }
@@ -1180,8 +1170,6 @@ class listener implements EventSubscriberInterface
 
         $forum_id = (int) ($forum_id ?: $this->request->variable('f', 0));
         $can_bulk_manage = $this->extension_enabled() && $this->forum_is_enabled($forum_id) && $this->can_bulk_manage($forum_id);
-        $reply_templates = [];
-        $can_use_reply_templates = false;
 
         $this->template->assign_vars([
             'S_HELPDESK_CAN_BULK_MANAGE' => $can_bulk_manage,
@@ -1201,7 +1189,7 @@ class listener implements EventSubscriberInterface
             'S_HELPDESK_CAN_VIEW_TEAM_QUEUE' => $this->team_panel_enabled() && $this->can_view_team_queue(),
             'U_HELPDESK_TEAM_QUEUE' => $this->team_queue_url(),
             'S_HELPDESK_CAN_USE_REPLY_TEMPLATES' => $can_use_reply_templates && !empty($reply_templates),
-            'HELPDESK_REPLY_TEMPLATE_COUNT' => $this->safe_count($reply_templates),
+            'HELPDESK_REPLY_TEMPLATE_COUNT' => count($reply_templates),
             'HELPDESK_REPLY_TEMPLATE_PREVIEW' => !empty($reply_templates) ? $reply_templates[0]['body'] : '',
         ]);
 
@@ -1231,7 +1219,7 @@ class listener implements EventSubscriberInterface
                 ]);
             }
 
-            $assignable_users = $this->safe_array($this->get_assignable_users([$forum_id]));
+            $assignable_users = $this->get_assignable_users([$forum_id]);
             foreach ($assignable_users as $assignee_row)
             {
                 $this->template->assign_block_vars('helpdesk_viewforum_assignee_options', [
