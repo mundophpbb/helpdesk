@@ -10,7 +10,8 @@ class v100 extends \phpbb\db\migration\migration
 {
     public function effectively_installed()
     {
-        return isset($this->config['mundophpbb_helpdesk_enable']);
+        return isset($this->config['mundophpbb_helpdesk_enable'])
+            || $this->table_exists($this->table_prefix . 'helpdesk_topics');
     }
 
     static public function depends_on()
@@ -44,22 +45,18 @@ class v100 extends \phpbb\db\migration\migration
 
     public function revert_schema()
     {
-        return [
-            'drop_tables' => [
-                $this->table_prefix . 'helpdesk_topics',
-            ],
-        ];
+        return [];
     }
-
 
     public function revert_data()
     {
         return [
             ['module.remove', ['acp', 'ACP_HELPDESK_TITLE', [
-                'module_basename' => '\mundophpbb\helpdesk\acp\main_module',
+                'module_basename' => '\\mundophpbb\\helpdesk\\acp\\main_module',
                 'modes' => ['settings'],
             ]]],
             ['module.remove', ['acp', 'ACP_CAT_DOT_MODS', 'ACP_HELPDESK_TITLE']],
+            ['custom', [[$this, 'safe_drop_helpdesk_topics_table']]],
             ['config.remove', ['mundophpbb_helpdesk_enable']],
             ['config.remove', ['mundophpbb_helpdesk_forums']],
             ['config.remove', ['mundophpbb_helpdesk_prefix']],
@@ -67,6 +64,7 @@ class v100 extends \phpbb\db\migration\migration
             ['config.remove', ['mundophpbb_helpdesk_status_enable']],
             ['config.remove', ['mundophpbb_helpdesk_priority_enable']],
             ['config.remove', ['mundophpbb_helpdesk_category_enable']],
+            ['config.remove', ['mundophpbb_helpdesk_categories']],
         ];
     }
 
@@ -88,5 +86,20 @@ class v100 extends \phpbb\db\migration\migration
                 'modes' => ['settings'],
             ]]],
         ];
+    }
+
+    public function safe_drop_helpdesk_topics_table()
+    {
+        $table = $this->table_prefix . 'helpdesk_topics';
+
+        if ($this->table_exists($table))
+        {
+            $this->db_tools->sql_table_drop($table);
+        }
+    }
+
+    protected function table_exists($table_name)
+    {
+        return $this->db_tools->sql_table_exists($table_name);
     }
 }

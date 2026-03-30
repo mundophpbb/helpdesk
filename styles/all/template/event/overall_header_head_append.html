@@ -341,10 +341,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 '</select>' +
             '</div>'
         );
+        var filterAssigneeOptionsHtml = '<option value="">{L_HELPDESK_FILTER_ALL}</option><!-- BEGIN helpdesk_viewforum_assignee_options --><option value="{helpdesk_viewforum_assignee_options.VALUE}">{helpdesk_viewforum_assignee_options.LABEL}</option><!-- END helpdesk_viewforum_assignee_options -->';
         fieldsHtml.push(
             '<div class="helpdesk-filter-field">' +
                 '<label for="helpdesk-filter-assignee">{L_HELPDESK_ASSIGNED_TO}</label>' +
-                '<input type="text" id="helpdesk-filter-assignee" name="helpdesk_filter_assignee" value="" placeholder="{L_HELPDESK_FILTER_ASSIGNEE_PLACEHOLDER}" />' +
+                '<select id="helpdesk-filter-assignee" name="helpdesk_filter_assignee" class="helpdesk-assignee-select">' + filterAssigneeOptionsHtml + '</select>' +
             '</div>'
         );
     }
@@ -371,6 +372,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var bulkStatusOptionsHtml = '<option value="">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_status_options --><option value="{helpdesk_bulk_status_options.VALUE}">{helpdesk_bulk_status_options.LABEL}</option><!-- END helpdesk_bulk_status_options -->';
     var bulkPriorityOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><!-- BEGIN helpdesk_bulk_priority_options --><option value="{helpdesk_bulk_priority_options.VALUE}">{helpdesk_bulk_priority_options.LABEL}</option><!-- END helpdesk_bulk_priority_options -->';
     var bulkDepartmentOptionsHtml = '<option value="__NO_CHANGE__">{L_HELPDESK_BULK_KEEP_CURRENT}</option><option value="__CLEAR__">{L_HELPDESK_BULK_CLEAR_VALUE}</option><!-- BEGIN helpdesk_bulk_department_options --><option value="{helpdesk_bulk_department_options.VALUE}">{helpdesk_bulk_department_options.LABEL}</option><!-- END helpdesk_bulk_department_options -->';
+    var bulkAssigneeOptionsHtml = '<option value="">{L_HELPDESK_EMPTY_OPTION}</option><!-- BEGIN helpdesk_viewforum_bulk_assignee_options --><option value="{helpdesk_viewforum_bulk_assignee_options.VALUE}">{helpdesk_viewforum_bulk_assignee_options.LABEL}</option><!-- END helpdesk_viewforum_bulk_assignee_options -->';
     var bulkChecks = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-bulk-check'));
     if (statuses.length && bulkChecks.length) {
         var bulkWrapper = document.createElement('div');
@@ -411,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '</div>' +
             '<div class="helpdesk-filter-field">' +
                 '<label for="helpdesk-bulk-assigned-to">{L_HELPDESK_BULK_ASSIGNEE}</label>' +
-                '<input type="text" id="helpdesk-bulk-assigned-to" name="helpdesk_bulk_assigned_to" value="" placeholder="{L_HELPDESK_BULK_ASSIGNEE_PLACEHOLDER}" />' +
+                '<select id="helpdesk-bulk-assigned-to" name="helpdesk_bulk_assigned_to" class="helpdesk-assignee-select">' + bulkAssigneeOptionsHtml + '</select>' +
             '</div>';
         <!-- ENDIF -->
 
@@ -439,6 +441,18 @@ document.addEventListener('DOMContentLoaded', function () {
         var bulkAssignmentAction = bulkWrapper.querySelector('#helpdesk-bulk-assignment-action');
         var bulkAssignedTo = bulkWrapper.querySelector('#helpdesk-bulk-assigned-to');
         var bulkSummary = bulkWrapper.querySelector('#helpdesk-bulk-summary');
+
+        function updateBulkAssignmentState() {
+            if (!bulkAssignmentAction || !bulkAssignedTo) {
+                return;
+            }
+
+            var enabled = bulkAssignmentAction.value === 'set';
+            bulkAssignedTo.disabled = !enabled;
+            if (!enabled) {
+                bulkAssignedTo.value = '';
+            }
+        }
         var selectAllButton = bulkWrapper.querySelector('#helpdesk-bulk-select-all');
         var clearButton = bulkWrapper.querySelector('#helpdesk-bulk-clear');
 
@@ -471,6 +485,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             updateBulkSummary();
         });
+
+        if (bulkAssignmentAction) {
+            bulkAssignmentAction.addEventListener('change', updateBulkAssignmentState);
+            updateBulkAssignmentState();
+        }
 
         bulkForm.addEventListener('submit', function (e) {
             var checked = bulkChecks.filter(function (check) { return check.checked; });
@@ -527,17 +546,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function ensureSelectOption(select, value, label) {
+        if (!select || !value) {
+            return;
+        }
+
+        var exists = Array.prototype.some.call(select.options, function (option) {
+            return normalize(option.value) === normalize(value);
+        });
+
+        if (exists) {
+            return;
+        }
+
+        var option = document.createElement('option');
+        option.value = value;
+        option.textContent = label || value;
+        select.appendChild(option);
+    }
+
     var statusSelect = wrapper.querySelector('#helpdesk-filter-status');
     var categorySelect = wrapper.querySelector('#helpdesk-filter-category');
     var departmentSelect = wrapper.querySelector('#helpdesk-filter-department');
     var assignmentSelect = wrapper.querySelector('#helpdesk-filter-assignment');
-    var assigneeInput = wrapper.querySelector('#helpdesk-filter-assignee');
+    var assigneeSelect = wrapper.querySelector('#helpdesk-filter-assignee');
     var summaryNode = wrapper.querySelector('#helpdesk-filter-summary');
     var currentQueueFilter = 'all';
 
     appendOptions(statusSelect, statuses);
     appendOptions(categorySelect, categories);
     appendOptions(departmentSelect, departments);
+
+    if (assigneeSelect) {
+        items.forEach(function (item) {
+            ensureSelectOption(assigneeSelect, item.assigned, item.assigned);
+        });
+    }
 
     <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
     var queueCards = Array.prototype.slice.call(document.querySelectorAll('.helpdesk-queue-card[data-helpdesk-queue]'));
@@ -629,12 +673,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         Array.prototype.slice.call(assigneeChipsWrap.querySelectorAll('.helpdesk-assignee-chip')).forEach(function (chip) {
             chip.addEventListener('click', function () {
-                if (!assigneeInput) {
+                if (!assigneeSelect) {
                     return;
                 }
-                assigneeInput.value = chip.getAttribute('data-helpdesk-assignee-chip') || '';
+                assigneeSelect.value = chip.getAttribute('data-helpdesk-assignee-chip') || '';
+                if (!assigneeSelect.value) {
+                    ensureSelectOption(assigneeSelect, chip.getAttribute('data-helpdesk-assignee-chip') || '', chip.getAttribute('data-helpdesk-assignee-chip') || '');
+                    assigneeSelect.value = chip.getAttribute('data-helpdesk-assignee-chip') || '';
+                }
                 if (assignmentSelect) {
-                    assignmentSelect.value = assigneeInput.value ? 'assigned' : '';
+                    assignmentSelect.value = assigneeSelect.value ? 'assigned' : '';
                 }
                 applyFilters();
             });
@@ -647,7 +695,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var categoryValue = normalize(categorySelect ? categorySelect.value : '');
         var departmentValue = normalize(departmentSelect ? departmentSelect.value : '');
         var assignmentValue = normalize(assignmentSelect ? assignmentSelect.value : '');
-        var assigneeValue = normalize(assigneeInput ? assigneeInput.value : '');
+        var assigneeValue = normalize(assigneeSelect ? assigneeSelect.value : '');
         var visibleCount = 0;
 
         items.forEach(function (item) {
@@ -655,7 +703,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var matchesCategory = !categoryValue || normalize(item.category) === categoryValue;
             var matchesDepartment = !departmentValue || normalize(item.department) === departmentValue;
             var matchesAssignment = !assignmentValue || (assignmentValue === 'assigned' ? item.assigned !== '' : item.assigned === '');
-            var matchesAssignee = !assigneeValue || normalize(item.assigned).indexOf(assigneeValue) !== -1;
+            var matchesAssignee = !assigneeValue || normalize(item.assigned) === assigneeValue;
             var visible = matchesStatus && matchesCategory && matchesDepartment && matchesAssignment && matchesAssignee && matchesQueue(item, currentQueueFilter);
 
             item.row.style.display = visible ? '' : 'none';
@@ -671,16 +719,14 @@ document.addEventListener('DOMContentLoaded', function () {
         if (assigneeChipsWrap) {
             Array.prototype.slice.call(assigneeChipsWrap.querySelectorAll('.helpdesk-assignee-chip')).forEach(function (chip) {
                 var chipValue = normalize(chip.getAttribute('data-helpdesk-assignee-chip') || '');
-                chip.classList.toggle('is-active', chipValue === normalize(assigneeInput ? assigneeInput.value : ''));
+                chip.classList.toggle('is-active', chipValue === normalize(assigneeSelect ? assigneeSelect.value : ''));
             });
         }
         <!-- ENDIF -->
     }
 
     wrapper.addEventListener('change', applyFilters);
-    if (assigneeInput) {
-        assigneeInput.addEventListener('input', applyFilters);
-    }
+    
 
     var resetButton = wrapper.querySelector('#helpdesk-filter-reset');
     resetButton.addEventListener('click', function () {
@@ -696,8 +742,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (assignmentSelect) {
             assignmentSelect.value = '';
         }
-        if (assigneeInput) {
-            assigneeInput.value = '';
+        if (assigneeSelect) {
+            assigneeSelect.value = '';
         }
         <!-- IF S_HELPDESK_CAN_BULK_MANAGE -->
         setQueueFilter('all');

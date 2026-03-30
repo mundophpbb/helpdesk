@@ -52,6 +52,9 @@ class listener implements EventSubscriberInterface
     /** @var bool */
     protected $bulk_manage_template_assigned = false;
 
+    /** @var array */
+    protected $assignable_users_cache = [];
+
     public function __construct(
         \phpbb\config\config $config,
         \phpbb\template\template $template,
@@ -408,6 +411,36 @@ class listener implements EventSubscriberInterface
                     'VALUE' => $key,
                     'LABEL' => $label,
                     'S_SELECTED' => $this->extract_department_key($meta) === $key,
+                ]);
+            }
+        }
+
+        if ($can_manage_assignment)
+        {
+            $assignable_users = $this->get_assignable_users([$forum_id]);
+            $selected_assignee_key = $this->normalize_assignee_key($assigned_to);
+
+            $this->template->assign_block_vars('helpdesk_manage_assignee_options', [
+                'VALUE' => '',
+                'LABEL' => $this->user->lang('HELPDESK_QUEUE_UNASSIGNED'),
+                'S_SELECTED' => $assigned_to === '',
+            ]);
+
+            foreach ($assignable_users as $assignee_row)
+            {
+                $this->template->assign_block_vars('helpdesk_manage_assignee_options', [
+                    'VALUE' => $assignee_row['username'],
+                    'LABEL' => $assignee_row['username'],
+                    'S_SELECTED' => $selected_assignee_key === $assignee_row['username_key'],
+                ]);
+            }
+
+            if ($assigned_to !== '' && !$this->assignee_exists_in_options($assigned_to, $assignable_users))
+            {
+                $this->template->assign_block_vars('helpdesk_manage_assignee_options', [
+                    'VALUE' => $assigned_to,
+                    'LABEL' => $assigned_to,
+                    'S_SELECTED' => true,
                 ]);
             }
         }
@@ -1099,6 +1132,19 @@ class listener implements EventSubscriberInterface
                 $this->template->assign_block_vars('helpdesk_bulk_department_options', [
                     'VALUE' => $key,
                     'LABEL' => $label,
+                ]);
+            }
+
+            $assignable_users = $this->get_assignable_users([$forum_id]);
+            foreach ($assignable_users as $assignee_row)
+            {
+                $this->template->assign_block_vars('helpdesk_viewforum_assignee_options', [
+                    'VALUE' => $assignee_row['username'],
+                    'LABEL' => $assignee_row['username'],
+                ]);
+                $this->template->assign_block_vars('helpdesk_viewforum_bulk_assignee_options', [
+                    'VALUE' => $assignee_row['username'],
+                    'LABEL' => $assignee_row['username'],
                 ]);
             }
         }
@@ -3136,6 +3182,248 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
         return $options;
     }
 
+
+    protected function get_assignable_users(array $forum_ids)
+    {
+        $forum_ids = array_map('intval', $forum_ids);
+        $forum_ids = array_values(array_unique(array_filter($forum_ids)));
+        if (!in_array(0, $forum_ids, true))
+        {
+            array_unshift($forum_ids, 0);
+        }
+        sort($forum_ids);
+
+        $cache_key = implode(':', $forum_ids);
+        if (isset($this->assignable_users_cache[$cache_key]))
+        {
+            return $this->assignable_users_cache[$cache_key];
+        }
+
+        $option_ids = $this->assignable_permission_option_ids();
+        if (empty($option_ids))
+        {
+            $this->assignable_users_cache[$cache_key] = [];
+            return $this->assignable_users_cache[$cache_key];
+        }
+
+        $role_settings = $this->assignable_permission_role_settings($option_ids);
+        $assignable_users = [];
+
+        $this->collect_assignable_users_from_acl_users($forum_ids, $option_ids, $role_settings, $assignable_users);
+        $this->collect_assignable_users_from_acl_groups($forum_ids, $option_ids, $role_settings, $assignable_users);
+
+        foreach ($assignable_users as $user_id => $row)
+        {
+            if (empty($row['has_grant']) || !empty($row['has_never']))
+            {
+                unset($assignable_users[$user_id]);
+            }
+        }
+
+        uasort($assignable_users, function ($left, $right) {
+            return strcmp($left['username_sort'], $right['username_sort']);
+        });
+
+        $this->assignable_users_cache[$cache_key] = array_values($assignable_users);
+        return $this->assignable_users_cache[$cache_key];
+    }
+
+    protected function assignable_permission_option_ids()
+    {
+        $sql = 'SELECT auth_option_id, auth_option
+            FROM ' . $this->table_prefix . "acl_options
+            WHERE " . $this->db->sql_in_set('auth_option', ['a_', 'm_', 'm_helpdesk_manage', 'm_helpdesk_assign', 'm_helpdesk_bulk', 'm_helpdesk_queue']);
+        $result = $this->db->sql_query($sql);
+        $option_ids = [];
+        while ($row = $this->db->sql_fetchrow($result))
+        {
+            $option_ids[] = (int) $row['auth_option_id'];
+        }
+        $this->db->sql_freeresult($result);
+
+        return array_values(array_unique($option_ids));
+    }
+
+    protected function assignable_permission_role_settings(array $option_ids)
+    {
+        if (empty($option_ids))
+        {
+            return [];
+        }
+
+        $sql = 'SELECT role_id, auth_setting
+            FROM ' . $this->table_prefix . 'acl_roles_data
+            WHERE ' . $this->db->sql_in_set('auth_option_id', $option_ids) . '
+                AND auth_setting <> 0';
+        $result = $this->db->sql_query($sql);
+        $role_settings = [];
+        while ($row = $this->db->sql_fetchrow($result))
+        {
+            $role_id = (int) $row['role_id'];
+            if (!isset($role_settings[$role_id]))
+            {
+                $role_settings[$role_id] = [];
+            }
+            $role_settings[$role_id][] = (int) $row['auth_setting'];
+        }
+        $this->db->sql_freeresult($result);
+
+        return $role_settings;
+    }
+
+    protected function collect_assignable_users_from_acl_users(array $forum_ids, array $option_ids, array $role_settings, array &$assignable_users)
+    {
+        if (empty($forum_ids) || empty($option_ids))
+        {
+            return;
+        }
+
+        $sql = 'SELECT u.user_id, u.username, u.username_clean, au.auth_option_id, au.auth_role_id, au.auth_setting
+            FROM ' . $this->table_prefix . 'acl_users au
+            INNER JOIN ' . $this->table_prefix . 'users u
+                ON u.user_id = au.user_id
+            WHERE ' . $this->db->sql_in_set('au.forum_id', $forum_ids) . '
+                AND (au.auth_role_id <> 0 OR ' . $this->db->sql_in_set('au.auth_option_id', $option_ids) . ')
+                AND u.user_id <> ' . (defined('ANONYMOUS') ? (int) ANONYMOUS : 1) . $this->assignable_users_type_sql();
+        $result = $this->db->sql_query($sql);
+        while ($row = $this->db->sql_fetchrow($result))
+        {
+            $user_id = (int) $row['user_id'];
+            $this->initialize_assignable_user_entry($assignable_users, $user_id, (string) $row['username'], (string) $row['username_clean']);
+            $this->apply_assignable_user_permission_settings($assignable_users[$user_id], (int) $row['auth_role_id'], (int) $row['auth_setting'], $role_settings);
+        }
+        $this->db->sql_freeresult($result);
+    }
+
+    protected function collect_assignable_users_from_acl_groups(array $forum_ids, array $option_ids, array $role_settings, array &$assignable_users)
+    {
+        if (empty($forum_ids) || empty($option_ids))
+        {
+            return;
+        }
+
+        $sql = 'SELECT u.user_id, u.username, u.username_clean, ag.auth_option_id, ag.auth_role_id, ag.auth_setting
+            FROM ' . $this->table_prefix . 'acl_groups ag
+            INNER JOIN ' . $this->table_prefix . 'user_group ug
+                ON ug.group_id = ag.group_id
+                AND ug.user_pending = 0
+            INNER JOIN ' . $this->table_prefix . 'users u
+                ON u.user_id = ug.user_id
+            WHERE ' . $this->db->sql_in_set('ag.forum_id', $forum_ids) . '
+                AND (ag.auth_role_id <> 0 OR ' . $this->db->sql_in_set('ag.auth_option_id', $option_ids) . ')
+                AND u.user_id <> ' . (defined('ANONYMOUS') ? (int) ANONYMOUS : 1) . $this->assignable_users_type_sql();
+        $result = $this->db->sql_query($sql);
+        while ($row = $this->db->sql_fetchrow($result))
+        {
+            $user_id = (int) $row['user_id'];
+            $this->initialize_assignable_user_entry($assignable_users, $user_id, (string) $row['username'], (string) $row['username_clean']);
+            $this->apply_assignable_user_permission_settings($assignable_users[$user_id], (int) $row['auth_role_id'], (int) $row['auth_setting'], $role_settings);
+        }
+        $this->db->sql_freeresult($result);
+    }
+
+    protected function initialize_assignable_user_entry(array &$assignable_users, $user_id, $username, $username_clean)
+    {
+        if (isset($assignable_users[$user_id]))
+        {
+            return;
+        }
+
+        $assignable_users[$user_id] = [
+            'user_id' => (int) $user_id,
+            'username' => (string) $username,
+            'username_key' => $this->normalize_assignee_key($username),
+            'username_sort' => (string) $username_clean,
+            'has_grant' => false,
+            'has_never' => false,
+        ];
+    }
+
+    protected function apply_assignable_user_permission_settings(array &$user_row, $role_id, $auth_setting, array $role_settings)
+    {
+        $role_id = (int) $role_id;
+        if ($role_id > 0)
+        {
+            if (!empty($role_settings[$role_id]))
+            {
+                foreach ($role_settings[$role_id] as $setting)
+                {
+                    $this->mark_assignable_permission_setting($user_row, (int) $setting);
+                }
+            }
+            return;
+        }
+
+        $this->mark_assignable_permission_setting($user_row, (int) $auth_setting);
+    }
+
+    protected function mark_assignable_permission_setting(array &$user_row, $setting)
+    {
+        $setting = (int) $setting;
+        if ($setting < 0)
+        {
+            $user_row['has_never'] = true;
+        }
+        else if ($setting > 0)
+        {
+            $user_row['has_grant'] = true;
+        }
+    }
+
+    protected function assignable_users_type_sql()
+    {
+        $allowed_user_types = [];
+        if (defined('USER_NORMAL'))
+        {
+            $allowed_user_types[] = (int) USER_NORMAL;
+        }
+        if (defined('USER_FOUNDER'))
+        {
+            $allowed_user_types[] = (int) USER_FOUNDER;
+        }
+
+        if (!empty($allowed_user_types))
+        {
+            return ' AND ' . $this->db->sql_in_set('u.user_type', array_values(array_unique($allowed_user_types)));
+        }
+
+        return ' AND u.user_type <> ' . (defined('USER_IGNORE') ? (int) USER_IGNORE : 2);
+    }
+
+    protected function normalize_assignee_key($value)
+    {
+        $value = trim((string) $value);
+        if ($value === '')
+        {
+            return '';
+        }
+
+        if (function_exists('utf8_strtolower'))
+        {
+            return utf8_strtolower($value);
+        }
+
+        return strtolower($value);
+    }
+
+    protected function assignee_exists_in_options($assignee, array $assignable_users)
+    {
+        $assignee_key = $this->normalize_assignee_key($assignee);
+        if ($assignee_key === '')
+        {
+            return false;
+        }
+
+        foreach ($assignable_users as $assignee_row)
+        {
+            if ($assignee_key === (string) $assignee_row['username_key'])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     protected function build_form_token_fields($form_name)
     {

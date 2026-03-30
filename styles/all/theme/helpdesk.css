@@ -2439,3 +2439,95 @@
     display: inline-block;
     margin-bottom: 4px;
 }
+
+
+.helpdesk-assignee-select {
+    width: 100%;
+    min-height: 34px;
+    box-sizing: border-box;
+}
+
+html[data-theme="dark"] .helpdesk-topic-panel,
+body[data-theme="dark"] .helpdesk-topic-panel,
+.dark-theme .helpdesk-topic-panel,
+body.dark .helpdesk-topic-panel,
+body.phpbb-dark .helpdesk-topic-panel {
+    background: #1f252d;
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #edf2f7;
+}
+
+html[data-theme="dark"] .helpdesk-topic-panel h3,
+html[data-theme="dark"] .helpdesk-topic-panel h4,
+html[data-theme="dark"] .helpdesk-topic-panel label,
+html[data-theme="dark"] .helpdesk-topic-panel .helpdesk-note,
+body[data-theme="dark"] .helpdesk-topic-panel h3,
+body[data-theme="dark"] .helpdesk-topic-panel h4,
+body[data-theme="dark"] .helpdesk-topic-panel label,
+body[data-theme="dark"] .helpdesk-topic-panel .helpdesk-note,
+.dark-theme .helpdesk-topic-panel h3,
+.dark-theme .helpdesk-topic-panel h4,
+.dark-theme .helpdesk-topic-panel label,
+.dark-theme .helpdesk-topic-panel .helpdesk-note,
+body.dark .helpdesk-topic-panel h3,
+body.dark .helpdesk-topic-panel h4,
+body.dark .helpdesk-topic-panel label,
+body.dark .helpdesk-topic-panel .helpdesk-note,
+body.phpbb-dark .helpdesk-topic-panel h3,
+body.phpbb-dark .helpdesk-topic-panel h4,
+body.phpbb-dark .helpdesk-topic-panel label,
+body.phpbb-dark .helpdesk-topic-panel .helpdesk-note {
+    color: #edf2f7;
+}
+
+html[data-theme="dark"] .helpdesk-manage-field select,
+html[data-theme="dark"] .helpdesk-manage-field input[type="text"],
+html[data-theme="dark"] .helpdesk-manage-field textarea,
+html[data-theme="dark"] .helpdesk-filter-field select,
+html[data-theme="dark"] .helpdesk-filter-field input[type="text"],
+body[data-theme="dark"] .helpdesk-manage-field select,
+body[data-theme="dark"] .helpdesk-manage-field input[type="text"],
+body[data-theme="dark"] .helpdesk-manage-field textarea,
+body[data-theme="dark"] .helpdesk-filter-field select,
+body[data-theme="dark"] .helpdesk-filter-field input[type="text"],
+.dark-theme .helpdesk-manage-field select,
+.dark-theme .helpdesk-manage-field input[type="text"],
+.dark-theme .helpdesk-manage-field textarea,
+.dark-theme .helpdesk-filter-field select,
+.dark-theme .helpdesk-filter-field input[type="text"],
+body.dark .helpdesk-manage-field select,
+body.dark .helpdesk-manage-field input[type="text"],
+body.dark .helpdesk-manage-field textarea,
+body.dark .helpdesk-filter-field select,
+body.dark .helpdesk-filter-field input[type="text"],
+body.phpbb-dark .helpdesk-manage-field select,
+body.phpbb-dark .helpdesk-manage-field input[type="text"],
+body.phpbb-dark .helpdesk-manage-field textarea,
+body.phpbb-dark .helpdesk-filter-field select,
+body.phpbb-dark .helpdesk-filter-field input[type="text"] {
+    background: #141a21;
+    color: #edf2f7;
+    border: 1px solid #435166;
+}
+
+html[data-theme="dark"] .helpdesk-manage-field select option,
+html[data-theme="dark"] .helpdesk-filter-field select option,
+body[data-theme="dark"] .helpdesk-manage-field select option,
+body[data-theme="dark"] .helpdesk-filter-field select option,
+.dark-theme .helpdesk-manage-field select option,
+.dark-theme .helpdesk-filter-field select option,
+body.dark .helpdesk-manage-field select option,
+body.dark .helpdesk-filter-field select option,
+body.phpbb-dark .helpdesk-manage-field select option,
+body.phpbb-dark .helpdesk-filter-field select option {
+    background: #141a21;
+    color: #edf2f7;
+}
+
+html[data-theme="dark"] .helpdesk-history-box,
+body[data-theme="dark"] .helpdesk-history-box,
+.dark-theme .helpdesk-history-box,
+body.dark .helpdesk-history-box,
+body.phpbb-dark .helpdesk-history-box {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}

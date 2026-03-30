@@ -1,0 +1,235 @@
+[size=150][b]MundoPHPBB Help Desk[/b][/size]
+
+Extensão genérica de Help Desk para phpBB, com foco em tickets, fila da equipe, SLA, alertas internos, automação de fluxo e visão operacional da carga da equipe.
+
+[b]Build documental deste pacote:[/b] 4.9.58
+[b]Versão declarada no composer.json:[/b] 3.0.0
+[b]Namespace / caminho:[/b] [code]mundophpbb/helpdesk[/code]
+
+[hr]
+[b]1. Requisitos[/b]
+
+[list]
+[*]phpBB 3.3.0 ou superior
+[*]PHP 7.4 ou superior
+[*]pasta da extensão em [code]ext/mundophpbb/helpdesk[/code]
+[/list]
+
+[hr]
+[b]2. Principais recursos[/b]
+
+[list]
+[*]status do ticket
+[*]prioridade
+[*]categoria
+[*]departamento
+[*]responsável
+[*]histórico de atividade
+[*]ações em massa
+[*]automações de fluxo
+[*]regras de SLA
+[*]regras de fila por departamento, prioridade e responsável
+[*]alertas internos
+[*]painel operacional da equipe
+[*]relatórios operacionais e gerenciais
+[*]sugestões e prévias de redistribuição
+[*]suporte multilíngue pt_br / en
+[/list]
+
+[hr]
+[b]3. Instalação[/b]
+
+[list=1]
+[*]Envie a pasta da extensão para [code]ext/mundophpbb/helpdesk[/code]
+[*]No ACP, acesse [i]Personalizar -> Gerenciar extensões[/i]
+[*]Ative a extensão [b]Help Desk[/b]
+[*]Abra o módulo do ACP da extensão e configure fóruns, status, prioridades, categorias, departamentos, automações, SLA e painel da equipe
+[*]Purgue o cache do phpBB após instalar ou substituir arquivos
+[/list]
+
+[hr]
+[b]4. Remoção[/b]
+
+Para remover completamente:
+
+[list=1]
+[*]Desative a extensão
+[*]Use [b]Delete Data[/b]
+[*]Confirme se módulo ACP, permissões e configurações foram removidos corretamente
+[/list]
+
+[hr]
+[b]5. Permissões[/b]
+
+A extensão utiliza permissões de moderação próprias:
+
+[list]
+[*][code]m_helpdesk_manage[/code] — pode gerenciar status e departamento
+[*][code]m_helpdesk_assign[/code] — pode atribuir tickets
+[*][code]m_helpdesk_bulk[/code] — pode usar ações em massa
+[*][code]m_helpdesk_queue[/code] — pode acessar a fila da equipe
+[/list]
+
+[hr]
+[b]6. Configuração no ACP[/b]
+
+[b]Geral[/b]
+[list]
+[*]ativar ou desativar o Help Desk
+[*]definir fóruns habilitados
+[*]definir status padrão
+[*]ativar ou desativar prioridade, categoria, departamento e responsável
+[*]ativar painel da equipe, alertas e SLA
+[*]definir horas de SLA, stale e very old
+[/list]
+
+[b]Fluxo e automações[/b]
+[list]
+[*]status após resposta da equipe
+[*]status após resposta do usuário
+[*]autoatribuição ao responder
+[*]trancar ao fechar
+[*]destrancar ao reabrir
+[*]status operacionais ao atribuir, desatribuir ou trocar departamento/prioridade
+[/list]
+
+[b]Classificação[/b]
+[list]
+[*]status
+[*]prioridades
+[*]categorias
+[*]departamentos
+[/list]
+
+[b]Regras avançadas[/b]
+[list]
+[*]SLA por departamento
+[*]SLA por prioridade
+[*]SLA por departamento + prioridade
+[*]fila por departamento + prioridade
+[*]fila por responsável
+[/list]
+
+[hr]
+[b]7. Fila da equipe[/b]
+
+O painel da equipe está organizado em abas:
+
+[list]
+[*]Overview
+[*]Queue
+[*]Personal
+[*]Triage
+[*]Balance
+[*]Reports
+[*]Alerts
+[*]History
+[/list]
+
+Escopos rápidos mais relevantes:
+
+[list]
+[*]todos
+[*]abertos
+[*]aguardando
+[*]sem responsável
+[*]dentro do SLA
+[*]atrasados
+[*]sem resposta recente
+[*]primeira resposta pendente
+[*]muito antigos
+[*]aguardando equipe
+[*]reabertos
+[*]sobrecarga
+[*]backlog envelhecendo
+[/list]
+
+[hr]
+[b]8. Recursos operacionais do painel[/b]
+
+[list]
+[*]saúde operacional
+[*]distribuição de carga por responsável
+[*]cobertura e pressão por departamento
+[*]backlog por fórum
+[*]hotspots fórum / departamento
+[*]envelhecimento do backlog
+[*]produtividade e resposta da equipe
+[*]resumo executivo
+[*]plano de ação do turno
+[*]alertas recentes
+[*]histórico operacional
+[*]atalhos salvos
+[*]sugestões de redistribuição
+[*]prévia de redistribuição balanceada
+[*]prévia com foco em sobrecarga, prioridade alta, prioridade crítica, departamento e responsável
+[/list]
+
+[hr]
+[b]9. Relatórios[/b]
+
+A aba [b]Reports[/b] consolida:
+
+[list]
+[*]resumo executivo
+[*]plano de ação do turno
+[*]backlog por fórum
+[*]hotspots fórum / departamento
+[*]envelhecimento do backlog
+[*]produtividade e resposta
+[*]resposta por responsável
+[*]capacidade por carga
+[*]distribuição por status
+[*]distribuição por departamento
+[*]distribuição por prioridade
+[*]distribuição por responsável
+[/list]
+
+[hr]
+[b]10. Redistribuição[/b]
+
+A extensão já inclui recursos para redistribuir a fila:
+
+[list]
+[*]sugestão individual
+[*]aplicação em lote
+[*]seleção inteligente
+[*]plano balanceado
+[*]simulação antes de aplicar
+[*]foco em sobrecarga
+[*]foco em prioridade alta
+[*]foco em prioridade crítica
+[*]foco por departamento
+[*]foco por responsável
+[/list]
+
+[hr]
+[b]11. Fluxo recomendado[/b]
+
+[list=1]
+[*]usuário abre o tópico em fórum habilitado
+[*]ticket entra como aberto
+[*]equipe faz triagem
+[*]responsável é definido
+[*]prioridade e departamento são ajustados
+[*]ticket segue acompanhamento
+[*]ao resolver, status muda para resolvido ou fechado
+[*]se configurado, o tópico é trancado automaticamente
+[/list]
+
+[hr]
+[b]12. Boas práticas[/b]
+
+[list]
+[*]habilitar primeiro em fórum de teste
+[*]revisar listas de status, prioridades, categorias e departamentos
+[*]conferir permissões dos moderadores
+[*]validar o painel da equipe com mais de um staff
+[*]purgar o cache sempre após substituir arquivos
+[*]testar ciclo completo de abertura, resposta, atribuição, fechamento e Delete Data
+[/list]
+
+[hr]
+[b]13. Observação final[/b]
+
+Boa parte das leituras mais avançadas do painel da equipe usa o estado operacional atual da fila. Assim, a extensão mostra sinais reais da operação sem fingir histórico persistido quando ele não existe.

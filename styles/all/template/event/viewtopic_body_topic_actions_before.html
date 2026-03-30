@@ -73,7 +73,11 @@
                     <!-- IF S_HELPDESK_CAN_MANAGE_ASSIGNMENT -->
                     <div class="helpdesk-manage-field">
                         <label for="helpdesk_assigned_to">{L_HELPDESK_ASSIGNED_TO}{L_COLON}</label>
-                        <input type="text" name="helpdesk_assigned_to" id="helpdesk_assigned_to" value="{HELPDESK_ASSIGNED_TO_VALUE}" maxlength="255" />
+                        <select name="helpdesk_assigned_to" id="helpdesk_assigned_to" class="helpdesk-assignee-select">
+                            <!-- BEGIN helpdesk_manage_assignee_options -->
+                            <option value="{helpdesk_manage_assignee_options.VALUE}"<!-- IF helpdesk_manage_assignee_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_manage_assignee_options.LABEL}</option>
+                            <!-- END helpdesk_manage_assignee_options -->
+                        </select>
                     </div>
                     <!-- ENDIF -->
                     <div class="helpdesk-manage-field helpdesk-manage-field-wide">

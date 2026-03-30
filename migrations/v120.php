@@ -10,7 +10,8 @@ class v120 extends \phpbb\db\migration\migration
 {
     public function effectively_installed()
     {
-        return isset($this->config['mundophpbb_helpdesk_status_definitions']);
+        return isset($this->config['mundophpbb_helpdesk_status_definitions'])
+            || $this->table_exists($this->table_prefix . 'helpdesk_logs');
     }
 
     static public function depends_on()
@@ -46,17 +47,13 @@ class v120 extends \phpbb\db\migration\migration
 
     public function revert_schema()
     {
-        return [
-            'drop_tables' => [
-                $this->table_prefix . 'helpdesk_logs',
-            ],
-        ];
+        return [];
     }
-
 
     public function revert_data()
     {
         return [
+            ['custom', [[$this, 'safe_drop_helpdesk_logs_table']]],
             ['config.remove', ['mundophpbb_helpdesk_status_definitions']],
         ];
     }
@@ -66,5 +63,20 @@ class v120 extends \phpbb\db\migration\migration
         return [
             ['config.add', ['mundophpbb_helpdesk_status_definitions', "open|Aberto|Open|open\nin_progress|Em andamento|In progress|progress\nwaiting_reply|Aguardando retorno|Waiting for reply|waiting\nresolved|Resolvido|Resolved|resolved\nclosed|Fechado|Closed|closed"]],
         ];
+    }
+
+    public function safe_drop_helpdesk_logs_table()
+    {
+        $table = $this->table_prefix . 'helpdesk_logs';
+
+        if ($this->table_exists($table))
+        {
+            $this->db_tools->sql_table_drop($table);
+        }
+    }
+
+    protected function table_exists($table_name)
+    {
+        return $this->db_tools->sql_table_exists($table_name);
     }
 }

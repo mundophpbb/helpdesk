@@ -10,9 +10,14 @@ class v110 extends \phpbb\db\migration\migration
 {
     public function effectively_installed()
     {
-        return isset($this->config['mundophpbb_helpdesk_categories_en'])
+        return (
+            isset($this->config['mundophpbb_helpdesk_categories_en'])
             && isset($this->config['mundophpbb_helpdesk_departments_en'])
-            && isset($this->config['mundophpbb_helpdesk_department_enable']);
+            && isset($this->config['mundophpbb_helpdesk_department_enable'])
+        ) || (
+            $this->column_exists($this->table_prefix . 'helpdesk_topics', 'category_key')
+            && $this->column_exists($this->table_prefix . 'helpdesk_topics', 'department_key')
+        );
     }
 
     static public function depends_on()
@@ -34,20 +39,13 @@ class v110 extends \phpbb\db\migration\migration
 
     public function revert_schema()
     {
-        return [
-            'drop_columns' => [
-                $this->table_prefix . 'helpdesk_topics' => [
-                    'category_key',
-                    'department_key',
-                ],
-            ],
-        ];
+        return [];
     }
-
 
     public function revert_data()
     {
         return [
+            ['custom', [[$this, 'safe_remove_helpdesk_topic_columns']]],
             ['config.remove', ['mundophpbb_helpdesk_department_enable']],
             ['config.remove', ['mundophpbb_helpdesk_categories_en']],
             ['config.remove', ['mundophpbb_helpdesk_categories_pt_br']],
@@ -70,8 +68,14 @@ class v110 extends \phpbb\db\migration\migration
 
     public function migrate_legacy_category_keys()
     {
+        $table = $this->table_prefix . 'helpdesk_topics';
+        if (!$this->table_exists($table))
+        {
+            return;
+        }
+
         $sql = 'SELECT topic_id, category_label
-            FROM ' . $this->table_prefix . 'helpdesk_topics';
+            FROM ' . $table;
         $result = $this->db->sql_query($sql);
 
         while ($row = $this->db->sql_fetchrow($result))
@@ -87,7 +91,7 @@ class v110 extends \phpbb\db\migration\migration
                 'category_key' => $key,
             ];
 
-            $this->db->sql_query('UPDATE ' . $this->table_prefix . 'helpdesk_topics
+            $this->db->sql_query('UPDATE ' . $table . '
                 SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . '
                 WHERE topic_id = ' . (int) $row['topic_id']);
         }
@@ -95,10 +99,40 @@ class v110 extends \phpbb\db\migration\migration
         $this->db->sql_freeresult($result);
     }
 
+    public function safe_remove_helpdesk_topic_columns()
+    {
+        $table = $this->table_prefix . 'helpdesk_topics';
+
+        if (!$this->table_exists($table))
+        {
+            return;
+        }
+
+        if ($this->db_tools->sql_column_exists($table, 'category_key'))
+        {
+            $this->db_tools->sql_column_remove($table, 'category_key');
+        }
+
+        if ($this->db_tools->sql_column_exists($table, 'department_key'))
+        {
+            $this->db_tools->sql_column_remove($table, 'department_key');
+        }
+    }
+
     protected function slugify($value)
     {
         $value = strtolower(trim((string) $value));
         $value = preg_replace('/[^a-z0-9]+/', '_', $value);
         return trim((string) $value, '_');
+    }
+
+    protected function table_exists($table_name)
+    {
+        return $this->db_tools->sql_table_exists($table_name);
+    }
+
+    protected function column_exists($table_name, $column_name)
+    {
+        return $this->table_exists($table_name) && $this->db_tools->sql_column_exists($table_name, $column_name);
     }
 }
