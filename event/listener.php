@@ -368,7 +368,7 @@ class listener implements EventSubscriberInterface
             'HELPDESK_MANAGE_PRIORITY_VALUE' => isset($meta['priority_key']) ? (string) $meta['priority_key'] : 'normal',
             'HELPDESK_ASSIGNED_TO_VALUE' => $assigned_to,
             'HELPDESK_CHANGE_REASON_VALUE' => '',
-            'HELPDESK_MANAGE_FORM_TOKEN' => $this->build_form_token_fields('mundophpbb_helpdesk_topic_manage'),
+            'HELPDESK_MANAGE_FORM_TOKEN' => $this->build_form_token_fields('mundophpbb_helpdesk_topic_manage', '_HELPDESK_MANAGE'),
             'S_HELPDESK_CAN_VIEW_TEAM_QUEUE' => $this->team_panel_enabled() && $this->can_view_team_queue(),
             'U_HELPDESK_TEAM_QUEUE' => $this->team_queue_url(),
         ]);
@@ -717,7 +717,7 @@ class listener implements EventSubscriberInterface
             FROM ' . $this->logs_table() . ' l
             LEFT JOIN ' . $this->table_prefix . 'users u
                 ON u.user_id = l.user_id
-            WHERE l.topic_id = ' . $topic_id . "
+            WHERE l.topic_id = ' . (int) $topic_id . "
                 AND l.action_key IN ('status_change', 'priority_change', 'assignment_change', 'department_change')
             ORDER BY l.log_time DESC";
         $result = $this->db->sql_query_limit($sql, (int) $limit);
@@ -1046,7 +1046,7 @@ class listener implements EventSubscriberInterface
 
             $this->db->sql_query('UPDATE ' . $this->topics_table() . '
                 SET ' . $this->db->sql_build_array('UPDATE', $update_sql) . '
-                WHERE topic_id = ' . $topic_id);
+                WHERE topic_id = ' . (int) $topic_id);
 
             if ($applied_status !== '' && $old_status !== $applied_status)
             {
@@ -1104,7 +1104,7 @@ class listener implements EventSubscriberInterface
             'HELPDESK_SLA_HOURS' => $this->sla_hours(),
             'HELPDESK_STALE_HOURS' => $this->stale_hours(),
             'HELPDESK_OLD_HOURS' => $this->old_hours(),
-            'HELPDESK_BULK_FORM_TOKEN' => $can_bulk_manage ? $this->build_form_token_fields('mundophpbb_helpdesk_bulk_manage') : '',
+            'HELPDESK_BULK_FORM_TOKEN' => $can_bulk_manage ? $this->build_form_token_fields('mundophpbb_helpdesk_bulk_manage', '_HELPDESK_BULK') : '',
             'S_HELPDESK_CAN_VIEW_TEAM_QUEUE' => $this->team_panel_enabled() && $this->can_view_team_queue(),
             'U_HELPDESK_TEAM_QUEUE' => $this->team_queue_url(),
         ]);
@@ -1275,7 +1275,7 @@ class listener implements EventSubscriberInterface
 
         $this->db->sql_query('UPDATE ' . $this->topics_table() . '
             SET ' . $this->db->sql_build_array('UPDATE', $update_sql) . '
-            WHERE topic_id = ' . $topic_id);
+            WHERE topic_id = ' . (int) $topic_id);
 
         if ($new_status !== $old_status)
         {
@@ -1720,7 +1720,7 @@ class listener implements EventSubscriberInterface
 
         $sql = 'SELECT user_id, username, user_email, user_lang
             FROM ' . $this->table_prefix . 'users
-            WHERE user_id = ' . $user_id;
+            WHERE user_id = ' . (int) $user_id;
         $result = $this->db->sql_query_limit($sql, 1);
         $row = $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
@@ -2377,7 +2377,7 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
 
         $sql = 'SELECT old_value, new_value
             FROM ' . $this->logs_table() . '
-            WHERE topic_id = ' . $topic_id . "
+            WHERE topic_id = ' . (int) $topic_id . "
                 AND action_key = 'status_change'";
         $result = $this->db->sql_query($sql);
 
@@ -2796,7 +2796,7 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
 
         $sql = 'SELECT *
             FROM ' . $this->topics_table() . '
-            WHERE topic_id = ' . $topic_id;
+            WHERE topic_id = ' . (int) $topic_id;
         $result = $this->db->sql_query_limit($sql, 1);
         $row = $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
@@ -3425,18 +3425,32 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
         return false;
     }
 
-    protected function build_form_token_fields($form_name)
+    protected function build_form_token_fields($form_name, $template_variable_suffix = '')
     {
-        $now = time();
-        $token_sid = ((int) $this->user->data['user_id'] == ANONYMOUS && !empty($this->config['form_token_sid_guests']))
-            ? $this->user->session_id
-            : '';
-        $token = sha1($now . $this->user->data['user_form_salt'] . $form_name . $token_sid);
+        if (!function_exists('add_form_key'))
+        {
+            return '';
+        }
 
-        return build_hidden_fields([
-            'creation_time' => $now,
-            'form_token' => $token,
-        ]);
+        add_form_key($form_name, $template_variable_suffix);
+
+        $template_var = 'S_FORM_TOKEN' . $template_variable_suffix;
+
+        if (method_exists($this->template, 'retrieve_var'))
+        {
+            $token_fields = (string) $this->template->retrieve_var($template_var);
+            if ($token_fields !== '')
+            {
+                return $token_fields;
+            }
+        }
+
+        if (isset($this->template->_tpldata['.'][0][$template_var]))
+        {
+            return (string) $this->template->_tpldata['.'][0][$template_var];
+        }
+
+        return '';
     }
 
     protected function sanitize_assignee($value)

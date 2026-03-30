@@ -1415,8 +1415,8 @@ class queue_controller
 
                 $this->db->sql_query('UPDATE ' . $this->topics_table() . '
                     SET ' . $this->db->sql_build_array('UPDATE', $update_sql) . '
-                    WHERE topic_id = ' . $topic_id . '
-                        AND forum_id = ' . $forum_id);
+                    WHERE topic_id = ' . (int) $topic_id . '
+                        AND forum_id = ' . (int) $forum_id);
 
                 if ($new_status !== '' && $old_status !== $new_status)
                 {
@@ -1995,8 +1995,8 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
 
         $sql = 'SELECT *
             FROM ' . $this->topics_table() . '
-            WHERE topic_id = ' . $topic_id . '
-                AND forum_id = ' . $forum_id;
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id;
         $result = $this->db->sql_query($sql);
         $row = $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
@@ -2020,8 +2020,8 @@ edirect($this->queue_redirect_url($updated_count > 0 ? 'redistributed_department
 
         $this->db->sql_query('UPDATE ' . $this->topics_table() . '
             SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . '
-            WHERE topic_id = ' . $topic_id . '
-                AND forum_id = ' . $forum_id);
+            WHERE topic_id = ' . (int) $topic_id . '
+                AND forum_id = ' . (int) $forum_id);
 
         $log_sql = [
             'log_id' => $this->next_log_id(),
