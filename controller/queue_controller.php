@@ -1858,7 +1858,7 @@ class queue_controller
             ))
             {
                 
-edirect($this->queue_redirect_url('bulk_reason_required'));
+\redirect($this->queue_redirect_url('bulk_reason_required'));
             }
 
             if ($new_status === '' && !$priority_has_change && !$department_has_change && !$assignment_has_change)
@@ -1968,7 +1968,7 @@ edirect($this->queue_redirect_url('bulk_reason_required'));
             ))
             {
                 
-edirect($this->queue_redirect_url('row_reason_required'));
+\redirect($this->queue_redirect_url('row_reason_required'));
             }
 
             if ($topic_id <= 0 || $forum_id <= 0 || !in_array((int) $forum_id, array_map('intval', $forum_ids), true) || !$this->can_assign_forum($forum_id))
@@ -3433,7 +3433,7 @@ edirect($this->queue_redirect_url('row_reason_required'));
         foreach ($this->status_definitions() as $key => $definition)
         {
             $label = $this->status_label_from_definition($definition);
-            $options .= '<option value="' . htmlspecialchars((string) $key, ENT_COMPAT, 'UTF-8') . '"' . (($selected_status === (string) $key) ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label, ENT_COMPAT, 'UTF-8') . '</option>';
+            $options .= '<option value="' . \utf8_htmlspecialchars((string) $key) . '"' . (($selected_status === (string) $key) ? ' selected="selected"' : '') . '>' . \utf8_htmlspecialchars((string) $label) . '</option>';
         }
 
         return $options;
@@ -3447,7 +3447,7 @@ edirect($this->queue_redirect_url('row_reason_required'));
         foreach ($this->priority_definitions() as $key => $definition)
         {
             $label = $this->priority_label_from_definition($definition);
-            $options .= '<option value="' . htmlspecialchars((string) $key, ENT_COMPAT, 'UTF-8') . '"' . (($selected_priority === (string) $key) ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label, ENT_COMPAT, 'UTF-8') . '</option>';
+            $options .= '<option value="' . \utf8_htmlspecialchars((string) $key) . '"' . (($selected_priority === (string) $key) ? ' selected="selected"' : '') . '>' . \utf8_htmlspecialchars((string) $label) . '</option>';
         }
 
         return $options;
@@ -3456,7 +3456,7 @@ edirect($this->queue_redirect_url('row_reason_required'));
 
     protected function build_queue_row_reply_template_options_html(array $reply_templates)
     {
-        $options = '<option value="">' . htmlspecialchars((string) $this->user->lang('HELPDESK_TEAM_QUEUE_ROW_REPLY_NO_TEMPLATE'), ENT_COMPAT, 'UTF-8') . '</option>';
+        $options = '<option value="">' . \utf8_htmlspecialchars((string) $this->user->lang('HELPDESK_TEAM_QUEUE_ROW_REPLY_NO_TEMPLATE')) . '</option>';
 
         foreach ($reply_templates as $index => $reply_template)
         {
@@ -3466,7 +3466,7 @@ edirect($this->queue_redirect_url('row_reason_required'));
                 $label = $this->user->lang('HELPDESK_REPLY_TEMPLATES');
             }
 
-            $options .= '<option value="' . htmlspecialchars('t' . (int) $index, ENT_COMPAT, 'UTF-8') . '">' . htmlspecialchars($label, ENT_COMPAT, 'UTF-8') . '</option>';
+            $options .= '<option value="' . \utf8_htmlspecialchars('t' . (int) $index) . '">' . \utf8_htmlspecialchars($label) . '</option>';
         }
 
         return $options;
