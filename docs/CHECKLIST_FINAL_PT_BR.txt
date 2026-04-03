@@ -1,0 +1,31 @@
+CHECKLIST FINAL DE HOMOLOGAÇÃO - HELP DESK
+
+1. Permissões
+- Cliente abre e acompanha apenas os próprios tickets
+- Atendente responde e altera status
+- Auditor só consulta
+- Administrador acessa ACP e visão operacional
+
+2. Fluxo básico
+- Abrir ticket
+- Responder como equipe
+- Responder como usuário
+- Atribuir responsável
+- Alterar prioridade/status
+- Resolver e fechar
+
+3. Operação
+- Validar fila da equipe
+- Confirmar SLA vencido e vencendo hoje
+- Conferir alertas e necessidade de redistribuição
+- Testar macros/respostas prontas
+
+4. Comunicação
+- Testar notificações por e-mail
+- Validar prefixo do assunto
+- Conferir textos em pt_br
+
+5. Experiência do usuário
+- Página Meus tickets
+- Avaliação pós-atendimento
+- Viewtopic e posting sem duplicações

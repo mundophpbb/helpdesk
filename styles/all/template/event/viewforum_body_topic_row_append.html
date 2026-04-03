@@ -1,0 +1,38 @@
+<!-- IF topicrow.S_HELPDESK_META -->
+<div class="helpdesk-topic-meta helpdesk-topic-meta-row" data-helpdesk-meta="1" data-helpdesk-topic-id="{topicrow.HELPDESK_TOPIC_ID}" data-helpdesk-status-key="{topicrow.HELPDESK_STATUS_KEY}" data-helpdesk-status-tone="{topicrow.HELPDESK_STATUS_TONE}" data-helpdesk-created-ts="{topicrow.HELPDESK_CREATED_TS}" data-helpdesk-updated-ts="{topicrow.HELPDESK_UPDATED_TS}" data-helpdesk-last-activity-ts="{topicrow.HELPDESK_LAST_ACTIVITY_TS}" data-helpdesk-reply-count="{topicrow.HELPDESK_REPLY_COUNT}" data-helpdesk-priority-key="{topicrow.HELPDESK_PRIORITY_KEY}" data-helpdesk-topic-poster-id="{topicrow.HELPDESK_TOPIC_POSTER_ID}" data-helpdesk-last-poster-id="{topicrow.HELPDESK_LAST_POSTER_ID}" data-helpdesk-reopen-count="{topicrow.HELPDESK_REOPEN_COUNT}" data-helpdesk-criticality-key="{topicrow.HELPDESK_CRITICALITY_KEY}">
+    <span class="helpdesk-badge helpdesk-badge-status {topicrow.HELPDESK_STATUS_CLASS}">{topicrow.HELPDESK_STATUS_LABEL}</span>
+    <!-- IF topicrow.S_HELPDESK_PRIORITY -->
+    <span class="helpdesk-badge helpdesk-badge-priority {topicrow.HELPDESK_PRIORITY_CLASS}">{topicrow.HELPDESK_PRIORITY_LABEL}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_CATEGORY -->
+    <span class="helpdesk-tag helpdesk-tag-category">{topicrow.HELPDESK_CATEGORY_LABEL}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_DEPARTMENT -->
+    <span class="helpdesk-tag helpdesk-tag-department helpdesk-tag-muted">{topicrow.HELPDESK_DEPARTMENT_LABEL}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_ASSIGNED -->
+    <span class="helpdesk-tag helpdesk-tag-assigned"><span class="helpdesk-tag-prefix">{L_HELPDESK_ASSIGNED}{L_COLON}</span> <span class="helpdesk-value">{topicrow.HELPDESK_ASSIGNED_LABEL}</span></span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_SLA_OVERDUE -->
+    <span class="helpdesk-tag helpdesk-tag-alert">{L_HELPDESK_QUEUE_OVERDUE}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_STALE -->
+    <span class="helpdesk-tag helpdesk-tag-warning">{L_HELPDESK_QUEUE_STALE}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_FIRST_REPLY_PENDING -->
+    <span class="helpdesk-tag helpdesk-tag-first-reply">{L_HELPDESK_QUEUE_FIRST_REPLY}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_VERY_OLD -->
+    <span class="helpdesk-tag helpdesk-tag-old">{L_HELPDESK_QUEUE_VERY_OLD}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_STAFF_PENDING -->
+    <span class="helpdesk-tag helpdesk-tag-staff">{L_HELPDESK_QUEUE_STAFF_REPLY}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_REOPENED -->
+    <span class="helpdesk-tag helpdesk-tag-reopened">{L_HELPDESK_QUEUE_REOPENED}</span>
+    <!-- ENDIF -->
+    <!-- IF topicrow.S_HELPDESK_CRITICALITY -->
+    <span class="helpdesk-tag {topicrow.HELPDESK_CRITICALITY_CLASS}">{topicrow.HELPDESK_CRITICALITY_LABEL}</span>
+    <!-- ENDIF -->
+</div>
+<!-- ENDIF -->

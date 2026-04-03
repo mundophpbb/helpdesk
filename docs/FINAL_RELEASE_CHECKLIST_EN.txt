@@ -1,0 +1,31 @@
+FINAL RELEASE CHECKLIST - HELP DESK
+
+1. Permissions
+- Customer can only open and follow their own tickets
+- Agent can reply and change status
+- Auditor is read-only
+- Administrator can access ACP and operational views
+
+2. Core workflow
+- Open ticket
+- Reply as staff
+- Reply as user
+- Assign owner
+- Change priority/status
+- Resolve and close
+
+3. Operations
+- Validate team queue
+- Confirm overdue and due-today SLA states
+- Check alerts and redistribution cues
+- Test macros/reply templates
+
+4. Communication
+- Test email notifications
+- Validate subject prefix
+- Review customer-facing copy
+
+5. User experience
+- My Tickets page
+- Post-service feedback
+- Viewtopic and posting without duplicate panels

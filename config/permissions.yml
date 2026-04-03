@@ -1,0 +1,27 @@
+a_helpdesk_manage:
+    lang: ACL_A_HELPDESK_MANAGE
+    cat: settings
+
+m_helpdesk_manage:
+    lang: ACL_M_HELPDESK_MANAGE
+    cat: misc
+
+m_helpdesk_assign:
+    lang: ACL_M_HELPDESK_ASSIGN
+    cat: misc
+
+m_helpdesk_bulk:
+    lang: ACL_M_HELPDESK_BULK
+    cat: misc
+
+m_helpdesk_queue:
+    lang: ACL_M_HELPDESK_QUEUE
+    cat: misc
+
+f_helpdesk_view:
+    lang: ACL_F_HELPDESK_VIEW
+    cat: misc
+
+f_helpdesk_ticket:
+    lang: ACL_F_HELPDESK_TICKET
+    cat: post

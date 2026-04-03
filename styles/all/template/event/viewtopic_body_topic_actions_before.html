@@ -1,0 +1,418 @@
+<!-- IF S_HELPDESK_TOPIC_PANEL -->
+<div class="panel bg2 helpdesk-topic-panel" id="helpdesk-topic-panel">
+    <div class="inner">
+        <h3>{L_HELPDESK_TOPIC_SUMMARY}</h3>
+        <div class="helpdesk-topic-meta">
+            <span class="helpdesk-badge {HELPDESK_STATUS_CLASS}">{HELPDESK_STATUS_LABEL}</span>
+            <!-- IF S_HELPDESK_PRIORITY -->
+            <span class="helpdesk-badge {HELPDESK_PRIORITY_CLASS}">{HELPDESK_PRIORITY_LABEL}</span>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_CATEGORY -->
+            <span class="helpdesk-tag">{HELPDESK_CATEGORY_LABEL}</span>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_DEPARTMENT -->
+            <span class="helpdesk-tag helpdesk-tag-muted">{HELPDESK_DEPARTMENT_LABEL}</span>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_ASSIGNED -->
+            <span class="helpdesk-tag helpdesk-tag-assigned">{L_HELPDESK_ASSIGNED}{L_COLON} {HELPDESK_ASSIGNED_LABEL}</span>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_STAFF_PENDING -->
+            <span class="helpdesk-tag helpdesk-tag-staff">{L_HELPDESK_QUEUE_STAFF_REPLY}</span>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_REOPENED -->
+            <span class="helpdesk-tag helpdesk-tag-reopened">{L_HELPDESK_QUEUE_REOPENED}</span>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_CRITICALITY -->
+            <span class="helpdesk-tag {HELPDESK_CRITICALITY_CLASS}">{HELPDESK_CRITICALITY_LABEL}</span>
+            <!-- ENDIF -->
+        </div>
+
+        <!-- IF HELPDESK_UPDATED_AT -->
+        <p class="helpdesk-note"><strong>{L_HELPDESK_LAST_UPDATE}{L_COLON}</strong> {HELPDESK_UPDATED_AT}</p>
+        <!-- ENDIF -->
+
+        <!-- IF S_HELPDESK_CAN_VIEW_TEAM_QUEUE -->
+        <p class="helpdesk-note helpdesk-topic-link"><a class="button2" href="{U_HELPDESK_TEAM_QUEUE}">{L_HELPDESK_TEAM_QUEUE_LINK}</a></p>
+        <!-- ENDIF -->
+
+        <div class="helpdesk-topic-ops-grid">
+            <!-- IF S_HELPDESK_AUTOMATION_SNAPSHOT -->
+            <div class="helpdesk-topic-ops-card">
+                <div class="helpdesk-feedback-heading">
+                    <h4>{L_HELPDESK_AUTOMATION_PANEL_TITLE}</h4>
+                    <span class="{HELPDESK_AUTOMATION_STATE_CLASS}">{HELPDESK_AUTOMATION_STATE_LABEL}</span>
+                </div>
+                <p class="helpdesk-note">{HELPDESK_AUTOMATION_STATUS_NOTE}</p>
+                <ul class="helpdesk-topic-ops-list">
+                    <li><strong>{L_HELPDESK_AUTOMATION_NEXT_ACTION_LABEL}{L_COLON}</strong> {HELPDESK_AUTOMATION_NEXT_ACTION_LABEL}</li>
+                    <li><strong>{L_HELPDESK_AUTOMATION_REPLY_FLOW}{L_COLON}</strong> {HELPDESK_AUTOMATION_REPLY_FLOW_LABEL}</li>
+                    <li><strong>{L_HELPDESK_AUTOMATION_ESCALATION}{L_COLON}</strong> {HELPDESK_AUTOMATION_ESCALATION_LABEL}</li>
+                    <li><strong>{L_HELPDESK_AUTOMATION_SLA_LABEL}{L_COLON}</strong> {HELPDESK_AUTOMATION_SLA_LABEL}<!-- IF HELPDESK_AUTOMATION_SLA_DEADLINE_AT --> · {HELPDESK_AUTOMATION_SLA_DEADLINE_AT}<!-- ENDIF --></li>
+                </ul>
+            </div>
+            <!-- ENDIF -->
+            <!-- IF S_HELPDESK_NOTIFICATIONS_SNAPSHOT -->
+            <div class="helpdesk-topic-ops-card">
+                <div class="helpdesk-feedback-heading">
+                    <h4>{L_HELPDESK_NOTIFICATIONS_PANEL_TITLE}</h4>
+                    <span class="{HELPDESK_NOTIFICATIONS_STATUS_CLASS}">{HELPDESK_NOTIFICATIONS_STATUS_LABEL}</span>
+                </div>
+                <p class="helpdesk-note">{HELPDESK_NOTIFICATIONS_STATUS_NOTE}</p>
+                <ul class="helpdesk-topic-ops-list">
+                    <li>{HELPDESK_NOTIFICATIONS_TEAM_REPLY_LABEL}</li>
+                    <li>{HELPDESK_NOTIFICATIONS_USER_REPLY_LABEL}</li>
+                    <li>{HELPDESK_NOTIFICATIONS_META_LABEL}</li>
+                </ul>
+            </div>
+            <!-- ENDIF -->
+        </div>
+
+        <!-- IF S_HELPDESK_CAN_VIEW_FEEDBACK -->
+        <div class="helpdesk-feedback-box" id="helpdesk-feedback-box">
+            <div class="helpdesk-feedback-heading">
+                <h4>{L_HELPDESK_FEEDBACK_TITLE}</h4>
+                <span class="helpdesk-feedback-state {HELPDESK_FEEDBACK_STATE_CLASS}">{HELPDESK_FEEDBACK_STATE_LABEL}</span>
+            </div>
+
+            <!-- IF S_HELPDESK_HAS_FEEDBACK -->
+            <div class="helpdesk-feedback-summary">
+                <div class="helpdesk-feedback-summary-main">
+                    <span class="helpdesk-feedback-stars">{HELPDESK_FEEDBACK_STARS_TEXT}</span>
+                    <strong class="helpdesk-feedback-rating">{HELPDESK_FEEDBACK_RATING_LABEL}</strong>
+                    <!-- IF S_HELPDESK_FEEDBACK_HAS_QUALITY -->
+                    <span class="helpdesk-feedback-quality {HELPDESK_FEEDBACK_QUALITY_CLASS}">{L_HELPDESK_FEEDBACK_QUALITY_LABEL}{L_COLON} {HELPDESK_FEEDBACK_QUALITY_LABEL}</span>
+                    <!-- ENDIF -->
+                </div>
+                <!-- IF HELPDESK_FEEDBACK_SUBMITTED_AT -->
+                <span class="helpdesk-feedback-meta">{HELPDESK_FEEDBACK_SUBMITTED_AT}</span>
+                <!-- ENDIF -->
+                <!-- IF HELPDESK_FEEDBACK_COMMENT -->
+                <div class="helpdesk-feedback-comment">
+                    <span class="helpdesk-feedback-comment-label">{L_HELPDESK_FEEDBACK_COMMENT_LABEL}</span>
+                    <div class="helpdesk-feedback-comment-text">{HELPDESK_FEEDBACK_COMMENT}</div>
+                </div>
+                <!-- ENDIF -->
+            </div>
+            <!-- ELSEIF S_HELPDESK_CAN_VIEW_FEEDBACK_EMPTY -->
+            <p class="helpdesk-note">{L_HELPDESK_FEEDBACK_EMPTY}</p>
+            <!-- ENDIF -->
+
+            <!-- IF S_HELPDESK_CAN_SUBMIT_FEEDBACK -->
+            <form method="post" action="" class="helpdesk-feedback-form">
+                <p class="helpdesk-note">{L_HELPDESK_FEEDBACK_EXPLAIN}</p>
+                <!-- IF S_HELPDESK_FEEDBACK_PENDING -->
+                <p class="helpdesk-note helpdesk-feedback-pending-note">{L_HELPDESK_FEEDBACK_PENDING_EXPLAIN}</p>
+                <!-- ENDIF -->
+                <div class="helpdesk-feedback-rating-options">
+                    <!-- BEGIN helpdesk_feedback_rating_options -->
+                    <label class="helpdesk-feedback-rating-option">
+                        <input type="radio" name="helpdesk_feedback_rating" value="{helpdesk_feedback_rating_options.VALUE}"<!-- IF helpdesk_feedback_rating_options.S_SELECTED --> checked="checked"<!-- ENDIF --> />
+                        <span class="helpdesk-feedback-rating-stars">{helpdesk_feedback_rating_options.STARS}</span>
+                        <span class="helpdesk-feedback-rating-label">{helpdesk_feedback_rating_options.LABEL}</span>
+                    </label>
+                    <!-- END helpdesk_feedback_rating_options -->
+                </div>
+                <div class="helpdesk-manage-field helpdesk-manage-field-wide">
+                    <label for="helpdesk_feedback_comment">{L_HELPDESK_FEEDBACK_COMMENT_LABEL}{L_COLON}</label>
+                    <textarea name="helpdesk_feedback_comment" id="helpdesk_feedback_comment" rows="3" placeholder="{L_HELPDESK_FEEDBACK_COMMENT_PLACEHOLDER}">{HELPDESK_FEEDBACK_CURRENT_COMMENT}</textarea>
+                </div>
+                <div class="helpdesk-manage-actions">
+                    <input type="submit" class="button1" name="helpdesk_save_feedback" value="{HELPDESK_FEEDBACK_SUBMIT_LABEL}" />
+                </div>
+                {HELPDESK_FEEDBACK_FORM_TOKEN}
+            </form>
+            <!-- ENDIF -->
+        </div>
+        <!-- ENDIF -->
+
+        <!-- IF S_HELPDESK_CAN_USE_REPLY_TEMPLATES -->
+        <div class="helpdesk-reply-templates-box" data-helpdesk-reply-templates="1">
+            <div class="helpdesk-reply-templates-heading">
+                <h4>{L_HELPDESK_REPLY_TEMPLATES}</h4>
+                <!-- IF S_HELPDESK_REPLY_TEMPLATE_HAS_PREFERRED -->
+                <span class="helpdesk-reply-template-preferred">{L_HELPDESK_REPLY_TEMPLATE_PREFERRED}{L_COLON} {HELPDESK_REPLY_TEMPLATE_PREFERRED_LABEL}</span>
+                <!-- ENDIF -->
+            </div>
+            <div class="helpdesk-reply-templates-toolbar">
+                <div class="helpdesk-reply-templates-field helpdesk-reply-templates-search-field">
+                    <label for="helpdesk_reply_template_search">{L_HELPDESK_REPLY_TEMPLATE_SEARCH_LABEL}{L_COLON}</label>
+                    <input type="search" id="helpdesk_reply_template_search" class="inputbox" placeholder="{L_HELPDESK_REPLY_TEMPLATE_SEARCH_PLACEHOLDER}" autocomplete="off" data-helpdesk-reply-search="1" />
+                </div>
+                <span class="helpdesk-reply-templates-count" data-helpdesk-reply-count="1">{HELPDESK_REPLY_TEMPLATE_COUNT}</span>
+            </div>
+            <div class="helpdesk-reply-templates-grid">
+                <div class="helpdesk-reply-templates-field">
+                    <label for="helpdesk_reply_template_picker">{L_HELPDESK_REPLY_TEMPLATES}{L_COLON}</label>
+                    <select id="helpdesk_reply_template_picker" data-helpdesk-reply-picker="1">
+                        <!-- BEGIN helpdesk_reply_templates -->
+                        <option value="{helpdesk_reply_templates.KEY}">{helpdesk_reply_templates.LABEL}</option>
+                        <!-- END helpdesk_reply_templates -->
+                    </select>
+                </div>
+                <div class="helpdesk-reply-templates-actions">
+                    <button type="button" class="button2" data-helpdesk-reply-insert="1">{L_HELPDESK_REPLY_TEMPLATE_INSERT}</button>
+                    <button type="button" class="button2" data-helpdesk-reply-copy="1">{L_HELPDESK_REPLY_TEMPLATE_COPY}</button>
+                </div>
+            </div>
+            <p class="helpdesk-note">{L_HELPDESK_REPLY_TEMPLATES_EXPLAIN}</p>
+            <!-- IF S_HELPDESK_REPLY_TEMPLATE_HAS_PREFERRED -->
+            <p class="helpdesk-note helpdesk-reply-template-preferred-note">{L_HELPDESK_REPLY_TEMPLATE_PREFERRED_HINT}</p>
+            <!-- ENDIF -->
+            <div class="helpdesk-reply-template-context">
+                <strong>{L_HELPDESK_REPLY_TEMPLATE_CONTEXT_READY}</strong>
+                <span>{L_HELPDESK_REPLY_TEMPLATE_CONTEXT_READY_EXPLAIN}</span>
+            </div>
+            <div class="helpdesk-reply-templates-feedback" data-helpdesk-reply-feedback="1" data-copied="{L_HELPDESK_REPLY_TEMPLATE_COPIED}" data-copy-failed="{L_HELPDESK_REPLY_TEMPLATE_COPY_FAILED}" data-empty="{L_HELPDESK_REPLY_TEMPLATE_EMPTY}"></div>
+            <div class="helpdesk-reply-templates-preview" data-helpdesk-reply-preview="1">{HELPDESK_REPLY_TEMPLATE_PREVIEW}</div>
+            <div class="helpdesk-reply-templates-data" hidden="hidden">
+                <!-- BEGIN helpdesk_reply_templates -->
+                <span data-helpdesk-reply-key="{helpdesk_reply_templates.KEY}" data-helpdesk-reply-body="{helpdesk_reply_templates.BODY_B64}"></span>
+                <!-- END helpdesk_reply_templates -->
+            </div>
+        </div>
+        <!-- ENDIF -->
+
+        <!-- IF S_HELPDESK_CAN_VIEW_INTERNAL_NOTES -->
+        <div class="helpdesk-internal-notes-box" id="helpdesk-internal-notes">
+            <h4>{L_HELPDESK_INTERNAL_NOTES} ({HELPDESK_INTERNAL_NOTES_COUNT})</h4>
+            <p class="helpdesk-note">{L_HELPDESK_INTERNAL_NOTES_EXPLAIN}</p>
+
+            <!-- IF S_HELPDESK_CAN_ADD_INTERNAL_NOTES -->
+            <form method="post" action="" class="helpdesk-internal-notes-form">
+                <div class="helpdesk-internal-notes-form-grid">
+                    <div class="helpdesk-manage-field helpdesk-manage-field-wide">
+                        <label for="helpdesk_internal_note">{L_HELPDESK_INTERNAL_NOTE_LABEL}{L_COLON}</label>
+                        <textarea name="helpdesk_internal_note" id="helpdesk_internal_note" rows="4" placeholder="{L_HELPDESK_INTERNAL_NOTE_PLACEHOLDER}">{HELPDESK_INTERNAL_NOTE_VALUE}</textarea>
+                        <p class="helpdesk-note">{L_HELPDESK_INTERNAL_NOTE_VISIBILITY}</p>
+                    </div>
+                    <div class="helpdesk-manage-actions">
+                        <input type="submit" class="button1" name="helpdesk_save_internal_note" value="{L_HELPDESK_INTERNAL_NOTE_SUBMIT}" />
+                    </div>
+                </div>
+                {HELPDESK_INTERNAL_NOTES_FORM_TOKEN}
+            </form>
+            <!-- ENDIF -->
+        </div>
+        <!-- ENDIF -->
+
+        <!-- IF S_HELPDESK_CAN_MANAGE_PANEL -->
+        <div class="helpdesk-manage-box">
+            <h4>{L_HELPDESK_MANAGE_STATUS}</h4>
+            <form method="post" action="">
+                <div class="helpdesk-manage-grid">
+                    <!-- IF S_HELPDESK_CAN_MANAGE_STATUS -->
+                    <div class="helpdesk-manage-field">
+                        <label for="helpdesk_manage_status">{L_HELPDESK_STATUS}{L_COLON}</label>
+                        <select name="helpdesk_manage_status" id="helpdesk_manage_status">
+                            <!-- BEGIN helpdesk_manage_status_options -->
+                            <option value="{helpdesk_manage_status_options.VALUE}"<!-- IF helpdesk_manage_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_manage_status_options.LABEL}</option>
+                            <!-- END helpdesk_manage_status_options -->
+                        </select>
+                    </div>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_CAN_MANAGE_PRIORITY -->
+                    <div class="helpdesk-manage-field">
+                        <label for="helpdesk_manage_priority">{L_HELPDESK_PRIORITY}{L_COLON}</label>
+                        <select name="helpdesk_manage_priority" id="helpdesk_manage_priority">
+                            <!-- BEGIN helpdesk_manage_priority_options -->
+                            <option value="{helpdesk_manage_priority_options.VALUE}"<!-- IF helpdesk_manage_priority_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_manage_priority_options.LABEL}</option>
+                            <!-- END helpdesk_manage_priority_options -->
+                        </select>
+                    </div>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_CAN_MANAGE_DEPARTMENT -->
+                    <div class="helpdesk-manage-field">
+                        <label for="helpdesk_manage_department">{L_HELPDESK_DEPARTMENT}{L_COLON}</label>
+                        <select name="helpdesk_manage_department" id="helpdesk_manage_department">
+                            <!-- BEGIN helpdesk_manage_department_options -->
+                            <option value="{helpdesk_manage_department_options.VALUE}"<!-- IF helpdesk_manage_department_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_manage_department_options.LABEL}</option>
+                            <!-- END helpdesk_manage_department_options -->
+                        </select>
+                    </div>
+                    <!-- ENDIF -->
+                    <!-- IF S_HELPDESK_CAN_MANAGE_ASSIGNMENT -->
+                    <div class="helpdesk-manage-field">
+                        <label for="helpdesk_assigned_to">{L_HELPDESK_ASSIGNED_TO}{L_COLON}</label>
+                        <select name="helpdesk_assigned_to" id="helpdesk_assigned_to" class="helpdesk-assignee-select">
+                            <!-- BEGIN helpdesk_manage_assignee_options -->
+                            <option value="{helpdesk_manage_assignee_options.VALUE}"<!-- IF helpdesk_manage_assignee_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_manage_assignee_options.LABEL}</option>
+                            <!-- END helpdesk_manage_assignee_options -->
+                        </select>
+                    </div>
+                    <!-- ENDIF -->
+                    <div class="helpdesk-manage-field helpdesk-manage-field-wide">
+                        <label for="helpdesk_change_reason">{L_HELPDESK_CHANGE_REASON}{L_COLON}</label>
+                        <textarea name="helpdesk_change_reason" id="helpdesk_change_reason" rows="2">{HELPDESK_CHANGE_REASON_VALUE}</textarea>
+                        <p class="helpdesk-note">{L_HELPDESK_CHANGE_REASON_EXPLAIN}<!-- IF S_HELPDESK_REASON_REQUIRED_ANY --><br />{HELPDESK_CHANGE_REASON_RULES_TEXT}<!-- ENDIF --></p>
+                    </div>
+                    <div class="helpdesk-manage-actions">
+                        <input type="submit" class="button1" name="helpdesk_save_management" value="{L_HELPDESK_SAVE_CHANGES}" />
+                    </div>
+                </div>
+                {HELPDESK_MANAGE_FORM_TOKEN}
+            </form>
+        </div>
+        <!-- ENDIF -->
+
+        <!-- IF .helpdesk_activity_history -->
+        <div class="helpdesk-history-box">
+            <div class="helpdesk-history-box-head">
+                <div>
+                    <h4>{L_HELPDESK_ACTIVITY_TIMELINE}</h4>
+                    <p class="helpdesk-note helpdesk-history-box-note">{L_HELPDESK_ACTIVITY_TIMELINE_EXPLAIN}</p>
+                </div>
+            </div>
+
+            <!-- IF S_HELPDESK_ACTIVITY_SUMMARY -->
+            <div class="helpdesk-history-summary-grid">
+                <div class="helpdesk-history-summary-card is-count">
+                    <span class="helpdesk-history-summary-label">{L_HELPDESK_TIMELINE_EVENTS_SHOWN}</span>
+                    <strong class="helpdesk-history-summary-value">{HELPDESK_HISTORY_TOTAL}</strong>
+                    <span class="helpdesk-history-summary-meta">{L_HELPDESK_ACTIVITY_HISTORY}</span>
+                </div>
+                <div class="helpdesk-history-summary-card">
+                    <span class="helpdesk-history-summary-label">{L_HELPDESK_TIMELINE_LATEST_EVENT}</span>
+                    <strong class="helpdesk-history-summary-value">{HELPDESK_HISTORY_LATEST_ACTION}</strong>
+                    <span class="helpdesk-history-summary-meta">{HELPDESK_HISTORY_LATEST_ACTION_META}</span>
+                </div>
+                <div class="helpdesk-history-summary-card">
+                    <span class="helpdesk-history-summary-label">{L_HELPDESK_TIMELINE_LATEST_STATUS}</span>
+                    <strong class="helpdesk-history-summary-value">{HELPDESK_HISTORY_LATEST_STATUS}</strong>
+                    <span class="helpdesk-history-summary-meta">{HELPDESK_HISTORY_LATEST_STATUS_META}</span>
+                </div>
+                <div class="helpdesk-history-summary-card">
+                    <span class="helpdesk-history-summary-label">{L_HELPDESK_TIMELINE_LATEST_NOTE}</span>
+                    <strong class="helpdesk-history-summary-value">{HELPDESK_HISTORY_LATEST_NOTE}</strong>
+                    <span class="helpdesk-history-summary-meta">{HELPDESK_HISTORY_LATEST_NOTE_META}</span>
+                </div>
+            </div>
+            <!-- ENDIF -->
+
+            <!-- IF S_HELPDESK_ACTIVITY_FILTERS -->
+            <div class="helpdesk-history-filters" data-helpdesk-history-filters="{HELPDESK_ACTIVITY_FILTER_SELECTED}">
+                <span class="helpdesk-history-filters-label">{L_HELPDESK_TIMELINE_FILTERS}</span>
+                <div class="helpdesk-history-filter-list" role="toolbar" aria-label="{L_HELPDESK_TIMELINE_FILTERS}">
+                    <!-- BEGIN helpdesk_activity_filters -->
+                    <button type="button" class="helpdesk-history-filter-button<!-- IF helpdesk_activity_filters.S_SELECTED --> is-active<!-- ENDIF -->" data-history-filter="{helpdesk_activity_filters.KEY}" aria-pressed="<!-- IF helpdesk_activity_filters.S_SELECTED -->true<!-- ELSE -->false<!-- ENDIF -->">
+                        <span class="helpdesk-history-filter-name">{helpdesk_activity_filters.LABEL}</span>
+                        <span class="helpdesk-history-filter-count">{helpdesk_activity_filters.COUNT}</span>
+                    </button>
+                    <!-- END helpdesk_activity_filters -->
+                </div>
+            </div>
+            <!-- ENDIF -->
+
+            <div class="helpdesk-history-search">
+                <label for="helpdesk-history-search-input" class="helpdesk-history-search-label">{L_HELPDESK_TIMELINE_SEARCH_LABEL}</label>
+                <input type="search" id="helpdesk-history-search-input" class="inputbox helpdesk-history-search-input" placeholder="{L_HELPDESK_TIMELINE_SEARCH_PLACEHOLDER}" autocomplete="off" />
+            </div>
+
+            <ul class="helpdesk-history-list" id="helpdesk-ticket-history-list">
+                <!-- BEGIN helpdesk_activity_history -->
+                <li class="helpdesk-history-item {helpdesk_activity_history.ACTION_CLASS}" data-history-item="{helpdesk_activity_history.FILTER_KEY}" data-history-search="{helpdesk_activity_history.SEARCH_TEXT}">
+                    <span class="helpdesk-history-marker" aria-hidden="true"></span>
+                    <div class="helpdesk-history-body">
+                        <div class="helpdesk-history-head">
+                            <div class="helpdesk-history-head-main">
+                                <span class="helpdesk-history-type {helpdesk_activity_history.ACTION_CLASS}">{helpdesk_activity_history.ACTION_LABEL}</span>
+                                <span class="helpdesk-history-sequence">#{helpdesk_activity_history.SEQUENCE}</span>
+                            </div>
+                            <span class="helpdesk-history-meta">{helpdesk_activity_history.LOG_TIME}</span>
+                        </div>
+                        <div class="helpdesk-history-main">
+                            <strong class="helpdesk-history-actor">{helpdesk_activity_history.LOG_USERNAME}</strong>
+                            <span class="helpdesk-history-status">{helpdesk_activity_history.LOG_TEXT}</span>
+                        </div>
+                        <!-- IF helpdesk_activity_history.S_HAS_CHANGE_PAIR -->
+                        <div class="helpdesk-history-change-pair">
+                            <span class="helpdesk-history-change from">{helpdesk_activity_history.LOG_OLD_LABEL}</span>
+                            <span class="helpdesk-history-change-arrow" aria-hidden="true">&rarr;</span>
+                            <span class="helpdesk-history-change to">{helpdesk_activity_history.LOG_NEW_LABEL}</span>
+                        </div>
+                        <!-- ELSEIF helpdesk_activity_history.S_CHANGE_SET and helpdesk_activity_history.S_HAS_CHANGE_TARGET -->
+                        <div class="helpdesk-history-change-pair is-single">
+                            <span class="helpdesk-history-change to">{helpdesk_activity_history.LOG_NEW_LABEL}</span>
+                        </div>
+                        <!-- ELSEIF helpdesk_activity_history.S_CHANGE_CLEAR and helpdesk_activity_history.S_HAS_CHANGE_SOURCE -->
+                        <div class="helpdesk-history-change-pair is-single">
+                            <span class="helpdesk-history-change from">{helpdesk_activity_history.LOG_OLD_LABEL}</span>
+                        </div>
+                        <!-- ENDIF -->
+                        <!-- IF helpdesk_activity_history.S_HAS_DETAIL -->
+                        <div class="helpdesk-history-reason {helpdesk_activity_history.DETAIL_CLASS}">
+                            <span class="helpdesk-history-reason-label">{helpdesk_activity_history.LOG_DETAIL_LABEL}</span>
+                            <span class="helpdesk-history-reason-text">{helpdesk_activity_history.LOG_DETAIL}</span>
+                        </div>
+                        <!-- ENDIF -->
+                    </div>
+                </li>
+                <!-- END helpdesk_activity_history -->
+            </ul>
+            <div class="helpdesk-history-empty-filter" id="helpdesk-ticket-history-empty" hidden="hidden">{HELPDESK_ACTIVITY_FILTER_EMPTY_TEXT}</div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var box = document.querySelector('.helpdesk-history-box');
+                if (!box) {
+                    return;
+                }
+
+                var buttons = box.querySelectorAll('[data-history-filter]');
+                var items = box.querySelectorAll('[data-history-item]');
+                var emptyState = document.getElementById('helpdesk-ticket-history-empty');
+                var searchInput = document.getElementById('helpdesk-history-search-input');
+                if (!buttons.length || !items.length) {
+                    return;
+                }
+
+                var currentFilter = '{HELPDESK_ACTIVITY_FILTER_SELECTED}' || 'all';
+                var currentSearch = '';
+
+                var applyState = function () {
+                    var visibleCount = 0;
+                    var search = currentSearch.trim().toLowerCase();
+
+                    items.forEach(function (item) {
+                        var itemKey = item.getAttribute('data-history-item') || 'all';
+                        var searchText = (item.getAttribute('data-history-search') || '').toLowerCase();
+                        var filterMatches = (currentFilter === 'all' || itemKey === currentFilter);
+                        var searchMatches = (!search || searchText.indexOf(search) !== -1);
+                        var visible = filterMatches && searchMatches;
+                        item.hidden = !visible;
+                        if (visible) {
+                            visibleCount++;
+                        }
+                    });
+
+                    buttons.forEach(function (button) {
+                        var active = button.getAttribute('data-history-filter') === currentFilter;
+                        button.classList.toggle('is-active', active);
+                        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                    });
+
+                    if (emptyState) {
+                        emptyState.hidden = visibleCount !== 0;
+                    }
+                };
+
+                buttons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        currentFilter = button.getAttribute('data-history-filter') || 'all';
+                        applyState();
+                    });
+                });
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', function () {
+                        currentSearch = searchInput.value || '';
+                        applyState();
+                    });
+                }
+
+                applyState();
+            });
+            </script>
+        </div>
+        <!-- ENDIF -->
+    </div>
+</div>
+<!-- ENDIF -->
