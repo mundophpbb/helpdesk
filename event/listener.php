@@ -4112,7 +4112,7 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
         {
             $rows[] = [
                 'NOTE_ID' => (int) $row['note_id'],
-                'NOTE_TEXT' => htmlspecialchars(isset($row['note_text']) ? (string) $row['note_text'] : '', ENT_COMPAT, 'UTF-8'),
+                'NOTE_TEXT' => \utf8_htmlspecialchars(isset($row['note_text']) ? (string) $row['note_text'] : ''),
                 'NOTE_TIME' => $this->user->format_date((int) $row['note_time']),
                 'NOTE_USERNAME' => !empty($row['username']) ? (string) $row['username'] : $this->user->lang('GUEST'),
             ];

@@ -1672,14 +1672,14 @@ class main_module
     protected function build_status_select_options_html(array $definitions, $selected, $user, $allow_empty = false)
     {
         $selected = trim((string) $selected);
-        $html = $allow_empty ? '<option value="">' . htmlspecialchars((string) $user->lang('ACP_HELPDESK_AUTOMATION_NO_CHANGE')) . '</option>' : '';
+        $html = $allow_empty ? '<option value="">' . \utf8_htmlspecialchars((string) $user->lang('ACP_HELPDESK_AUTOMATION_NO_CHANGE')) . '</option>' : '';
 
         foreach ($definitions as $key => $definition)
         {
             $label = strtolower((string) $user->lang_name) === 'pt_br'
                 ? $definition['label_pt_br']
                 : $definition['label_en'];
-            $html .= '<option value="' . htmlspecialchars((string) $key) . '"' . ($selected === (string) $key ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label) . '</option>';
+            $html .= '<option value="' . \utf8_htmlspecialchars((string) $key) . '"' . ($selected === (string) $key ? ' selected="selected"' : '') . '>' . \utf8_htmlspecialchars((string) $label) . '</option>';
         }
 
         return $html;
@@ -1688,14 +1688,14 @@ class main_module
     protected function build_priority_select_options_html(array $definitions, $selected, $user, $allow_empty = false)
     {
         $selected = trim((string) $selected);
-        $html = $allow_empty ? '<option value="">' . htmlspecialchars((string) $user->lang('ACP_HELPDESK_AUTOMATION_NO_CHANGE')) . '</option>' : '';
+        $html = $allow_empty ? '<option value="">' . \utf8_htmlspecialchars((string) $user->lang('ACP_HELPDESK_AUTOMATION_NO_CHANGE')) . '</option>' : '';
 
         foreach ($definitions as $key => $definition)
         {
             $label = strtolower((string) $user->lang_name) === 'pt_br'
                 ? $definition['label_pt_br']
                 : $definition['label_en'];
-            $html .= '<option value="' . htmlspecialchars((string) $key) . '"' . ($selected === (string) $key ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label) . '</option>';
+            $html .= '<option value="' . \utf8_htmlspecialchars((string) $key) . '"' . ($selected === (string) $key ? ' selected="selected"' : '') . '>' . \utf8_htmlspecialchars((string) $label) . '</option>';
         }
 
         return $html;
@@ -1827,13 +1827,13 @@ class main_module
     protected function build_department_reply_template_department_options($selected, array $departments, $user)
     {
         $selected = trim((string) $selected);
-        $html = '<option value="">' . htmlspecialchars((string) $user->lang('ACP_HELPDESK_REPLY_TEMPLATE_SELECT_DEPARTMENT')) . '</option>';
-        $html .= '<option value="*"' . ($selected === '*' ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $user->lang('ACP_HELPDESK_REPLY_TEMPLATE_GLOBAL')) . '</option>';
+        $html = '<option value="">' . \utf8_htmlspecialchars((string) $user->lang('ACP_HELPDESK_REPLY_TEMPLATE_SELECT_DEPARTMENT')) . '</option>';
+        $html .= '<option value="*"' . ($selected === '*' ? ' selected="selected"' : '') . '>' . \utf8_htmlspecialchars((string) $user->lang('ACP_HELPDESK_REPLY_TEMPLATE_GLOBAL')) . '</option>';
 
         foreach ($departments as $department_key => $definition)
         {
             $label = $this->department_label_for_user($definition, $department_key, $user);
-            $html .= '<option value="' . htmlspecialchars((string) $department_key) . '"' . ($selected === (string) $department_key ? ' selected="selected"' : '') . '>' . htmlspecialchars((string) $label) . '</option>';
+            $html .= '<option value="' . \utf8_htmlspecialchars((string) $department_key) . '"' . ($selected === (string) $department_key ? ' selected="selected"' : '') . '>' . \utf8_htmlspecialchars((string) $label) . '</option>';
         }
 
         return $html;
@@ -2501,6 +2501,13 @@ class main_module
         return $groups;
     }
 
+    protected function acl_group_display_name(array $group_row)
+    {
+        global $user;
+
+        return $this->display_group_name(isset($group_row['group_name']) ? (string) $group_row['group_name'] : '', $user);
+    }
+
     protected function display_group_name($group_name, $user)
     {
         $lang_key = 'G_' . strtoupper((string) $group_name);
@@ -2957,8 +2964,8 @@ class main_module
             LEFT JOIN ' . ACL_ROLES_DATA_TABLE . ' ard
                 ON ard.role_id = ag.auth_role_id
                 AND ard.auth_option_id = ' . (int) $auth_option_id . '
-            WHERE ag.group_id = ' . $group_id . '
-                AND ag.forum_id = ' . $forum_id . '
+            WHERE ag.group_id = ' . (int) $group_id . '
+                AND ag.forum_id = ' . (int) $forum_id . '
                 AND (
                     (ag.auth_option_id = ' . (int) $auth_option_id . ' AND ag.auth_setting = 1)
                     OR (ag.auth_role_id > 0 AND ard.auth_setting = 1)
@@ -3588,7 +3595,7 @@ class main_module
             FROM ' . USER_GROUP_TABLE . ' ug
             INNER JOIN ' . GROUPS_TABLE . ' g
                 ON g.group_id = ug.group_id
-            WHERE ug.user_id = ' . $user_id . '
+            WHERE ug.user_id = ' . (int) $user_id . '
                 AND ug.user_pending = 0
             ORDER BY g.group_name ASC';
         $result = $db->sql_query($sql);
