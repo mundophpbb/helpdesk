@@ -1,0 +1,98 @@
+<!-- IF S_HELPDESK_SUBJECT_PREFIX -->
+<span id="helpdesk-subject-prefix-value" style="display:none;">{HELPDESK_SUBJECT_PREFIX}</span>
+<script>
+(function () {
+    function applyHelpdeskSubjectPrefix() {
+        var subjectField = document.querySelector('input[name="subject"]');
+        var prefixNode = document.getElementById('helpdesk-subject-prefix-value');
+        if (!subjectField || !prefixNode) {
+            return;
+        }
+
+        var prefix = (prefixNode.textContent || '').replace(/^\s+|\s+$/g, '');
+        if (!prefix) {
+            return;
+        }
+
+        var currentValue = subjectField.value.replace(/^\s+|\s+$/g, '');
+        if (currentValue !== '') {
+            return;
+        }
+
+        subjectField.value = prefix + ' ';
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyHelpdeskSubjectPrefix);
+        return;
+    }
+
+    applyHelpdeskSubjectPrefix();
+})();
+</script>
+<!-- ENDIF -->
+
+<!-- IF S_HELPDESK_PANEL -->
+<div id="helpdesk-panel" class="panel bg2 helpdesk-posting-panel">
+    <div class="inner">
+        <h3>{L_HELPDESK_PANEL_TITLE}</h3>
+        <p class="helpdesk-note">{L_HELPDESK_PANEL_EXPLAIN}</p>
+
+        <div class="helpdesk-grid helpdesk-grid-stack">
+            <!-- IF S_HELPDESK_STATUS_ENABLED -->
+            <dl class="helpdesk-field">
+                <dt><label for="helpdesk_status">{L_HELPDESK_STATUS}{L_COLON}</label></dt>
+                <dd>
+                    <select name="helpdesk_status" id="helpdesk_status">
+                        <!-- BEGIN helpdesk_status_options -->
+                        <option value="{helpdesk_status_options.VALUE}"<!-- IF helpdesk_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_status_options.LABEL}</option>
+                        <!-- END helpdesk_status_options -->
+                    </select>
+                </dd>
+            </dl>
+            <!-- ENDIF -->
+
+            <!-- IF S_HELPDESK_PRIORITY_ENABLED -->
+            <dl class="helpdesk-field">
+                <dt><label for="helpdesk_priority">{L_HELPDESK_PRIORITY}{L_COLON}</label></dt>
+                <dd>
+                    <select name="helpdesk_priority" id="helpdesk_priority">
+                        <!-- BEGIN helpdesk_priority_options -->
+                        <option value="{helpdesk_priority_options.VALUE}"<!-- IF helpdesk_priority_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_priority_options.LABEL}</option>
+                        <!-- END helpdesk_priority_options -->
+                    </select>
+                </dd>
+            </dl>
+            <!-- ENDIF -->
+
+            <!-- IF S_HELPDESK_CATEGORY_ENABLED -->
+            <dl class="helpdesk-field">
+                <dt><label for="helpdesk_category">{L_HELPDESK_CATEGORY}{L_COLON}</label></dt>
+                <dd>
+                    <select name="helpdesk_category" id="helpdesk_category">
+                        <option value="">{L_HELPDESK_EMPTY_OPTION}</option>
+                        <!-- BEGIN helpdesk_category_options -->
+                        <option value="{helpdesk_category_options.VALUE}"<!-- IF helpdesk_category_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_category_options.LABEL}</option>
+                        <!-- END helpdesk_category_options -->
+                    </select>
+                </dd>
+            </dl>
+            <!-- ENDIF -->
+
+            <!-- IF S_HELPDESK_DEPARTMENT_ENABLED -->
+            <dl class="helpdesk-field">
+                <dt><label for="helpdesk_department">{L_HELPDESK_DEPARTMENT}{L_COLON}</label></dt>
+                <dd>
+                    <select name="helpdesk_department" id="helpdesk_department">
+                        <option value="">{L_HELPDESK_EMPTY_OPTION}</option>
+                        <!-- BEGIN helpdesk_department_options -->
+                        <option value="{helpdesk_department_options.VALUE}"<!-- IF helpdesk_department_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_department_options.LABEL}</option>
+                        <!-- END helpdesk_department_options -->
+                    </select>
+                </dd>
+            </dl>
+            <!-- ENDIF -->
+        </div>
+    </div>
+</div>
+<!-- ENDIF -->

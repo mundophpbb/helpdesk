@@ -1,10 +1,20 @@
+> Build 3.8.2.1: queue operational focus, next-action hints in the team queue, and queue-level automation/notification visibility.
+
+# Help Desk 3.8.2
+
+- limpeza adicional de termos visíveis em inglês no pt_br
+- fallback localizado para copiar resposta pronta
+- remoção de arquivo de backup residual do pacote
+
 # MundoPHPBB Help Desk
 
 Extensão genérica de Help Desk para phpBB 3.3+, com foco em operação de tickets, fila da equipe, SLA, alertas internos, automação de fluxo e leitura operacional da carga da equipe.
 
-**Pacote documental desta build:** 4.9.58  
-**Versão declarada no `composer.json`:** 3.0.0  
+**Pacote documental desta build:** 4.9.59
+**Versão declarada no `composer.json`:** 3.7.9.2
 **Namespace / caminho:** `mundophpbb/helpdesk`
+
+**Ajuste desta build:** revisão final controlada da base 3.7.9.1, com limpeza de termos em inglês no `pt_br` e exibição localizada dos perfis do Help Desk no ACP.
 
 ---
 
@@ -90,14 +100,36 @@ Se quiser remover completamente a extensão:
 
 ## 6. Permissões
 
-A extensão trabalha com permissões de moderação próprias:
+A extensão agora trabalha com um bloco de permissões mais completo:
+
+### 6.1. Administrativas
+
+- `a_helpdesk_manage` — pode administrar configurações e permissões do Help Desk
+
+### 6.2. Operacionais da equipe
 
 - `m_helpdesk_manage` — pode gerenciar status e departamento
 - `m_helpdesk_assign` — pode atribuir tickets
 - `m_helpdesk_bulk` — pode usar ações em massa
 - `m_helpdesk_queue` — pode acessar a fila da equipe
 
-Recomenda-se revisar os grupos de moderadores e suporte após a instalação.
+### 6.3. Por fórum
+
+- `f_helpdesk_view` — pode ver o contexto do Help Desk e a lista de tickets próprios
+- `f_helpdesk_ticket` — pode abrir e editar tickets do Help Desk nos fóruns habilitados
+
+### 6.4. Perfis prontos
+
+A migration cria roles dedicadas para acelerar a distribuição:
+
+- `Help Desk Administrator`
+- `Help Desk Supervisor`
+- `Help Desk Agent`
+- `Help Desk Auditor`
+- `Help Desk Customer`
+- `Help Desk Read Only`
+
+Recomenda-se revisar os grupos administrativos, de suporte e os fóruns habilitados após a atualização.
 
 ---
 
@@ -354,3 +386,34 @@ Além deste `README.md`, este pacote inclui:
 - `docs/MANUAL_PHPBB_BBCODE_PT_BR.txt`
 
 Esse segundo arquivo está pronto para copiar e colar em um tópico do phpBB, mantendo a formatação em BBCode.
+
+
+## 3.3.0
+
+- Added an initial setup assistant in ACP > Help Desk > Permissions to select tracked forums and apply the main Help Desk roles to existing groups in one step.
+
+
+## 3.5.0
+- ACP operational overview with status distribution and recent activity snapshot
+- Improved ACP table styling for permission and overview screens
+
+
+## 3.7.9.3
+- limpeza adicional de termos em inglês no pt_br
+- rótulos e diagnósticos mais consistentes no ACP
+- aria-labels localizados no painel da equipe e no ACP
+
+## Build 3.8.1
+- Added visible automation and behavioral notification snapshots in viewtopic, My Tickets and ACP.
+- No schema changes and no new migrations.
+
+
+## 3.8.3 final release polish
+
+This build focuses on release readiness rather than schema changes.
+
+Included in this package:
+- ACP final release checklist panel
+- final validation docs in PT-BR and EN
+- no new migration or schema change
+- intended as the final stabilization pass on top of 3.8.2.1

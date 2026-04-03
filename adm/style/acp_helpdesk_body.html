@@ -1,0 +1,1453 @@
+<!-- INCLUDE overall_header.html -->
+
+<h1>{HELPDESK_ACP_PAGE_TITLE}</h1>
+<p>{HELPDESK_ACP_PAGE_EXPLAIN}</p>
+
+<style>
+.helpdesk-acp-tabs-wrap { margin: 0 0 16px; }
+.helpdesk-acp-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.helpdesk-acp-tab {
+    display: inline-block;
+    padding: 10px 14px;
+    border: 1px solid #c7d2dc;
+    border-bottom-width: 2px;
+    border-radius: 6px 6px 0 0;
+    background: #f3f5f7;
+    color: #2b587a;
+    font-weight: 600;
+    text-decoration: none;
+}
+.helpdesk-acp-tab:hover,
+.helpdesk-acp-tab:focus {
+    background: #ffffff;
+    color: #1f425e;
+    text-decoration: none;
+}
+.helpdesk-acp-tab.is-active {
+    background: #ffffff;
+    border-color: #8aa4bf;
+    border-bottom-color: #ffffff;
+    color: #1f425e;
+    position: relative;
+    top: 1px;
+}
+.helpdesk-acp-tab-panel {
+    border-top-left-radius: 0;
+}
+.helpdesk-acp-quickcheck {
+    margin-bottom: 16px;
+}
+.helpdesk-acp-quickcheck-summary {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.helpdesk-acp-quickcheck-summary--ok {
+    background: #eef7ea;
+    color: #2f5d2f;
+}
+.helpdesk-acp-quickcheck-summary--warning {
+    background: #fff4df;
+    color: #7a4f00;
+}
+.helpdesk-acp-quickcheck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.helpdesk-acp-quickcheck-item {
+    padding: 10px 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-quickcheck-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #5b6b79;
+}
+.helpdesk-acp-quickcheck-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f425e;
+}
+.helpdesk-acp-quickcheck-warnings {
+    margin: 0;
+    padding-left: 18px;
+}
+.helpdesk-acp-quickcheck-warnings li {
+    margin: 0 0 6px;
+}
+
+
+.helpdesk-acp-release-readiness {
+    margin: 0 0 16px;
+    padding: 14px 16px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-release-readiness h2 {
+    margin-top: 0;
+}
+.helpdesk-acp-release-readiness-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+.helpdesk-acp-release-readiness-card {
+    padding: 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #ffffff;
+}
+.helpdesk-acp-release-readiness-card strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #1f425e;
+}
+.helpdesk-acp-release-readiness-card p {
+    margin: 0;
+}
+
+.helpdesk-acp-tab-jump {
+    margin: 0 0 16px;
+    padding: 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-tab-jump p {
+    margin: 0 0 8px;
+}
+.helpdesk-acp-tab-jump-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.helpdesk-acp-tab-jump-link {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid #c7d2dc;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #2b587a;
+    font-weight: 600;
+    text-decoration: none;
+}
+.helpdesk-acp-tab-jump-link:hover,
+.helpdesk-acp-tab-jump-link:focus {
+    background: #eef5fb;
+    color: #1f425e;
+    text-decoration: none;
+}
+.helpdesk-acp-tab-panel {
+    scroll-margin-top: 12px;
+}
+.helpdesk-acp-tab-panel textarea {
+    width: min(100%, 980px);
+    max-width: 100%;
+    box-sizing: border-box;
+    font-family: Consolas, Monaco, 'Liberation Mono', 'Courier New', monospace;
+    line-height: 1.4;
+}
+.helpdesk-acp-tab-panel input.text.medium,
+.helpdesk-acp-tab-panel input.text.small {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.helpdesk-acp-perm-summary {
+    margin: 0 0 16px;
+}
+.helpdesk-acp-perm-summary-box {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.helpdesk-acp-perm-summary-box--ok {
+    background: #eef7ea;
+    color: #2f5d2f;
+}
+.helpdesk-acp-perm-summary-box--warning {
+    background: #fff4df;
+    color: #7a4f00;
+}
+.helpdesk-acp-perm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+    margin: 0 0 12px;
+}
+.helpdesk-acp-perm-item {
+    padding: 10px 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-perm-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #5b6b79;
+}
+.helpdesk-acp-perm-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f425e;
+}
+.helpdesk-acp-perm-warnings {
+    margin: 0;
+    padding-left: 18px;
+}
+.helpdesk-acp-perm-warnings li {
+    margin: 0 0 6px;
+}
+.helpdesk-acp-perm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.helpdesk-acp-perm-table th,
+.helpdesk-acp-perm-table td {
+    padding: 8px 10px;
+    border: 1px solid #d6e0e8;
+    vertical-align: top;
+}
+.helpdesk-acp-perm-table th {
+    background: #f3f5f7;
+}
+.helpdesk-acp-perm-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+.helpdesk-acp-perm-badge--ok {
+    background: #eef7ea;
+    color: #2f5d2f;
+}
+.helpdesk-acp-perm-badge--warning {
+    background: #fff4df;
+    color: #7a4f00;
+}
+.helpdesk-acp-template-builder-note {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-template-builder-note code {
+    display: inline-block;
+    margin: 2px 4px 0 0;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: #eef5fb;
+    color: #1f425e;
+    font-size: 11px;
+}
+.helpdesk-acp-template-title {
+    min-width: 180px;
+}
+.helpdesk-acp-template-body {
+    min-width: 280px;
+    min-height: 78px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: Consolas, Monaco, 'Liberation Mono', 'Courier New', monospace;
+    line-height: 1.35;
+}
+.helpdesk-acp-template-source {
+    margin-top: 12px;
+}
+.helpdesk-acp-template-source summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+.helpdesk-acp-summary-box {
+    margin: 0 0 16px;
+    padding: 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-summary-status {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+.helpdesk-acp-summary-status--ok {
+    background: #eef7ea;
+    color: #2f5d2f;
+}
+.helpdesk-acp-summary-status--warning {
+    background: #fff4df;
+    color: #7a4f00;
+}
+.helpdesk-acp-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+}
+.helpdesk-acp-summary-card {
+    padding: 10px 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #ffffff;
+}
+.helpdesk-acp-summary-card strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 18px;
+    color: #1f425e;
+}
+.helpdesk-acp-summary-card span {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #5b6b79;
+}
+.helpdesk-acp-summary-note {
+    margin-top: 10px;
+    color: #4b5965;
+}
+.helpdesk-acp-setup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 12px 0;
+}
+.helpdesk-acp-setup-box {
+    padding: 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+.helpdesk-acp-setup-forums {
+    max-height: 240px;
+    overflow: auto;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: #fff;
+}
+.helpdesk-acp-setup-forums ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.helpdesk-acp-setup-forums li {
+    margin: 0 0 6px;
+}
+.helpdesk-acp-setup-actions {
+    margin-top: 12px;
+}
+.helpdesk-acp-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 12px 0 16px;
+}
+.helpdesk-acp-overview-card {
+    padding: 14px;
+    border: 1px solid #d6e0e8;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafb 100%);
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+.helpdesk-acp-overview-card strong {
+    display: block;
+    font-size: 22px;
+    line-height: 1.1;
+    color: #1f425e;
+}
+.helpdesk-acp-overview-card span {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5b6b79;
+}
+.helpdesk-acp-overview-note {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border: 1px solid #d6e0e8;
+    border-radius: 6px;
+    background: #f8fafb;
+}
+
+.helpdesk-acp-feedback-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 12px 0 16px;
+}
+.helpdesk-acp-feedback-card {
+    padding: 14px;
+    border: 1px solid #d6e0e8;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafb 100%);
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+.helpdesk-acp-feedback-card strong {
+    display: block;
+    font-size: 22px;
+    line-height: 1.1;
+    color: #1f425e;
+}
+.helpdesk-acp-feedback-card span {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5b6b79;
+}
+.helpdesk-acp-feedback-subtle {
+    display: block;
+    margin-top: 8px;
+    color: #5b6b79;
+}
+.helpdesk-acp-feedback-comment {
+    color: #4d5f6d;
+    max-width: 560px;
+}
+.helpdesk-acp-alert-flags {
+    color: #4d5f6d;
+    min-width: 220px;
+}
+.helpdesk-acp-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin: 10px 0 0;
+    border: 1px solid #d6e0e8;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.helpdesk-acp-perm-table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+}
+.helpdesk-acp-perm-table th,
+.helpdesk-acp-perm-table td {
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 1px solid #e3ebf2;
+    vertical-align: top;
+}
+.helpdesk-acp-perm-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #eef5fb;
+    color: #1f425e;
+    text-align: left;
+    font-weight: 700;
+}
+.helpdesk-acp-perm-table tbody tr:nth-child(even) td {
+    background: #fbfcfd;
+}
+.helpdesk-acp-perm-table tbody tr:hover td {
+    background: #f4f9fd;
+}
+.helpdesk-acp-perm-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+.helpdesk-acp-perm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.helpdesk-acp-perm-badge--ok { background: #eef7ea; color: #2f5d2f; }
+.helpdesk-acp-perm-badge--warning { background: #fff4df; color: #7a4f00; }
+.helpdesk-acp-perm-badge--info { background: #eaf3fb; color: #24567a; }
+.helpdesk-acp-perm-badge--active { background: #edf5ff; color: #1f4e7a; }
+.helpdesk-acp-perm-badge--neutral { background: #f2f4f7; color: #4f5f6d; }
+.helpdesk-acp-compact-text {
+    color: #5b6b79;
+    font-size: 12px;
+}
+
+</style>
+
+<div class="helpdesk-acp-tabs-wrap">
+    <div class="inner">
+        <nav aria-label="{L_ACP_HELPDESK_ARIA_TABS}" class="helpdesk-acp-tabs">
+            <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_GENERAL --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_GENERAL}">{L_ACP_HELPDESK_SECTION_GENERAL}</a>
+            <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_WORKFLOW --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_WORKFLOW}">{L_ACP_HELPDESK_SECTION_WORKFLOW}</a>
+            <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_AUTOMATION --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_AUTOMATION}">{L_ACP_HELPDESK_SECTION_AUTOMATION}</a>
+            <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_NOTIFICATIONS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_NOTIFICATIONS}">{L_ACP_HELPDESK_SECTION_NOTIFICATIONS}</a>
+            <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_LISTS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_LISTS}">{L_ACP_HELPDESK_SECTION_LISTS}</a>
+            <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_PERMISSIONS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_PERMISSIONS}">{L_ACP_HELPDESK_SECTION_PERMISSIONS}</a>
+        </nav>
+    </div>
+</div>
+
+<form id="acp_helpdesk" method="post" action="{U_ACTION}">
+    <input type="hidden" name="section" value="{HELPDESK_ACP_SECTION}" />
+
+
+    <!-- IF not S_HELPDESK_ACP_PERMISSIONS -->
+    <fieldset class="helpdesk-acp-quickcheck">
+        <legend>{L_ACP_HELPDESK_QUICK_CHECK}</legend>
+        <p>{L_ACP_HELPDESK_QUICK_CHECK_EXPLAIN}</p>
+        <p class="helpdesk-acp-quickcheck-summary helpdesk-acp-quickcheck-summary--{HELPDESK_ACP_QUICKCHECK_STATUS_CLASS}">
+            <strong>{L_ACP_HELPDESK_QUICK_CHECK_STATUS}{L_COLON}</strong> {HELPDESK_ACP_QUICKCHECK_STATUS_LABEL}
+            <!-- IF HELPDESK_ACP_QUICKCHECK_WARNING_COUNT -->&nbsp;&middot;&nbsp;{HELPDESK_ACP_QUICKCHECK_WARNING_COUNT} {L_ACP_HELPDESK_QUICK_CHECK_WARNING_COUNT_LABEL}<!-- ENDIF -->
+        </p>
+        <div class="helpdesk-acp-quickcheck-grid">
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_FORUMS}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_FORUM_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_STATUSES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_STATUS_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_PRIORITIES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_PRIORITY_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_CATEGORIES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_CATEGORY_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_DEPARTMENTS}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_DEPARTMENT_COUNT}</strong></div>
+            <div class="helpdesk-acp-quickcheck-item"><span class="helpdesk-acp-quickcheck-label">{L_ACP_HELPDESK_QUICK_CHECK_RULES}</span><strong class="helpdesk-acp-quickcheck-value">{HELPDESK_ACP_QUICKCHECK_RULE_COUNT}</strong></div>
+        </div>
+        <!-- IF .helpdesk_acp_quickcheck_warning -->
+        <h4>{L_ACP_HELPDESK_QUICK_CHECK_WARNINGS}</h4>
+        <ul class="helpdesk-acp-quickcheck-warnings">
+            <!-- BEGIN helpdesk_acp_quickcheck_warning -->
+            <li>{helpdesk_acp_quickcheck_warning.MESSAGE}</li>
+            <!-- END helpdesk_acp_quickcheck_warning -->
+        </ul>
+        <!-- ENDIF -->
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF not S_HELPDESK_ACP_PERMISSIONS -->
+    <div class="helpdesk-acp-release-readiness">
+        <h2>{L_ACP_HELPDESK_RELEASE_READINESS_TITLE}</h2>
+        <p>{L_ACP_HELPDESK_RELEASE_READINESS_EXPLAIN}</p>
+        <div class="helpdesk-acp-release-readiness-grid">
+            <div class="helpdesk-acp-release-readiness-card">
+                <strong>{L_ACP_HELPDESK_RELEASE_READINESS_PERMISSIONS_TITLE}</strong>
+                <p>{L_ACP_HELPDESK_RELEASE_READINESS_PERMISSIONS_EXPLAIN}</p>
+            </div>
+            <div class="helpdesk-acp-release-readiness-card">
+                <strong>{L_ACP_HELPDESK_RELEASE_READINESS_SLA_TITLE}</strong>
+                <p>{L_ACP_HELPDESK_RELEASE_READINESS_SLA_EXPLAIN}</p>
+            </div>
+            <div class="helpdesk-acp-release-readiness-card">
+                <strong>{L_ACP_HELPDESK_RELEASE_READINESS_NOTIFICATIONS_TITLE}</strong>
+                <p>{L_ACP_HELPDESK_RELEASE_READINESS_NOTIFICATIONS_EXPLAIN}</p>
+            </div>
+            <div class="helpdesk-acp-release-readiness-card">
+                <strong>{L_ACP_HELPDESK_RELEASE_READINESS_CUSTOMER_TITLE}</strong>
+                <p>{L_ACP_HELPDESK_RELEASE_READINESS_CUSTOMER_EXPLAIN}</p>
+            </div>
+        </div>
+    </div>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_PERMISSIONS -->
+
+    <fieldset class="helpdesk-acp-tab-panel helpdesk-acp-perm-summary" id="helpdesk-acp-permissions-current-setup">
+        <legend>{L_ACP_HELPDESK_SETUP_SUMMARY}</legend>
+        <p>{L_ACP_HELPDESK_SETUP_SUMMARY_EXPLAIN}</p>
+        <div class="helpdesk-acp-perm-grid">
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_SETUP_SUMMARY_TRACKED_FORUMS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_SETUP_SUMMARY_FORUM_COUNT}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_SETUP_SUMMARY_ASSIGNED_ROLES}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_SETUP_SUMMARY_ASSIGNED_ROLE_COUNT}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_SETUP_SUMMARY_ASSIGNMENT_ROWS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_SETUP_SUMMARY_ROW_COUNT}</strong></div>
+        </div>
+
+        <h4>{L_ACP_HELPDESK_SETUP_SUMMARY_FORUMS}</h4>
+        <!-- IF .helpdesk_setup_summary_forum -->
+        <ul class="helpdesk-acp-perm-warnings">
+            <!-- BEGIN helpdesk_setup_summary_forum -->
+            <li><strong>{helpdesk_setup_summary_forum.FORUM_NAME}</strong> <span>(ID {helpdesk_setup_summary_forum.FORUM_ID})</span></li>
+            <!-- END helpdesk_setup_summary_forum -->
+        </ul>
+        <!-- ELSE -->
+        <p>{L_ACP_HELPDESK_SETUP_SUMMARY_NO_FORUMS}</p>
+        <!-- ENDIF -->
+
+        <h4>{L_ACP_HELPDESK_SETUP_SUMMARY_ROLES}</h4>
+        <div class="helpdesk-acp-table-wrap">
+        <table class="helpdesk-acp-perm-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ROLE}</th>
+                    <th>{L_ACP_HELPDESK_SETUP_SUMMARY_GROUP}</th>
+                    <th>{L_ACP_HELPDESK_SETUP_SUMMARY_SCOPE}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- IF .helpdesk_setup_summary_role -->
+                <!-- BEGIN helpdesk_setup_summary_role -->
+                <tr>
+                    <td><strong>{helpdesk_setup_summary_role.ROLE_NAME}</strong></td>
+                    <td>{helpdesk_setup_summary_role.GROUP_NAME}</td>
+                    <td>{helpdesk_setup_summary_role.SCOPE}</td>
+                </tr>
+                <!-- END helpdesk_setup_summary_role -->
+                <!-- ELSE -->
+                <tr>
+                    <td colspan="3">{L_ACP_HELPDESK_SETUP_SUMMARY_NO_ROLES}</td>
+                </tr>
+                <!-- ENDIF -->
+            </tbody>
+        </table>
+    </div>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-setup">
+        <legend>{L_ACP_HELPDESK_SETUP_ASSISTANT}</legend>
+        <p>{L_ACP_HELPDESK_SETUP_ASSISTANT_EXPLAIN}</p>
+        <div class="helpdesk-acp-setup-grid">
+            <div class="helpdesk-acp-setup-box">
+                <h3>{L_ACP_HELPDESK_SETUP_FORUMS}</h3>
+                <p>{L_ACP_HELPDESK_SETUP_FORUMS_EXPLAIN}</p>
+                <div class="helpdesk-acp-setup-forums">
+                    <ul>
+                        <!-- BEGIN helpdesk_setup_forum -->
+                        <li><label><input type="checkbox" class="radio" name="helpdesk_setup_forums[]" value="{helpdesk_setup_forum.FORUM_ID}"<!-- IF helpdesk_setup_forum.S_SELECTED --> checked="checked"<!-- ENDIF --> /> {helpdesk_setup_forum.FORUM_NAME}</label></li>
+                        <!-- END helpdesk_setup_forum -->
+                    </ul>
+                </div>
+            </div>
+            <div class="helpdesk-acp-setup-box">
+                <h3>{L_ACP_HELPDESK_SETUP_GROUPS}</h3>
+                <p>{L_ACP_HELPDESK_SETUP_GROUPS_EXPLAIN}</p>
+                <dl>
+                    <dt><label for="helpdesk_setup_admin_group">{L_ACP_HELPDESK_SETUP_ADMIN_GROUP}{L_COLON}</label></dt>
+                    <dd><select id="helpdesk_setup_admin_group" name="helpdesk_setup_admin_group"><option value="0">{L_ACP_HELPDESK_SETUP_NO_CHANGE}</option><!-- BEGIN helpdesk_setup_admin_group --><option value="{helpdesk_setup_admin_group.GROUP_ID}"<!-- IF helpdesk_setup_admin_group.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_setup_admin_group.GROUP_NAME}</option><!-- END helpdesk_setup_admin_group --></select></dd>
+                </dl>
+                <dl>
+                    <dt><label for="helpdesk_setup_supervisor_group">{L_ACP_HELPDESK_SETUP_SUPERVISOR_GROUP}{L_COLON}</label></dt>
+                    <dd><select id="helpdesk_setup_supervisor_group" name="helpdesk_setup_supervisor_group"><option value="0">{L_ACP_HELPDESK_SETUP_NO_CHANGE}</option><!-- BEGIN helpdesk_setup_supervisor_group --><option value="{helpdesk_setup_supervisor_group.GROUP_ID}"<!-- IF helpdesk_setup_supervisor_group.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_setup_supervisor_group.GROUP_NAME}</option><!-- END helpdesk_setup_supervisor_group --></select></dd>
+                </dl>
+                <dl>
+                    <dt><label for="helpdesk_setup_agent_group">{L_ACP_HELPDESK_SETUP_AGENT_GROUP}{L_COLON}</label></dt>
+                    <dd><select id="helpdesk_setup_agent_group" name="helpdesk_setup_agent_group"><option value="0">{L_ACP_HELPDESK_SETUP_NO_CHANGE}</option><!-- BEGIN helpdesk_setup_agent_group --><option value="{helpdesk_setup_agent_group.GROUP_ID}"<!-- IF helpdesk_setup_agent_group.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_setup_agent_group.GROUP_NAME}</option><!-- END helpdesk_setup_agent_group --></select></dd>
+                </dl>
+                <dl>
+                    <dt><label for="helpdesk_setup_auditor_group">{L_ACP_HELPDESK_SETUP_AUDITOR_GROUP}{L_COLON}</label></dt>
+                    <dd><select id="helpdesk_setup_auditor_group" name="helpdesk_setup_auditor_group"><option value="0">{L_ACP_HELPDESK_SETUP_NO_CHANGE}</option><!-- BEGIN helpdesk_setup_auditor_group --><option value="{helpdesk_setup_auditor_group.GROUP_ID}"<!-- IF helpdesk_setup_auditor_group.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_setup_auditor_group.GROUP_NAME}</option><!-- END helpdesk_setup_auditor_group --></select></dd>
+                </dl>
+                <dl>
+                    <dt><label for="helpdesk_setup_customer_group">{L_ACP_HELPDESK_SETUP_CUSTOMER_GROUP}{L_COLON}</label></dt>
+                    <dd><select id="helpdesk_setup_customer_group" name="helpdesk_setup_customer_group"><option value="0">{L_ACP_HELPDESK_SETUP_NO_CHANGE}</option><!-- BEGIN helpdesk_setup_customer_group --><option value="{helpdesk_setup_customer_group.GROUP_ID}"<!-- IF helpdesk_setup_customer_group.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_setup_customer_group.GROUP_NAME}</option><!-- END helpdesk_setup_customer_group --></select></dd>
+                </dl>
+                <dl>
+                    <dt><label for="helpdesk_setup_readonly_group">{L_ACP_HELPDESK_SETUP_READONLY_GROUP}{L_COLON}</label></dt>
+                    <dd><select id="helpdesk_setup_readonly_group" name="helpdesk_setup_readonly_group"><option value="0">{L_ACP_HELPDESK_SETUP_NO_CHANGE}</option><!-- BEGIN helpdesk_setup_readonly_group --><option value="{helpdesk_setup_readonly_group.GROUP_ID}"<!-- IF helpdesk_setup_readonly_group.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_setup_readonly_group.GROUP_NAME}</option><!-- END helpdesk_setup_readonly_group --></select></dd>
+                </dl>
+            </div>
+        </div>
+        <div class="helpdesk-acp-setup-actions submit-buttons">
+            <input class="button1" type="submit" name="apply_setup_assistant" value="{L_ACP_HELPDESK_SETUP_APPLY}" />
+            {S_FORM_TOKEN}
+        </div>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel helpdesk-acp-perm-summary" id="helpdesk-acp-permissions-diagnostic">
+        <legend>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_EXPLAIN}</p>
+        <p class="helpdesk-acp-perm-summary-box helpdesk-acp-perm-summary-box--{HELPDESK_ACP_PERMISSION_STATUS_CLASS}">
+            <strong>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STATUS}{L_COLON}</strong> {HELPDESK_ACP_PERMISSION_STATUS_LABEL}
+            <!-- IF HELPDESK_ACP_PERMISSION_WARNING_COUNT -->&nbsp;&middot;&nbsp;{HELPDESK_ACP_PERMISSION_WARNING_COUNT} {L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_WARNING_COUNT_LABEL}<!-- ENDIF -->
+        </p>
+        <div class="helpdesk-acp-perm-grid">
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_TRACKED_FORUMS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_TRACKED_FORUM_COUNT}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ADMIN_ASSIGNMENTS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_ADMIN_ASSIGNMENTS}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STAFF_ASSIGNMENTS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_STAFF_ASSIGNMENTS}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_CUSTOMER_ASSIGNMENTS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_CUSTOMER_ASSIGNMENTS}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECK_SUMMARY}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_CUSTOMER_READY_COUNT}/{HELPDESK_ACP_PERMISSION_CUSTOMER_CHECK_COUNT}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_VALID_ROLES}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_VALID_ROLE_COUNT}/{HELPDESK_ACP_PERMISSION_ROLE_COUNT}</strong></div>
+        </div>
+        <!-- IF .helpdesk_permission_warning -->
+        <h4>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_WARNINGS}</h4>
+        <ul class="helpdesk-acp-perm-warnings">
+            <!-- BEGIN helpdesk_permission_warning -->
+            <li>{helpdesk_permission_warning.MESSAGE}</li>
+            <!-- END helpdesk_permission_warning -->
+        </ul>
+        <!-- ELSE -->
+        <p>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_NO_WARNINGS}</p>
+        <!-- ENDIF -->
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-forums">
+        <legend>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_FORUMS}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_FORUMS_EXPLAIN}</p>
+        <div class="helpdesk-acp-table-wrap">
+        <table class="helpdesk-acp-perm-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_FORUM}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STAFF_ASSIGNMENTS}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_CUSTOMER_ASSIGNMENTS}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STATUS}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- IF .helpdesk_permission_forum -->
+                <!-- BEGIN helpdesk_permission_forum -->
+                <tr>
+                    <td><strong>{helpdesk_permission_forum.FORUM_NAME}</strong><br /><span>ID {helpdesk_permission_forum.FORUM_ID}</span></td>
+                    <td>{helpdesk_permission_forum.STAFF_ASSIGNMENTS}</td>
+                    <td>{helpdesk_permission_forum.CUSTOMER_ASSIGNMENTS}</td>
+                    <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_permission_forum.STATUS_CLASS}">{helpdesk_permission_forum.STATUS_LABEL}</span></td>
+                </tr>
+                <!-- END helpdesk_permission_forum -->
+                <!-- ELSE -->
+                <tr>
+                    <td colspan="4">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_NO_FORUM_ROWS}</td>
+                </tr>
+                <!-- ENDIF -->
+            </tbody>
+        </table>
+    </div>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-customers">
+        <legend>{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECKS}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECKS_EXPLAIN}</p>
+        <div class="helpdesk-acp-table-wrap">
+        <table class="helpdesk-acp-perm-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_FORUM}</th>
+                    <th>{L_ACP_HELPDESK_SETUP_SUMMARY_GROUP}</th>
+                    <th>{L_ACL_F_HELPDESK_VIEW}</th>
+                    <th>{L_ACL_F_HELPDESK_TICKET}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECK_FORUM_LIST}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECK_FORUM_READ}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECK_FORUM_POST}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECK_DETAILS}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STATUS}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- IF .helpdesk_permission_customer_check -->
+                <!-- BEGIN helpdesk_permission_customer_check -->
+                <tr>
+                    <td><strong>{helpdesk_permission_customer_check.FORUM_NAME}</strong><br /><span>ID {helpdesk_permission_customer_check.FORUM_ID}</span></td>
+                    <td>{helpdesk_permission_customer_check.GROUP_NAME}</td>
+                    <td>{helpdesk_permission_customer_check.HAS_HELPDESK_VIEW}</td>
+                    <td>{helpdesk_permission_customer_check.HAS_HELPDESK_TICKET}</td>
+                    <td>{helpdesk_permission_customer_check.HAS_FORUM_LIST}</td>
+                    <td>{helpdesk_permission_customer_check.HAS_FORUM_READ}</td>
+                    <td>{helpdesk_permission_customer_check.HAS_FORUM_POST}</td>
+                    <td>{helpdesk_permission_customer_check.DETAILS}</td>
+                    <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_permission_customer_check.STATUS_CLASS}">{helpdesk_permission_customer_check.STATUS_LABEL}</span></td>
+                </tr>
+                <!-- END helpdesk_permission_customer_check -->
+                <!-- ELSE -->
+                <tr>
+                    <td colspan="9">{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECKS_EMPTY}</td>
+                </tr>
+                <!-- ENDIF -->
+            </tbody>
+        </table>
+
+    </div>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-probe">
+        <legend>{L_ACP_HELPDESK_PERMISSION_PROBE}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSION_PROBE_EXPLAIN}</p>
+        <dl>
+            <dt><label for="helpdesk_permission_probe_username">{L_ACP_HELPDESK_PERMISSION_PROBE_USERNAME}{L_COLON}</label></dt>
+            <dd><input type="text" class="text medium" id="helpdesk_permission_probe_username" name="helpdesk_permission_probe_username" value="{HELPDESK_ACP_PERMISSION_PROBE_USERNAME}" /></dd>
+        </dl>
+        <dl>
+            <dt><label for="helpdesk_permission_probe_forum">{L_ACP_HELPDESK_PERMISSION_PROBE_FORUM}{L_COLON}</label></dt>
+            <dd>
+                <select id="helpdesk_permission_probe_forum" name="helpdesk_permission_probe_forum">
+                    <!-- BEGIN helpdesk_permission_probe_forum -->
+                    <option value="{helpdesk_permission_probe_forum.FORUM_ID}"<!-- IF helpdesk_permission_probe_forum.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_permission_probe_forum.FORUM_NAME}</option>
+                    <!-- END helpdesk_permission_probe_forum -->
+                </select>
+            </dd>
+        </dl>
+        <div class="helpdesk-acp-setup-actions submit-buttons">
+            <input class="button1" type="submit" name="run_permission_probe" value="{L_ACP_HELPDESK_PERMISSION_PROBE_RUN}" />
+            {S_FORM_TOKEN}
+        </div>
+
+        <!-- IF HELPDESK_ACP_PERMISSION_PROBE_HAS_ERROR -->
+        <p class="helpdesk-acp-perm-summary-box helpdesk-acp-perm-summary-box--warning"><strong>{L_WARNING}{L_COLON}</strong> {HELPDESK_ACP_PERMISSION_PROBE_ERROR}</p>
+        <!-- ENDIF -->
+
+        <!-- IF HELPDESK_ACP_PERMISSION_PROBE_HAS_RESULT -->
+        <p class="helpdesk-acp-perm-summary-box helpdesk-acp-perm-summary-box--{HELPDESK_ACP_PERMISSION_PROBE_STATUS_CLASS}">
+            <strong>{L_ACP_HELPDESK_PERMISSION_PROBE_STATUS}{L_COLON}</strong> {HELPDESK_ACP_PERMISSION_PROBE_STATUS_LABEL}
+        </p>
+        <div class="helpdesk-acp-perm-grid">
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_PROBE_USER}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_PROBE_USER_LABEL}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_PROBE_FORUM}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_PROBE_FORUM_LABEL}</strong></div>
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_PERMISSION_PROBE_GROUPS}</span><strong class="helpdesk-acp-perm-value">{HELPDESK_ACP_PERMISSION_PROBE_GROUPS_LABEL}</strong></div>
+        </div>
+        <p class="helpdesk-acp-compact-text">{HELPDESK_ACP_PERMISSION_PROBE_NOTE}</p>
+
+        <!-- IF .helpdesk_permission_probe_warning -->
+        <h4>{L_ACP_HELPDESK_PERMISSION_PROBE_WARNINGS}</h4>
+        <ul class="helpdesk-acp-perm-warnings">
+            <!-- BEGIN helpdesk_permission_probe_warning -->
+            <li>{helpdesk_permission_probe_warning.MESSAGE}</li>
+            <!-- END helpdesk_permission_probe_warning -->
+        </ul>
+        <!-- ENDIF -->
+
+        <h4>{L_ACP_HELPDESK_PERMISSION_PROBE_SUMMARY}</h4>
+        <div class="helpdesk-acp-perm-grid">
+            <!-- BEGIN helpdesk_permission_probe_summary -->
+            <div class="helpdesk-acp-perm-item"><span class="helpdesk-acp-perm-label">{helpdesk_permission_probe_summary.LABEL}</span><strong class="helpdesk-acp-perm-value"><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_permission_probe_summary.STATUS_CLASS}">{helpdesk_permission_probe_summary.STATUS_LABEL}</span></strong></div>
+            <!-- END helpdesk_permission_probe_summary -->
+        </div>
+
+        <h4>{L_ACP_HELPDESK_PERMISSION_PROBE_DETAILS}</h4>
+        <div class="helpdesk-acp-table-wrap">
+        <table class="helpdesk-acp-perm-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_HELPDESK_PERMISSION_NAME}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_PROBE_SCOPE}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STATUS}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_PROBE_ALLOW_SOURCES}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_PROBE_DENY_SOURCES}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_PURPOSE}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- BEGIN helpdesk_permission_probe_row -->
+                <tr>
+                    <td><strong>{helpdesk_permission_probe_row.PERMISSION_LABEL}</strong></td>
+                    <td>{helpdesk_permission_probe_row.SCOPE_LABEL}</td>
+                    <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_permission_probe_row.STATUS_CLASS}">{helpdesk_permission_probe_row.STATUS_LABEL}</span></td>
+                    <td>{helpdesk_permission_probe_row.ALLOW_SOURCES}</td>
+                    <td>{helpdesk_permission_probe_row.DENY_SOURCES}</td>
+                    <td>{helpdesk_permission_probe_row.NOTE}</td>
+                </tr>
+                <!-- END helpdesk_permission_probe_row -->
+            </tbody>
+        </table>
+        </div>
+        <!-- ENDIF -->
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-roles">
+        <legend>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ROLES}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ROLES_EXPLAIN}</p>
+        <div class="helpdesk-acp-table-wrap">
+        <table class="helpdesk-acp-perm-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ROLE}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_TYPE}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_EXPECTED}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ASSIGNMENTS}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_STATUS}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- BEGIN helpdesk_permission_role -->
+                <tr>
+                    <td><strong>{helpdesk_permission_role.NAME}</strong></td>
+                    <td>{helpdesk_permission_role.TYPE}</td>
+                    <td>{helpdesk_permission_role.EXPECTED}</td>
+                    <td>{helpdesk_permission_role.ASSIGNMENTS}</td>
+                    <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_permission_role.STATUS_CLASS}">{helpdesk_permission_role.STATUS_LABEL}</span></td>
+                </tr>
+                <!-- END helpdesk_permission_role -->
+            </tbody>
+        </table>
+    </div>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-overview">
+        <legend>{L_ACP_HELPDESK_PERMISSIONS}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSIONS_EXPLAIN}</p>
+        <dl>
+            <dt><strong>{L_ACP_HELPDESK_PERMISSION_ADMIN_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_ADMIN_GROUP_EXPLAIN}</span></dt>
+            <dd>
+                <ul>
+                    <li><strong>{L_ACL_A_HELPDESK_MANAGE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_ADMIN}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_ADMIN}</span></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl>
+            <dt><strong>{L_ACP_HELPDESK_PERMISSION_MOD_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_MOD_GROUP_EXPLAIN}</span></dt>
+            <dd>
+                <ul>
+                    <li><strong>{L_ACL_M_HELPDESK_QUEUE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_QUEUE}</span></li>
+                    <li><strong>{L_ACL_M_HELPDESK_MANAGE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_MANAGE}</span></li>
+                    <li><strong>{L_ACL_M_HELPDESK_ASSIGN}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_ASSIGN}</span></li>
+                    <li><strong>{L_ACL_M_HELPDESK_BULK}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_BULK}</span></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl>
+            <dt><strong>{L_ACP_HELPDESK_PERMISSION_FORUM_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_FORUM_GROUP_EXPLAIN}</span></dt>
+            <dd>
+                <ul>
+                    <li><strong>{L_ACL_F_HELPDESK_VIEW}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_VIEW}</span></li>
+                    <li><strong>{L_ACL_F_HELPDESK_TICKET}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_TICKET}</span></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl>
+            <dt><strong>{L_ACP_HELPDESK_PERMISSION_ROLES_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_ROLES_GROUP_EXPLAIN}</span></dt>
+            <dd>
+                <ul>
+                    <li><strong>{L_ACP_HELPDESK_ROLE_ADMIN}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_ADMIN}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_ADMIN}</span></li>
+                    <li><strong>{L_ACP_HELPDESK_ROLE_SUPERVISOR}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_SUPERVISOR}</span></li>
+                    <li><strong>{L_ACP_HELPDESK_ROLE_AGENT}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_AGENT}</span></li>
+                    <li><strong>{L_ACP_HELPDESK_ROLE_AUDITOR}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_AUDITOR}</span></li>
+                    <li><strong>{L_ACP_HELPDESK_ROLE_CUSTOMER}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_CUSTOMER}</span></li>
+                    <li><strong>{L_ACP_HELPDESK_ROLE_READ_ONLY}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_READ_ONLY}</span></li>
+                </ul>
+            </dd>
+        </dl>
+        <dl>
+            <dt><strong>{L_ACP_HELPDESK_PERMISSION_ASSIGNMENT_GUIDE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_ASSIGNMENT_GUIDE_EXPLAIN}</span></dt>
+            <dd>
+                <p><strong>Admin:</strong> {L_ACL_A_HELPDESK_MANAGE}</p>
+                <p><strong>Equipe:</strong> {L_ACL_M_HELPDESK_QUEUE}, {L_ACL_M_HELPDESK_MANAGE}, {L_ACL_M_HELPDESK_ASSIGN}, {L_ACL_M_HELPDESK_BULK}</p>
+                <p><strong>Fórum:</strong> {L_ACL_F_HELPDESK_VIEW}, {L_ACL_F_HELPDESK_TICKET}</p>
+            </dd>
+        </dl>
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_WORKFLOW -->
+    <div class="helpdesk-acp-tab-jump">
+        <p><strong>{L_ACP_HELPDESK_TAB_JUMP_TITLE}{L_COLON}</strong> {L_ACP_HELPDESK_TAB_JUMP_EXPLAIN}</p>
+        <div class="helpdesk-acp-tab-jump-links">
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-workflow-core">{L_ACP_HELPDESK_WORKFLOW}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-workflow-operations">{L_ACP_HELPDESK_CHANGE_REASON_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-workflow-templates">{L_ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES}</a>
+        </div>
+    </div>
+    <!-- ELSEIF S_HELPDESK_ACP_AUTOMATION -->
+    <div class="helpdesk-acp-tab-jump">
+        <p><strong>{L_ACP_HELPDESK_TAB_JUMP_TITLE}{L_COLON}</strong> {L_ACP_HELPDESK_TAB_JUMP_EXPLAIN}</p>
+        <div class="helpdesk-acp-tab-jump-links">
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-core">{L_ACP_HELPDESK_AUTOMATION}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-operation-rules">{L_ACP_HELPDESK_OPERATION_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-department-profiles">{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-department-rules">{L_ACP_HELPDESK_DEPARTMENT_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-department-priority-rules">{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-department-sla">{L_ACP_HELPDESK_DEPARTMENT_SLA_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-priority-sla">{L_ACP_HELPDESK_PRIORITY_SLA_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-department-priority-sla">{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_SLA_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-department-priority-queue">{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_QUEUE_RULES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-automation-assignee-queue">{L_ACP_HELPDESK_ASSIGNEE_QUEUE_RULES}</a>
+        </div>
+    </div>
+    <!-- ELSEIF S_HELPDESK_ACP_LISTS -->
+    <div class="helpdesk-acp-tab-jump">
+        <p><strong>{L_ACP_HELPDESK_TAB_JUMP_TITLE}{L_COLON}</strong> {L_ACP_HELPDESK_TAB_JUMP_EXPLAIN}</p>
+        <div class="helpdesk-acp-tab-jump-links">
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-lists-status">{L_ACP_HELPDESK_STATUS_DEFINITIONS}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-lists-classification">{L_ACP_HELPDESK_CLASSIFICATION}</a>
+        </div>
+    </div>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_GENERAL -->
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-general-overview">
+        <legend>{L_ACP_HELPDESK_OVERVIEW}</legend>
+        <p>{L_ACP_HELPDESK_OVERVIEW_EXPLAIN}</p>
+        <p class="helpdesk-acp-overview-note"><strong>{L_ACP_HELPDESK_OVERVIEW_TRACKED_FORUMS_LABEL}{L_COLON}</strong> <!-- IF HELPDESK_ACP_OVERVIEW_TRACKED_FORUM_NAMES -->{HELPDESK_ACP_OVERVIEW_TRACKED_FORUM_NAMES}<!-- ELSE -->{L_ACP_HELPDESK_OVERVIEW_NO_TRACKED_FORUMS}<!-- ENDIF --></p>
+        <div class="helpdesk-acp-overview-grid">
+            <div class="helpdesk-acp-overview-card"><strong>{HELPDESK_ACP_OVERVIEW_TOTAL_TICKETS}</strong><span>{L_ACP_HELPDESK_OVERVIEW_TOTAL_TICKETS}</span></div>
+            <div class="helpdesk-acp-overview-card"><strong>{HELPDESK_ACP_OVERVIEW_ACTIVE_TICKETS}</strong><span>{L_ACP_HELPDESK_OVERVIEW_ACTIVE_TICKETS}</span></div>
+            <div class="helpdesk-acp-overview-card"><strong>{HELPDESK_ACP_OVERVIEW_CLOSED_TICKETS}</strong><span>{L_ACP_HELPDESK_OVERVIEW_CLOSED_TICKETS}</span></div>
+            <div class="helpdesk-acp-overview-card"><strong>{HELPDESK_ACP_OVERVIEW_ASSIGNED_TICKETS}</strong><span>{L_ACP_HELPDESK_OVERVIEW_ASSIGNED_TICKETS}</span></div>
+            <div class="helpdesk-acp-overview-card"><strong>{HELPDESK_ACP_OVERVIEW_RECENT_ACTIVITY}</strong><span>{L_ACP_HELPDESK_OVERVIEW_RECENT_ACTIVITY}</span></div>
+        </div>
+
+        <h4>{L_ACP_HELPDESK_OVERVIEW_STATUS_BREAKDOWN}</h4>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_STATUS}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_TONE}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_TICKETS}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_SHARE}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- IF .helpdesk_acp_status_row -->
+                    <!-- BEGIN helpdesk_acp_status_row -->
+                    <tr>
+                        <td><strong>{helpdesk_acp_status_row.STATUS_LABEL}</strong></td>
+                        <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_acp_status_row.STATUS_TONE_CLASS}">{helpdesk_acp_status_row.STATUS_TONE}</span></td>
+                        <td>{helpdesk_acp_status_row.TICKET_COUNT}</td>
+                        <td>{helpdesk_acp_status_row.SHARE_LABEL}</td>
+                    </tr>
+                    <!-- END helpdesk_acp_status_row -->
+                    <!-- ELSE -->
+                    <tr>
+                        <td colspan="4">{L_ACP_HELPDESK_OVERVIEW_NO_STATUS_ROWS}</td>
+                    </tr>
+                    <!-- ENDIF -->
+                </tbody>
+            </table>
+        </div>
+
+
+
+        <!-- IF HELPDESK_ACP_FEEDBACK_ENABLED -->
+        <h4>{L_ACP_HELPDESK_FEEDBACK_OVERVIEW}</h4>
+        <p class="helpdesk-acp-overview-note">{L_ACP_HELPDESK_FEEDBACK_OVERVIEW_EXPLAIN}</p>
+        <div class="helpdesk-acp-feedback-grid">
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_FEEDBACK_TOTAL}</strong><span>{L_ACP_HELPDESK_FEEDBACK_TOTAL}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_FEEDBACK_AVERAGE}</strong><span>{L_ACP_HELPDESK_FEEDBACK_AVERAGE}</span><em class="helpdesk-acp-feedback-subtle">{HELPDESK_ACP_FEEDBACK_AVERAGE_LABEL}</em></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_FEEDBACK_RECENT_30D}</strong><span>{L_ACP_HELPDESK_FEEDBACK_RECENT_30D}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_FEEDBACK_COMMENT_COUNT}</strong><span>{L_ACP_HELPDESK_FEEDBACK_COMMENT_COUNT}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_FEEDBACK_LOW_RATING_COUNT}</strong><span>{L_ACP_HELPDESK_FEEDBACK_LOW_RATING_COUNT}</span></div>
+        </div>
+
+        <h4>{L_ACP_HELPDESK_FEEDBACK_DISTRIBUTION}</h4>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_RATING}</th>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_TOTAL}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_SHARE}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- IF .helpdesk_acp_feedback_distribution_row -->
+                    <!-- BEGIN helpdesk_acp_feedback_distribution_row -->
+                    <tr>
+                        <td><strong>{helpdesk_acp_feedback_distribution_row.RATING_LABEL}</strong></td>
+                        <td>{helpdesk_acp_feedback_distribution_row.TICKET_COUNT}</td>
+                        <td>{helpdesk_acp_feedback_distribution_row.SHARE_LABEL}</td>
+                    </tr>
+                    <!-- END helpdesk_acp_feedback_distribution_row -->
+                    <!-- ELSE -->
+                    <tr>
+                        <td colspan="3">{L_ACP_HELPDESK_FEEDBACK_NO_DATA}</td>
+                    </tr>
+                    <!-- ENDIF -->
+                </tbody>
+            </table>
+        </div>
+
+        <h4>{L_ACP_HELPDESK_FEEDBACK_BY_DEPARTMENT}</h4>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTION_DEPARTMENT}</th>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_AVERAGE}</th>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_TOTAL}</th>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_COMMENT_COUNT}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- IF .helpdesk_acp_feedback_department_row -->
+                    <!-- BEGIN helpdesk_acp_feedback_department_row -->
+                    <tr>
+                        <td><strong>{helpdesk_acp_feedback_department_row.DEPARTMENT_LABEL}</strong></td>
+                        <td>{helpdesk_acp_feedback_department_row.AVERAGE_LABEL} <span class="helpdesk-acp-feedback-subtle">{helpdesk_acp_feedback_department_row.AVERAGE_STARS}</span></td>
+                        <td>{helpdesk_acp_feedback_department_row.TOTAL_FEEDBACK}</td>
+                        <td>{helpdesk_acp_feedback_department_row.COMMENT_COUNT}</td>
+                    </tr>
+                    <!-- END helpdesk_acp_feedback_department_row -->
+                    <!-- ELSE -->
+                    <tr>
+                        <td colspan="4">{L_ACP_HELPDESK_FEEDBACK_NO_DATA}</td>
+                    </tr>
+                    <!-- ENDIF -->
+                </tbody>
+            </table>
+        </div>
+
+        <h4>{L_ACP_HELPDESK_FEEDBACK_RECENT_TABLE}</h4>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_TIME}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_TOPIC}</th>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_RATING}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTION_DEPARTMENT}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_BY}</th>
+                        <th>{L_ACP_HELPDESK_FEEDBACK_COMMENT_LABEL}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- IF .helpdesk_acp_feedback_recent_row -->
+                    <!-- BEGIN helpdesk_acp_feedback_recent_row -->
+                    <tr>
+                        <td>{helpdesk_acp_feedback_recent_row.SUBMITTED_AT}</td>
+                        <td><strong>{helpdesk_acp_feedback_recent_row.TOPIC_LABEL}</strong></td>
+                        <td>{helpdesk_acp_feedback_recent_row.RATING_LABEL}</td>
+                        <td>{helpdesk_acp_feedback_recent_row.DEPARTMENT_LABEL}</td>
+                        <td>{helpdesk_acp_feedback_recent_row.USERNAME}</td>
+                        <td class="helpdesk-acp-feedback-comment"><!-- IF helpdesk_acp_feedback_recent_row.HAS_COMMENT -->{helpdesk_acp_feedback_recent_row.COMMENT_PREVIEW}<!-- ELSE -->{L_ACP_HELPDESK_FEEDBACK_NO_COMMENT}<!-- ENDIF --></td>
+                    </tr>
+                    <!-- END helpdesk_acp_feedback_recent_row -->
+                    <!-- ELSE -->
+                    <tr>
+                        <td colspan="6">{L_ACP_HELPDESK_FEEDBACK_NO_DATA}</td>
+                    </tr>
+                    <!-- ENDIF -->
+                </tbody>
+            </table>
+        </div>
+        <!-- ENDIF -->
+
+        <!-- IF HELPDESK_ALERTS_ENABLE -->
+        <h4>{L_ACP_HELPDESK_ALERT_OVERVIEW}</h4>
+        <p class="helpdesk-acp-overview-note">{L_ACP_HELPDESK_ALERT_OVERVIEW_EXPLAIN}</p>
+        <div class="helpdesk-acp-feedback-grid">
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_TOTAL}</strong><span>{L_ACP_HELPDESK_ALERT_TOTAL}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_OVERDUE}</strong><span>{L_ACP_HELPDESK_ALERT_OVERDUE}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_STALE}</strong><span>{L_ACP_HELPDESK_ALERT_STALE}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_FIRST_REPLY}</strong><span>{L_ACP_HELPDESK_ALERT_FIRST_REPLY}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_UNASSIGNED}</strong><span>{L_ACP_HELPDESK_ALERT_UNASSIGNED}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_WAITING_STAFF}</strong><span>{L_ACP_HELPDESK_ALERT_WAITING_STAFF}</span></div>
+            <div class="helpdesk-acp-feedback-card"><strong>{HELPDESK_ACP_ALERT_REOPENED}</strong><span>{L_ACP_HELPDESK_ALERT_REOPENED}</span></div>
+        </div>
+
+        <h4>{L_ACP_HELPDESK_ALERT_TABLE}</h4>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_TOPIC}</th>
+                        <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_FORUM}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_STATUS}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTION_PRIORITY}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTION_DEPARTMENT}</th>
+                        <th>{L_ACP_HELPDESK_ALERT_FLAGS}</th>
+                        <th>{L_ACP_HELPDESK_ALERT_SEVERITY}</th>
+                        <th>{L_ACP_HELPDESK_ALERT_LAST_ACTIVITY}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- IF .helpdesk_acp_alert_row -->
+                    <!-- BEGIN helpdesk_acp_alert_row -->
+                    <tr>
+                        <td><strong>{helpdesk_acp_alert_row.TOPIC_LABEL}</strong></td>
+                        <td>{helpdesk_acp_alert_row.FORUM_NAME}</td>
+                        <td>{helpdesk_acp_alert_row.STATUS_LABEL}</td>
+                        <td>{helpdesk_acp_alert_row.PRIORITY_LABEL}</td>
+                        <td>{helpdesk_acp_alert_row.DEPARTMENT_LABEL}</td>
+                        <td class="helpdesk-acp-alert-flags">{helpdesk_acp_alert_row.ALERTS_LABEL}</td>
+                        <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_acp_alert_row.SEVERITY_CLASS}">{helpdesk_acp_alert_row.SEVERITY_LABEL}</span></td>
+                        <td>{helpdesk_acp_alert_row.LAST_ACTIVITY_LABEL}</td>
+                    </tr>
+                    <!-- END helpdesk_acp_alert_row -->
+                    <!-- ELSE -->
+                    <tr>
+                        <td colspan="8">{L_ACP_HELPDESK_ALERT_NO_DATA}</td>
+                    </tr>
+                    <!-- ENDIF -->
+                </tbody>
+            </table>
+        </div>
+        <!-- ENDIF -->
+
+        <h4>{L_ACP_HELPDESK_OVERVIEW_RECENT_ACTIVITY_TABLE}</h4>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_TIME}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_TOPIC}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_ACTION}</th>
+                        <th>{L_ACP_HELPDESK_OVERVIEW_ACTIVITY_BY}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- IF .helpdesk_acp_recent_activity -->
+                    <!-- BEGIN helpdesk_acp_recent_activity -->
+                    <tr>
+                        <td>{helpdesk_acp_recent_activity.LOG_TIME}</td>
+                        <td><strong>{helpdesk_acp_recent_activity.TOPIC_LABEL}</strong></td>
+                        <td><span class="helpdesk-acp-perm-badge helpdesk-acp-perm-badge--{helpdesk_acp_recent_activity.ACTION_CLASS}">{helpdesk_acp_recent_activity.ACTION_LABEL}</span></td>
+                        <td>{helpdesk_acp_recent_activity.USERNAME}</td>
+                    </tr>
+                    <!-- END helpdesk_acp_recent_activity -->
+                    <!-- ELSE -->
+                    <tr>
+                        <td colspan="4">{L_ACP_HELPDESK_OVERVIEW_NO_ACTIVITY}</td>
+                    </tr>
+                    <!-- ENDIF -->
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-general-basic">
+        <legend>{L_ACP_HELPDESK_GENERAL}</legend>
+        <dl>
+            <dt><label for="mundophpbb_helpdesk_enable">{L_ACP_HELPDESK_ENABLE}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ENABLE_EXPLAIN}</span></dt>
+            <dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_enable" value="1"<!-- IF HELPDESK_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label>
+                <label><input type="radio" class="radio" name="mundophpbb_helpdesk_enable" value="0"<!-- IF not HELPDESK_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd>
+        </dl>
+        <dl>
+            <dt><label for="mundophpbb_helpdesk_forums">{L_ACP_HELPDESK_FORUMS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_FORUMS_EXPLAIN}</span></dt>
+            <dd><input type="text" id="mundophpbb_helpdesk_forums" name="mundophpbb_helpdesk_forums" value="{HELPDESK_FORUMS}" class="text medium" /></dd>
+        </dl>
+        <dl>
+            <dt><label for="mundophpbb_helpdesk_prefix">{L_ACP_HELPDESK_PREFIX}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_PREFIX_EXPLAIN}</span></dt>
+            <dd><input type="text" id="mundophpbb_helpdesk_prefix" name="mundophpbb_helpdesk_prefix" value="{HELPDESK_PREFIX}" class="text medium" /></dd>
+        </dl>
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_WORKFLOW -->
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-workflow-core">
+        <legend>{L_ACP_HELPDESK_WORKFLOW}</legend>
+        <dl>
+            <dt><label for="mundophpbb_helpdesk_default_status">{L_ACP_HELPDESK_DEFAULT_STATUS}{L_COLON}</label></dt>
+            <dd><select id="mundophpbb_helpdesk_default_status" name="mundophpbb_helpdesk_default_status"><!-- BEGIN helpdesk_default_status_options --><option value="{helpdesk_default_status_options.VALUE}"<!-- IF helpdesk_default_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_default_status_options.LABEL}</option><!-- END helpdesk_default_status_options --></select></dd>
+        </dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_STATUS}{L_COLON}</label></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_status_enable" value="1"<!-- IF HELPDESK_STATUS_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_status_enable" value="0"<!-- IF not HELPDESK_STATUS_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_PRIORITY}{L_COLON}</label></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_priority_enable" value="1"<!-- IF HELPDESK_PRIORITY_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_priority_enable" value="0"<!-- IF not HELPDESK_PRIORITY_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_CATEGORY}{L_COLON}</label></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_category_enable" value="1"<!-- IF HELPDESK_CATEGORY_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_category_enable" value="0"<!-- IF not HELPDESK_CATEGORY_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_DEPARTMENT}{L_COLON}</label></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_department_enable" value="1"<!-- IF HELPDESK_DEPARTMENT_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_department_enable" value="0"<!-- IF not HELPDESK_DEPARTMENT_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_ASSIGNMENT}{L_COLON}</label></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_assignment_enable" value="1"<!-- IF HELPDESK_ASSIGNMENT_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_assignment_enable" value="0"<!-- IF not HELPDESK_ASSIGNMENT_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-workflow-operations">
+        <legend>{L_ACP_HELPDESK_CHANGE_REASON_RULES}</legend>
+        <p>{L_ACP_HELPDESK_CHANGE_REASON_RULES_EXPLAIN}</p>
+        <dl><dt><label>{L_ACP_HELPDESK_REQUIRE_REASON_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_REQUIRE_REASON_STATUS_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_require_reason_status" value="1"<!-- IF HELPDESK_REQUIRE_REASON_STATUS --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_require_reason_status" value="0"<!-- IF not HELPDESK_REQUIRE_REASON_STATUS --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_REQUIRE_REASON_PRIORITY}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_REQUIRE_REASON_PRIORITY_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_require_reason_priority" value="1"<!-- IF HELPDESK_REQUIRE_REASON_PRIORITY --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_require_reason_priority" value="0"<!-- IF not HELPDESK_REQUIRE_REASON_PRIORITY --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_REQUIRE_REASON_ASSIGNMENT}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_REQUIRE_REASON_ASSIGNMENT_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_require_reason_assignment" value="1"<!-- IF HELPDESK_REQUIRE_REASON_ASSIGNMENT --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_require_reason_assignment" value="0"<!-- IF not HELPDESK_REQUIRE_REASON_ASSIGNMENT --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_TEAM_PANEL}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ENABLE_TEAM_PANEL_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_team_panel_enable" value="1"<!-- IF HELPDESK_TEAM_PANEL_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_team_panel_enable" value="0"<!-- IF not HELPDESK_TEAM_PANEL_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_ALERTS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ENABLE_ALERTS_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_alerts_enable" value="1"<!-- IF HELPDESK_ALERTS_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_alerts_enable" value="0"<!-- IF not HELPDESK_ALERTS_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_alert_hours">{L_ACP_HELPDESK_ALERT_HOURS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ALERT_HOURS_EXPLAIN}</span></dt><dd><input type="number" min="1" id="mundophpbb_helpdesk_alert_hours" name="mundophpbb_helpdesk_alert_hours" value="{HELPDESK_ALERT_HOURS}" class="text small" /></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_alert_limit">{L_ACP_HELPDESK_ALERT_LIMIT}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ALERT_LIMIT_EXPLAIN}</span></dt><dd><input type="number" min="1" id="mundophpbb_helpdesk_alert_limit" name="mundophpbb_helpdesk_alert_limit" value="{HELPDESK_ALERT_LIMIT}" class="text small" /></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_SLA}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ENABLE_SLA_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_sla_enable" value="1"<!-- IF HELPDESK_SLA_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_sla_enable" value="0"<!-- IF not HELPDESK_SLA_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_sla_hours">{L_ACP_HELPDESK_SLA_HOURS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_SLA_HOURS_EXPLAIN}</span></dt><dd><input type="number" min="1" id="mundophpbb_helpdesk_sla_hours" name="mundophpbb_helpdesk_sla_hours" value="{HELPDESK_SLA_HOURS}" class="text small" /></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_stale_hours">{L_ACP_HELPDESK_STALE_HOURS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_STALE_HOURS_EXPLAIN}</span></dt><dd><input type="number" min="1" id="mundophpbb_helpdesk_stale_hours" name="mundophpbb_helpdesk_stale_hours" value="{HELPDESK_STALE_HOURS}" class="text small" /></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_old_hours">{L_ACP_HELPDESK_OLD_HOURS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_OLD_HOURS_EXPLAIN}</span></dt><dd><input type="number" min="1" id="mundophpbb_helpdesk_old_hours" name="mundophpbb_helpdesk_old_hours" value="{HELPDESK_OLD_HOURS}" class="text small" /></dd></dl>
+    </fieldset>
+
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-workflow-templates">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES_EXPLAIN}</p>
+        <div class="helpdesk-acp-template-builder-note">
+            <p><strong>{L_ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES_TABLE_EXPLAIN}</strong></p>
+            <p>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_USERNAME}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_TOPIC_TITLE}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_TICKET_ID}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_DEPARTMENT}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_STATUS}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_PRIORITY}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_ASSIGNED_TO}</code>
+                <code>{L_ACP_HELPDESK_REPLY_TEMPLATE_PH_BOARD_NAME}</code>
+            </p>
+        </div>
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_DEPARTMENT}</th>
+                        <th>{L_ACP_HELPDESK_REPLY_TEMPLATE_TITLE}</th>
+                        <th>{L_ACP_HELPDESK_REPLY_TEMPLATE_MESSAGE}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- BEGIN helpdesk_department_reply_template_row -->
+                    <tr>
+                        <td><select name="helpdesk_reply_template_department[{helpdesk_department_reply_template_row.ROW_ID}]">{helpdesk_department_reply_template_row.DEPARTMENT_OPTIONS_HTML}</select></td>
+                        <td><input type="text" class="inputbox helpdesk-acp-template-title" name="helpdesk_reply_template_title[{helpdesk_department_reply_template_row.ROW_ID}]" value="{helpdesk_department_reply_template_row.TITLE}" maxlength="255" placeholder="{L_ACP_HELPDESK_REPLY_TEMPLATE_TITLE_PLACEHOLDER}" /></td>
+                        <td><textarea class="helpdesk-acp-template-body" name="helpdesk_reply_template_body[{helpdesk_department_reply_template_row.ROW_ID}]" rows="4" placeholder="{L_ACP_HELPDESK_REPLY_TEMPLATE_MESSAGE_PLACEHOLDER}">{helpdesk_department_reply_template_row.BODY}</textarea></td>
+                    </tr>
+                    <!-- END helpdesk_department_reply_template_row -->
+                </tbody>
+            </table>
+        </div>
+        <details class="helpdesk-acp-template-source">
+            <summary>{L_ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES_SOURCE}</summary>
+            <p>{L_ACP_HELPDESK_DEPARTMENT_REPLY_TEMPLATES_SOURCE_EXPLAIN}</p>
+            <textarea id="mundophpbb_helpdesk_department_reply_templates" rows="10" cols="90" readonly="readonly">{HELPDESK_DEPARTMENT_REPLY_TEMPLATES}</textarea>
+        </details>
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_AUTOMATION -->
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-core">
+        <legend>{L_ACP_HELPDESK_AUTOMATION}</legend>
+        <p>{L_ACP_HELPDESK_AUTOMATION_EXPLAIN}</p>
+        <div class="helpdesk-acp-summary-box">
+            <strong class="helpdesk-acp-summary-status helpdesk-acp-summary-status--{HELPDESK_ACP_AUTOMATION_STATUS_CLASS}">{HELPDESK_ACP_AUTOMATION_STATUS_LABEL}</strong>
+            <p>{L_ACP_HELPDESK_AUTOMATION_SUMMARY_EXPLAIN}</p>
+            <div class="helpdesk-acp-summary-grid">
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_AUTOMATION_REPLY_RULE_COUNT}</strong><span>{L_ACP_HELPDESK_AUTOMATION_CARD_REPLY_RULES}</span></div>
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_AUTOMATION_ASSIGNMENT_RULE_COUNT}</strong><span>{L_ACP_HELPDESK_AUTOMATION_CARD_ASSIGNMENT_RULES}</span></div>
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_AUTOMATION_SLA_RULE_COUNT}</strong><span>{L_ACP_HELPDESK_AUTOMATION_CARD_SLA_RULES}</span></div>
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_AUTOMATION_QUEUE_RULE_COUNT}</strong><span>{L_ACP_HELPDESK_AUTOMATION_CARD_QUEUE_RULES}</span></div>
+            </div>
+            <p class="helpdesk-acp-summary-note"><strong>{L_ACP_HELPDESK_AUTOMATION_LOCKING}{L_COLON}</strong> {HELPDESK_ACP_AUTOMATION_LOCKING_LABEL}<br /><strong>{L_ACP_HELPDESK_AUTOMATION_REPLY_FLOW}{L_COLON}</strong> {HELPDESK_ACP_AUTOMATION_REPLY_FLOW_LABEL}<br /><strong>{L_ACP_HELPDESK_AUTOMATION_ESCALATION}{L_COLON}</strong> {HELPDESK_ACP_AUTOMATION_ESCALATION_LABEL}</p>
+            <ul class="helpdesk-acp-summary-list">
+                <!-- BEGIN helpdesk_acp_automation_behavior_line -->
+                <li>{helpdesk_acp_automation_behavior_line.TEXT}</li>
+                <!-- END helpdesk_acp_automation_behavior_line -->
+            </ul>
+        </div>
+        <dl><dt><label>{L_ACP_HELPDESK_ENABLE_AUTOMATION}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ENABLE_AUTOMATION_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_automation_enable" value="1"<!-- IF HELPDESK_AUTOMATION_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_automation_enable" value="0"<!-- IF not HELPDESK_AUTOMATION_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_AUTO_LOCK_CLOSED}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_AUTO_LOCK_CLOSED_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_auto_lock_closed" value="1"<!-- IF HELPDESK_AUTO_LOCK_CLOSED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_auto_lock_closed" value="0"<!-- IF not HELPDESK_AUTO_LOCK_CLOSED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_AUTO_UNLOCK_REOPENED}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_AUTO_UNLOCK_REOPENED_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_auto_unlock_reopened" value="1"<!-- IF HELPDESK_AUTO_UNLOCK_REOPENED --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_auto_unlock_reopened" value="0"<!-- IF not HELPDESK_AUTO_UNLOCK_REOPENED --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_team_reply_status">{L_ACP_HELPDESK_TEAM_REPLY_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_TEAM_REPLY_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_team_reply_status" name="mundophpbb_helpdesk_team_reply_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_team_reply_status_options --><option value="{helpdesk_team_reply_status_options.VALUE}"<!-- IF helpdesk_team_reply_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_team_reply_status_options.LABEL}</option><!-- END helpdesk_team_reply_status_options --></select></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_user_reply_status">{L_ACP_HELPDESK_USER_REPLY_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_USER_REPLY_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_user_reply_status" name="mundophpbb_helpdesk_user_reply_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_user_reply_status_options --><option value="{helpdesk_user_reply_status_options.VALUE}"<!-- IF helpdesk_user_reply_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_user_reply_status_options.LABEL}</option><!-- END helpdesk_user_reply_status_options --></select></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_AUTO_ASSIGN_TEAM_REPLY}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_AUTO_ASSIGN_TEAM_REPLY_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_auto_assign_team_reply" value="1"<!-- IF HELPDESK_AUTO_ASSIGN_TEAM_REPLY --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_auto_assign_team_reply" value="0"<!-- IF not HELPDESK_AUTO_ASSIGN_TEAM_REPLY --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-operation-rules">
+        <legend>{L_ACP_HELPDESK_OPERATION_RULES}</legend>
+        <p>{L_ACP_HELPDESK_OPERATION_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_assign_status">{L_ACP_HELPDESK_ASSIGN_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ASSIGN_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_assign_status" name="mundophpbb_helpdesk_assign_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_assign_status_options --><option value="{helpdesk_assign_status_options.VALUE}"<!-- IF helpdesk_assign_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_assign_status_options.LABEL}</option><!-- END helpdesk_assign_status_options --></select></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_unassign_status">{L_ACP_HELPDESK_UNASSIGN_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_UNASSIGN_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_unassign_status" name="mundophpbb_helpdesk_unassign_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_unassign_status_options --><option value="{helpdesk_unassign_status_options.VALUE}"<!-- IF helpdesk_unassign_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_unassign_status_options.LABEL}</option><!-- END helpdesk_unassign_status_options --></select></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_department_status">{L_ACP_HELPDESK_DEPARTMENT_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_DEPARTMENT_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_department_status" name="mundophpbb_helpdesk_department_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_department_status_options --><option value="{helpdesk_department_status_options.VALUE}"<!-- IF helpdesk_department_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_department_status_options.LABEL}</option><!-- END helpdesk_department_status_options --></select></dd></dl>
+<dl><dt><label for="mundophpbb_helpdesk_priority_high_status">{L_ACP_HELPDESK_PRIORITY_HIGH_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_PRIORITY_HIGH_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_priority_high_status" name="mundophpbb_helpdesk_priority_high_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_priority_high_status_options --><option value="{helpdesk_priority_high_status_options.VALUE}"<!-- IF helpdesk_priority_high_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_priority_high_status_options.LABEL}</option><!-- END helpdesk_priority_high_status_options --></select></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_priority_critical_status">{L_ACP_HELPDESK_PRIORITY_CRITICAL_STATUS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_PRIORITY_CRITICAL_STATUS_EXPLAIN}</span></dt><dd><select id="mundophpbb_helpdesk_priority_critical_status" name="mundophpbb_helpdesk_priority_critical_status"><option value="">{L_ACP_HELPDESK_AUTOMATION_NO_CHANGE}</option><!-- BEGIN helpdesk_priority_critical_status_options --><option value="{helpdesk_priority_critical_status_options.VALUE}"<!-- IF helpdesk_priority_critical_status_options.S_SELECTED --> selected="selected"<!-- ENDIF -->>{helpdesk_priority_critical_status_options.LABEL}</option><!-- END helpdesk_priority_critical_status_options --></select></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-department-profiles">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILES_EXPLAIN}</p>
+        <!-- IF HELPDESK_DEPARTMENT_AUTO_PROFILE_COUNT -->
+        <div class="helpdesk-acp-table-wrap">
+            <table class="helpdesk-acp-perm-table">
+                <thead>
+                    <tr>
+                        <th>{L_ACP_HELPDESK_DEPARTMENT}</th>
+                        <th>{L_ACP_HELPDESK_DEFAULT_STATUS}</th>
+                        <th>{L_ACP_HELPDESK_PRIORITY}</th>
+                        <th>{L_ACP_HELPDESK_ASSIGNED_TO}</th>
+                        <th>{L_ACP_HELPDESK_DEFAULT_REPLY_TEMPLATE}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- BEGIN helpdesk_department_auto_profile_row -->
+                    <tr>
+                        <td><strong>{helpdesk_department_auto_profile_row.DEPARTMENT_LABEL}</strong><br /><span class="helpdesk-acp-row-note">{helpdesk_department_auto_profile_row.DEPARTMENT_KEY}</span></td>
+                        <td><select name="helpdesk_department_profile_status[{helpdesk_department_auto_profile_row.DEPARTMENT_KEY}]">{helpdesk_department_auto_profile_row.STATUS_OPTIONS_HTML}</select></td>
+                        <td><select name="helpdesk_department_profile_priority[{helpdesk_department_auto_profile_row.DEPARTMENT_KEY}]">{helpdesk_department_auto_profile_row.PRIORITY_OPTIONS_HTML}</select></td>
+                        <td><input type="text" class="inputbox" name="helpdesk_department_profile_assignee[{helpdesk_department_auto_profile_row.DEPARTMENT_KEY}]" value="{helpdesk_department_auto_profile_row.ASSIGNEE}" maxlength="255" placeholder="{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILE_ASSIGNEE_PLACEHOLDER}" /></td>
+                        <td><input type="text" class="inputbox" name="helpdesk_department_profile_reply_template[{helpdesk_department_auto_profile_row.DEPARTMENT_KEY}]" value="{helpdesk_department_auto_profile_row.REPLY_TEMPLATE}" maxlength="255" placeholder="{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILE_TEMPLATE_PLACEHOLDER}" /></td>
+                    </tr>
+                    <!-- END helpdesk_department_auto_profile_row -->
+                </tbody>
+            </table>
+        </div>
+        <p class="helpdesk-note">{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILES_TABLE_EXPLAIN}</p>
+        <!-- ELSE -->
+        <p class="helpdesk-note">{L_ACP_HELPDESK_DEPARTMENT_AUTO_PROFILES_EMPTY}</p>
+        <!-- ENDIF -->
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-department-rules">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_RULES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_department_rule_definitions">{L_ACP_HELPDESK_DEPARTMENT_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_DEPARTMENT_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_department_rule_definitions" name="mundophpbb_helpdesk_department_rule_definitions" rows="7" cols="90">{HELPDESK_DEPARTMENT_RULE_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-department-priority-rules">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_RULES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_department_priority_rule_definitions">{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_department_priority_rule_definitions" name="mundophpbb_helpdesk_department_priority_rule_definitions" rows="8" cols="90">{HELPDESK_DEPARTMENT_PRIORITY_RULE_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-department-sla">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_SLA_RULES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_SLA_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_department_sla_definitions">{L_ACP_HELPDESK_DEPARTMENT_SLA_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_DEPARTMENT_SLA_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_department_sla_definitions" name="mundophpbb_helpdesk_department_sla_definitions" rows="7" cols="90">{HELPDESK_DEPARTMENT_SLA_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-priority-sla">
+        <legend>{L_ACP_HELPDESK_PRIORITY_SLA_RULES}</legend>
+        <p>{L_ACP_HELPDESK_PRIORITY_SLA_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_priority_sla_definitions">{L_ACP_HELPDESK_PRIORITY_SLA_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_PRIORITY_SLA_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_priority_sla_definitions" name="mundophpbb_helpdesk_priority_sla_definitions" rows="7" cols="90">{HELPDESK_PRIORITY_SLA_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-department-priority-sla">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_SLA_RULES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_SLA_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_department_priority_sla_definitions">{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_SLA_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_SLA_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_department_priority_sla_definitions" name="mundophpbb_helpdesk_department_priority_sla_definitions" rows="8" cols="90">{HELPDESK_DEPARTMENT_PRIORITY_SLA_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-department-priority-queue">
+        <legend>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_QUEUE_RULES}</legend>
+        <p>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_QUEUE_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_department_priority_queue_definitions">{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_QUEUE_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_DEPARTMENT_PRIORITY_QUEUE_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_department_priority_queue_definitions" name="mundophpbb_helpdesk_department_priority_queue_definitions" rows="8" cols="90">{HELPDESK_DEPARTMENT_PRIORITY_QUEUE_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-automation-assignee-queue">
+        <legend>{L_ACP_HELPDESK_ASSIGNEE_QUEUE_RULES}</legend>
+        <p>{L_ACP_HELPDESK_ASSIGNEE_QUEUE_RULES_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_assignee_queue_definitions">{L_ACP_HELPDESK_ASSIGNEE_QUEUE_RULES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_ASSIGNEE_QUEUE_RULES_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_assignee_queue_definitions" name="mundophpbb_helpdesk_assignee_queue_definitions" rows="7" cols="90">{HELPDESK_ASSIGNEE_QUEUE_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_NOTIFICATIONS -->
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-notifications">
+        <legend>{L_ACP_HELPDESK_EMAIL_NOTIFICATIONS}</legend>
+        <p>{L_ACP_HELPDESK_EMAIL_NOTIFICATIONS_EXPLAIN}</p>
+        <div class="helpdesk-acp-summary-box">
+            <strong class="helpdesk-acp-summary-status helpdesk-acp-summary-status--{HELPDESK_ACP_NOTIFICATIONS_STATUS_CLASS}">{HELPDESK_ACP_NOTIFICATIONS_STATUS_LABEL}</strong>
+            <p>{L_ACP_HELPDESK_NOTIFICATIONS_SUMMARY_EXPLAIN}</p>
+            <div class="helpdesk-acp-summary-grid">
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_NOTIFICATIONS_RECIPIENT_COUNT}</strong><span>{L_ACP_HELPDESK_NOTIFICATIONS_CARD_RECIPIENTS}</span></div>
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_NOTIFICATIONS_SUBJECT_PREVIEW}</strong><span>{L_ACP_HELPDESK_NOTIFICATIONS_CARD_SUBJECT}</span></div>
+                <div class="helpdesk-acp-summary-card"><strong>{HELPDESK_ACP_NOTIFICATIONS_ALERTS_LABEL}</strong><span>{L_ACP_HELPDESK_NOTIFICATIONS_CARD_ALERTS}</span></div>
+            </div>
+            <ul class="helpdesk-acp-summary-list">
+                <!-- BEGIN helpdesk_acp_notification_behavior_line -->
+                <li>{helpdesk_acp_notification_behavior_line.TEXT}</li>
+                <!-- END helpdesk_acp_notification_behavior_line -->
+            </ul>
+        </div>
+        <dl><dt><label>{L_ACP_HELPDESK_EMAIL_NOTIFY_ENABLE}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_EMAIL_NOTIFY_ENABLE_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_enable" value="1"<!-- IF HELPDESK_EMAIL_NOTIFY_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_enable" value="0"<!-- IF not HELPDESK_EMAIL_NOTIFY_ENABLE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_EMAIL_NOTIFY_AUTHOR}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_EMAIL_NOTIFY_AUTHOR_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_author" value="1"<!-- IF HELPDESK_EMAIL_NOTIFY_AUTHOR --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_author" value="0"<!-- IF not HELPDESK_EMAIL_NOTIFY_AUTHOR --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_EMAIL_NOTIFY_ASSIGNEE}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_EMAIL_NOTIFY_ASSIGNEE_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_assignee" value="1"<!-- IF HELPDESK_EMAIL_NOTIFY_ASSIGNEE --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_assignee" value="0"<!-- IF not HELPDESK_EMAIL_NOTIFY_ASSIGNEE --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label>{L_ACP_HELPDESK_EMAIL_NOTIFY_USER_REPLY}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_EMAIL_NOTIFY_USER_REPLY_EXPLAIN}</span></dt><dd><label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_user_reply" value="1"<!-- IF HELPDESK_EMAIL_NOTIFY_USER_REPLY --> checked="checked"<!-- ENDIF --> /> {L_YES}</label> <label><input type="radio" class="radio" name="mundophpbb_helpdesk_email_notify_user_reply" value="0"<!-- IF not HELPDESK_EMAIL_NOTIFY_USER_REPLY --> checked="checked"<!-- ENDIF --> /> {L_NO}</label></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_email_subject_prefix">{L_ACP_HELPDESK_EMAIL_SUBJECT_PREFIX}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_EMAIL_SUBJECT_PREFIX_EXPLAIN}</span></dt><dd><input type="text" id="mundophpbb_helpdesk_email_subject_prefix" name="mundophpbb_helpdesk_email_subject_prefix" value="{HELPDESK_EMAIL_SUBJECT_PREFIX}" class="text medium" /></dd></dl>
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF S_HELPDESK_ACP_LISTS -->
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-lists-status">
+        <legend>{L_ACP_HELPDESK_STATUS_DEFINITIONS}</legend>
+        <p>{L_ACP_HELPDESK_STATUS_DEFINITIONS_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_status_definitions">{L_ACP_HELPDESK_STATUS_DEFINITIONS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_STATUS_FORMAT_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_status_definitions" name="mundophpbb_helpdesk_status_definitions" rows="8" cols="70">{HELPDESK_STATUS_DEFINITIONS}</textarea></dd></dl>
+    </fieldset>
+    <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-lists-classification">
+        <legend>{L_ACP_HELPDESK_CLASSIFICATION}</legend>
+        <p>{L_ACP_HELPDESK_CLASSIFICATION_EXPLAIN}</p>
+        <dl><dt><label for="mundophpbb_helpdesk_priority_definitions">{L_ACP_HELPDESK_PRIORITY_DEFINITIONS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_PRIORITY_DEFINITIONS_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_priority_definitions" name="mundophpbb_helpdesk_priority_definitions" rows="6" cols="70">{HELPDESK_PRIORITY_DEFINITIONS}</textarea></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_categories">{L_ACP_HELPDESK_CATEGORIES}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_LIST_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_categories" name="mundophpbb_helpdesk_categories" rows="6" cols="60">{HELPDESK_CATEGORIES}</textarea></dd></dl>
+        <dl><dt><label for="mundophpbb_helpdesk_departments">{L_ACP_HELPDESK_DEPARTMENTS}{L_COLON}</label><br /><span>{L_ACP_HELPDESK_LIST_EXPLAIN}</span></dt><dd><textarea id="mundophpbb_helpdesk_departments" name="mundophpbb_helpdesk_departments" rows="6" cols="60">{HELPDESK_DEPARTMENTS}</textarea></dd></dl>
+    </fieldset>
+    <!-- ENDIF -->
+
+    <!-- IF not S_HELPDESK_ACP_PERMISSIONS -->
+    <fieldset class="submit-buttons">
+        <input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+        <input class="button2" type="submit" id="restore_defaults" name="restore_defaults" value="{L_ACP_HELPDESK_RESTORE_DEFAULTS}" onclick="return confirm('{LA_ACP_HELPDESK_RESTORE_DEFAULTS_CONFIRM}');" />&nbsp;
+        <input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+        {S_FORM_TOKEN}
+    </fieldset>
+    <!-- ENDIF -->
+</form>
+
+<!-- INCLUDE overall_footer.html -->

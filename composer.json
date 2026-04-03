@@ -1,10 +1,10 @@
 {
     "name": "mundophpbb/helpdesk",
     "type": "phpbb-extension",
-    "description": "Generic multilingual help desk extension for phpBB with ticket status, priority, category, department, assignment, filters, SLA queue, operational indicators, bulk actions, team queue, internal alerts, rich activity timeline, workflow automation, lightweight email notifications, department-specific queue rules, and bulk priority management.",
+    "description": "Generic multilingual help desk extension for phpBB with ticket status, priority, category, department, assignment, filters, SLA queue, operational indicators, bulk actions, team queue, internal alerts, rich activity timeline, workflow automation, lightweight email notifications, department-specific queue rules, bulk priority management, feedback visibility, macro polish, and queue-level operational focus, and final release readiness polish.",
     "homepage": "https://github.com/mundophpbb/helpdesk",
-    "version": "3.2.0",
-    "time": "2026-03-26",
+    "version": "3.8.3",
+    "time": "2026-04-03",
     "license": "GPL-2.0-only",
     "authors": [
         {

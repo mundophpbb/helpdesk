@@ -1,0 +1,26 @@
+services:
+    mundophpbb.helpdesk.listener:
+        class: mundophpbb\helpdesk\event\listener
+        arguments:
+            - '@config'
+            - '@template'
+            - '@request'
+            - '@user'
+            - '@auth'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '%core.table_prefix%'
+        tags:
+            - { name: event.listener }
+
+    mundophpbb.helpdesk.controller.queue:
+        class: mundophpbb\helpdesk\controller\queue_controller
+        arguments:
+            - '@config'
+            - '@template'
+            - '@request'
+            - '@user'
+            - '@auth'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '%core.table_prefix%'
