@@ -4,18 +4,4 @@
         <i class="icon fa-life-ring fa-fw helpdesk-nav-icon" aria-hidden="true"></i><span>{L_HELPDESK_TEAM_QUEUE_MY_TICKETS}</span>
     </a>
 </li>
-<script>
-(function () {
-    var items = document.querySelectorAll('[data-helpdesk-nav-item="my-tickets"]');
-    if (!items || items.length < 2) {
-        return;
-    }
-
-    for (var i = 1; i < items.length; i++) {
-        if (items[i] && items[i].parentNode) {
-            items[i].parentNode.removeChild(items[i]);
-        }
-    }
-})();
-</script>
 <!-- ENDIF -->
