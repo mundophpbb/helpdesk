@@ -1,31 +1,25 @@
 <!-- INCLUDE overall_header.html -->
 
+<h1>{HELPDESK_ACP_PAGE_TITLE}</h1>
+<p>{HELPDESK_ACP_PAGE_EXPLAIN}</p>
+
 <!-- INCLUDECSS @mundophpbb_helpdesk/helpdesk_acp.css -->
 
-<div class="helpdesk-acp-shell">
-    <div class="helpdesk-acp-hero">
-        <div class="helpdesk-acp-hero__body">
-            <span class="helpdesk-acp-hero__eyebrow">Help Desk ACP</span>
-            <h1>{HELPDESK_ACP_PAGE_TITLE}</h1>
-            <p>{HELPDESK_ACP_PAGE_EXPLAIN}</p>
-        </div>
-    </div>
 
-    <div class="helpdesk-acp-tabs-wrap">
-        <div class="inner">
-            <nav aria-label="{L_ACP_HELPDESK_ARIA_TABS}" class="helpdesk-acp-tabs">
+<div class="helpdesk-acp-tabs-wrap">
+    <div class="inner">
+        <nav aria-label="{L_ACP_HELPDESK_ARIA_TABS}" class="helpdesk-acp-tabs">
             <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_GENERAL --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_GENERAL}">{L_ACP_HELPDESK_SECTION_GENERAL}</a>
             <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_WORKFLOW --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_WORKFLOW}">{L_ACP_HELPDESK_SECTION_WORKFLOW}</a>
             <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_AUTOMATION --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_AUTOMATION}">{L_ACP_HELPDESK_SECTION_AUTOMATION}</a>
             <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_NOTIFICATIONS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_NOTIFICATIONS}">{L_ACP_HELPDESK_SECTION_NOTIFICATIONS}</a>
             <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_LISTS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_LISTS}">{L_ACP_HELPDESK_SECTION_LISTS}</a>
             <a class="helpdesk-acp-tab<!-- IF S_HELPDESK_ACP_PERMISSIONS --> is-active<!-- ENDIF -->" href="{U_HELPDESK_ACP_PERMISSIONS}">{L_ACP_HELPDESK_SECTION_PERMISSIONS}</a>
-            </nav>
-        </div>
+        </nav>
     </div>
+</div>
 
-    <div class="helpdesk-acp-content">
-        <form id="acp_helpdesk" method="post" action="{U_ACTION}">
+<form id="acp_helpdesk" method="post" action="{U_ACTION}">
     <input type="hidden" name="section" value="{HELPDESK_ACP_SECTION}" />
 
 
@@ -959,23 +953,13 @@
     <!-- ENDIF -->
 
     <!-- IF not S_HELPDESK_ACP_PERMISSIONS -->
-    <fieldset class="submit-buttons helpdesk-acp-submitbar">
-        <div class="helpdesk-acp-submitbar__body">
-            <div class="helpdesk-acp-submitbar__meta">
-                <strong>{HELPDESK_ACP_PAGE_TITLE}</strong>
-                <span>{L_ACP_HELPDESK_RESTORE_DEFAULTS}</span>
-            </div>
-            <div class="helpdesk-acp-submitbar__actions">
-                <input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />
-                <input class="button2" type="submit" id="restore_defaults" name="restore_defaults" value="{L_ACP_HELPDESK_RESTORE_DEFAULTS}" onclick="return confirm('{LA_ACP_HELPDESK_RESTORE_DEFAULTS_CONFIRM}');" />
-                <input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
-            </div>
-        </div>
+    <fieldset class="submit-buttons">
+        <input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+        <input class="button2" type="submit" id="restore_defaults" name="restore_defaults" value="{L_ACP_HELPDESK_RESTORE_DEFAULTS}" onclick="return confirm('{LA_ACP_HELPDESK_RESTORE_DEFAULTS_CONFIRM}');" />&nbsp;
+        <input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
         {S_FORM_TOKEN}
     </fieldset>
     <!-- ENDIF -->
-        </form>
-    </div>
-</div>
+</form>
 
 <!-- INCLUDE overall_footer.html -->

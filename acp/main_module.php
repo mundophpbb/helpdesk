@@ -2505,7 +2505,10 @@ class main_module
     {
         global $user;
 
-        return $this->display_group_name(isset($group_row['group_name']) ? (string) $group_row['group_name'] : '', $user);
+        return $this->display_group_name(
+            isset($group_row['group_name']) ? (string) $group_row['group_name'] : '',
+            $user
+        );
     }
 
     protected function display_group_name($group_name, $user)
