@@ -3939,11 +3939,8 @@ class queue_controller
     protected function can_assign_forum($forum_id)
     {
         $forum_id = (int) $forum_id;
-        return $this->auth->acl_get('a_')
-            || $this->auth->acl_get('m_', $forum_id)
-            || $this->auth->acl_get('m_helpdesk_manage', $forum_id)
-            || $this->auth->acl_get('m_helpdesk_assign', $forum_id)
-            || $this->auth->acl_get('m_helpdesk_bulk', $forum_id);
+        return $this->auth->acl_get('m_helpdesk_manage', $forum_id)
+            || $this->auth->acl_get('m_helpdesk_assign', $forum_id);
     }
 
     protected function parse_queue_bulk_items(array $items, array $forum_ids)

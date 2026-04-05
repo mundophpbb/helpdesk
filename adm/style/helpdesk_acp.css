@@ -239,6 +239,23 @@
     background: #fff4df;
     color: #7a4f00;
 }
+
+.helpdesk-acp-perm-grid--roles .helpdesk-acp-perm-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.helpdesk-acp-perm-grid--roles .helpdesk-acp-perm-value {
+    font-size: 15px;
+    line-height: 1.35;
+}
+.helpdesk-acp-perm-grid--roles .helpdesk-acp-compact-text {
+    margin: 0;
+}
+.helpdesk-acp-perm-reference-table td:nth-child(3) {
+    font-weight: 600;
+}
+
 .helpdesk-acp-template-builder-note {
     margin: 0 0 12px;
     padding: 10px 12px;

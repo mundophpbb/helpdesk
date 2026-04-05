@@ -82,6 +82,48 @@
     <!-- ENDIF -->
 
     <!-- IF S_HELPDESK_ACP_PERMISSIONS -->
+    <div class="helpdesk-acp-tab-jump">
+        <p><strong>{L_ACP_HELPDESK_TAB_JUMP_TITLE}{L_COLON}</strong> {L_ACP_HELPDESK_PERMISSIONS_JUMP_EXPLAIN}</p>
+        <div class="helpdesk-acp-tab-jump-links">
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-simple-model">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_MODEL}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-current-setup">{L_ACP_HELPDESK_SETUP_SUMMARY}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-setup">{L_ACP_HELPDESK_SETUP_ASSISTANT}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-diagnostic">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-forums">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_FORUMS}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-customers">{L_ACP_HELPDESK_PERMISSION_CUSTOMER_CHECKS}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-probe">{L_ACP_HELPDESK_PERMISSION_PROBE}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-roles">{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ROLES}</a>
+            <a class="helpdesk-acp-tab-jump-link" href="#helpdesk-acp-permissions-overview">{L_ACP_HELPDESK_PERMISSIONS}</a>
+        </div>
+    </div>
+
+    <fieldset class="helpdesk-acp-tab-panel helpdesk-acp-perm-summary" id="helpdesk-acp-permissions-simple-model">
+        <legend>{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_MODEL}</legend>
+        <p>{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_MODEL_EXPLAIN}</p>
+        <div class="helpdesk-acp-perm-grid helpdesk-acp-perm-grid--roles">
+            <div class="helpdesk-acp-perm-item">
+                <span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_ROLE_ADMIN}</span>
+                <strong class="helpdesk-acp-perm-value">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_ADMIN}</strong>
+                <p class="helpdesk-acp-compact-text">{L_ACP_HELPDESK_ROLE_PURPOSE_ADMIN}</p>
+            </div>
+            <div class="helpdesk-acp-perm-item">
+                <span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_ROLE_SUPERVISOR}</span>
+                <strong class="helpdesk-acp-perm-value">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_SUPERVISOR}</strong>
+                <p class="helpdesk-acp-compact-text">{L_ACP_HELPDESK_ROLE_PURPOSE_SUPERVISOR}</p>
+            </div>
+            <div class="helpdesk-acp-perm-item">
+                <span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_ROLE_AGENT}</span>
+                <strong class="helpdesk-acp-perm-value">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_AGENT}</strong>
+                <p class="helpdesk-acp-compact-text">{L_ACP_HELPDESK_ROLE_PURPOSE_AGENT}</p>
+            </div>
+            <div class="helpdesk-acp-perm-item">
+                <span class="helpdesk-acp-perm-label">{L_ACP_HELPDESK_ROLE_CUSTOMER}</span>
+                <strong class="helpdesk-acp-perm-value">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_CUSTOMER}</strong>
+                <p class="helpdesk-acp-compact-text">{L_ACP_HELPDESK_ROLE_PURPOSE_CUSTOMER}</p>
+            </div>
+        </div>
+        <p class="helpdesk-acp-compact-text">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_EXTRA}</p>
+    </fieldset>
 
     <fieldset class="helpdesk-acp-tab-panel helpdesk-acp-perm-summary" id="helpdesk-acp-permissions-current-setup">
         <legend>{L_ACP_HELPDESK_SETUP_SUMMARY}</legend>
@@ -401,55 +443,58 @@
     <fieldset class="helpdesk-acp-tab-panel" id="helpdesk-acp-permissions-overview">
         <legend>{L_ACP_HELPDESK_PERMISSIONS}</legend>
         <p>{L_ACP_HELPDESK_PERMISSIONS_EXPLAIN}</p>
-        <dl>
-            <dt><strong>{L_ACP_HELPDESK_PERMISSION_ADMIN_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_ADMIN_GROUP_EXPLAIN}</span></dt>
-            <dd>
-                <ul>
-                    <li><strong>{L_ACL_A_HELPDESK_MANAGE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_ADMIN}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_ADMIN}</span></li>
-                </ul>
-            </dd>
-        </dl>
-        <dl>
-            <dt><strong>{L_ACP_HELPDESK_PERMISSION_MOD_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_MOD_GROUP_EXPLAIN}</span></dt>
-            <dd>
-                <ul>
-                    <li><strong>{L_ACL_M_HELPDESK_QUEUE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_QUEUE}</span></li>
-                    <li><strong>{L_ACL_M_HELPDESK_MANAGE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_MANAGE}</span></li>
-                    <li><strong>{L_ACL_M_HELPDESK_ASSIGN}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_ASSIGN}</span></li>
-                    <li><strong>{L_ACL_M_HELPDESK_BULK}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_BULK}</span></li>
-                </ul>
-            </dd>
-        </dl>
-        <dl>
-            <dt><strong>{L_ACP_HELPDESK_PERMISSION_FORUM_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_FORUM_GROUP_EXPLAIN}</span></dt>
-            <dd>
-                <ul>
-                    <li><strong>{L_ACL_F_HELPDESK_VIEW}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_VIEW}</span></li>
-                    <li><strong>{L_ACL_F_HELPDESK_TICKET}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_PERMISSION_PURPOSE_TICKET}</span></li>
-                </ul>
-            </dd>
-        </dl>
-        <dl>
-            <dt><strong>{L_ACP_HELPDESK_PERMISSION_ROLES_GROUP}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_ROLES_GROUP_EXPLAIN}</span></dt>
-            <dd>
-                <ul>
-                    <li><strong>{L_ACP_HELPDESK_ROLE_ADMIN}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_ADMIN}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_ADMIN}</span></li>
-                    <li><strong>{L_ACP_HELPDESK_ROLE_SUPERVISOR}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_SUPERVISOR}</span></li>
-                    <li><strong>{L_ACP_HELPDESK_ROLE_AGENT}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_AGENT}</span></li>
-                    <li><strong>{L_ACP_HELPDESK_ROLE_AUDITOR}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_MOD}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_AUDITOR}</span></li>
-                    <li><strong>{L_ACP_HELPDESK_ROLE_CUSTOMER}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_CUSTOMER}</span></li>
-                    <li><strong>{L_ACP_HELPDESK_ROLE_READ_ONLY}</strong><br /><span>{L_ACP_HELPDESK_ROLE_LOCATION_FORUM}</span><br /><span>{L_ACP_HELPDESK_ROLE_PURPOSE_READ_ONLY}</span></li>
-                </ul>
-            </dd>
-        </dl>
-        <dl>
-            <dt><strong>{L_ACP_HELPDESK_PERMISSION_ASSIGNMENT_GUIDE}</strong><br /><span>{L_ACP_HELPDESK_PERMISSION_ASSIGNMENT_GUIDE_EXPLAIN}</span></dt>
-            <dd>
-                <p><strong>Admin:</strong> {L_ACL_A_HELPDESK_MANAGE}</p>
-                <p><strong>Equipe:</strong> {L_ACL_M_HELPDESK_QUEUE}, {L_ACL_M_HELPDESK_MANAGE}, {L_ACL_M_HELPDESK_ASSIGN}, {L_ACL_M_HELPDESK_BULK}</p>
-                <p><strong>Fórum:</strong> {L_ACL_F_HELPDESK_VIEW}, {L_ACL_F_HELPDESK_TICKET}</p>
-            </dd>
-        </dl>
+        <p class="helpdesk-acp-perm-summary-box helpdesk-acp-perm-summary-box--ok">{L_ACP_HELPDESK_PERMISSIONS_SIMPLE_NOTE}</p>
+        <div class="helpdesk-acp-table-wrap">
+        <table class="helpdesk-acp-perm-table helpdesk-acp-perm-reference-table">
+            <thead>
+                <tr>
+                    <th>{L_ACP_HELPDESK_PERMISSION_DIAGNOSTIC_ROLE}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_LOCATION}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSIONS_MINIMUM_SET}</th>
+                    <th>{L_ACP_HELPDESK_PERMISSION_PURPOSE}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>{L_ACP_HELPDESK_ROLE_ADMIN}</strong></td>
+                    <td>{L_ACP_HELPDESK_PERMISSION_LOCATION_ADMIN}</td>
+                    <td>{L_ACL_A_HELPDESK_MANAGE}</td>
+                    <td>{L_ACP_HELPDESK_ROLE_PURPOSE_ADMIN}</td>
+                </tr>
+                <tr>
+                    <td><strong>{L_ACP_HELPDESK_ROLE_SUPERVISOR}</strong></td>
+                    <td>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</td>
+                    <td>{L_ACL_M_HELPDESK_QUEUE}, {L_ACL_M_HELPDESK_MANAGE}, {L_ACL_M_HELPDESK_ASSIGN}, {L_ACL_M_HELPDESK_BULK}</td>
+                    <td>{L_ACP_HELPDESK_ROLE_PURPOSE_SUPERVISOR}</td>
+                </tr>
+                <tr>
+                    <td><strong>{L_ACP_HELPDESK_ROLE_AGENT}</strong></td>
+                    <td>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</td>
+                    <td>{L_ACL_M_HELPDESK_QUEUE}, {L_ACL_M_HELPDESK_MANAGE}, {L_ACL_M_HELPDESK_ASSIGN}</td>
+                    <td>{L_ACP_HELPDESK_ROLE_PURPOSE_AGENT}</td>
+                </tr>
+                <tr>
+                    <td><strong>{L_ACP_HELPDESK_ROLE_AUDITOR}</strong></td>
+                    <td>{L_ACP_HELPDESK_PERMISSION_LOCATION_MOD}</td>
+                    <td>{L_ACL_M_HELPDESK_QUEUE}</td>
+                    <td>{L_ACP_HELPDESK_ROLE_PURPOSE_AUDITOR}</td>
+                </tr>
+                <tr>
+                    <td><strong>{L_ACP_HELPDESK_ROLE_CUSTOMER}</strong></td>
+                    <td>{L_ACP_HELPDESK_PERMISSION_LOCATION_FORUM}</td>
+                    <td>{L_ACL_F_HELPDESK_VIEW}, {L_ACL_F_HELPDESK_TICKET}</td>
+                    <td>{L_ACP_HELPDESK_ROLE_PURPOSE_CUSTOMER}</td>
+                </tr>
+                <tr>
+                    <td><strong>{L_ACP_HELPDESK_ROLE_READ_ONLY}</strong></td>
+                    <td>{L_ACP_HELPDESK_PERMISSION_LOCATION_FORUM}</td>
+                    <td>{L_ACL_F_HELPDESK_VIEW}</td>
+                    <td>{L_ACP_HELPDESK_ROLE_PURPOSE_READ_ONLY}</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <p class="helpdesk-acp-compact-text">{L_ACP_HELPDESK_PERMISSION_ASSIGNMENT_GUIDE_EXPLAIN}</p>
     </fieldset>
     <!-- ENDIF -->
 
