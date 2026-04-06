@@ -3759,7 +3759,7 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
     protected function can_manage_topic($forum_id)
     {
         $forum_id = (int) $forum_id;
-        return $this->auth->acl_get('a_') || $this->auth->acl_get('m_', $forum_id) || $this->auth->acl_get('m_helpdesk_manage', $forum_id);
+        return $this->auth->acl_get('a_helpdesk_manage') || $this->auth->acl_get('m_helpdesk_manage', $forum_id);
     }
 
     protected function can_view_helpdesk_meta($forum_id)
@@ -3857,7 +3857,7 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
 
     protected function can_view_team_queue($forum_id = 0)
     {
-        if ($this->auth->acl_get('a_'))
+        if ($this->auth->acl_get('a_helpdesk_manage'))
         {
             return true;
         }
@@ -3865,12 +3865,12 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
         $forum_id = (int) $forum_id;
         if ($forum_id > 0)
         {
-            return $this->auth->acl_get('m_', $forum_id) || $this->auth->acl_get('m_helpdesk_queue', $forum_id) || $this->can_manage_topic($forum_id) || $this->can_bulk_manage($forum_id) || $this->can_manage_assignment($forum_id);
+            return $this->auth->acl_get('m_helpdesk_queue', $forum_id) || $this->can_manage_topic($forum_id) || $this->can_bulk_manage($forum_id) || $this->can_manage_assignment($forum_id);
         }
 
         foreach ($this->enabled_forum_ids() as $enabled_forum_id)
         {
-            if ($this->auth->acl_get('m_', $enabled_forum_id) || $this->auth->acl_get('m_helpdesk_queue', $enabled_forum_id) || $this->can_manage_topic($enabled_forum_id) || $this->can_bulk_manage($enabled_forum_id) || $this->can_manage_assignment($enabled_forum_id))
+            if ($this->auth->acl_get('m_helpdesk_queue', $enabled_forum_id) || $this->can_manage_topic($enabled_forum_id) || $this->can_bulk_manage($enabled_forum_id) || $this->can_manage_assignment($enabled_forum_id))
             {
                 return true;
             }
@@ -4659,7 +4659,7 @@ protected function effective_old_hours($department_key = '', $priority_key = '')
     {
         $sql = 'SELECT auth_option_id, auth_option
             FROM ' . $this->table_prefix . "acl_options
-            WHERE " . $this->db->sql_in_set('auth_option', ['a_', 'm_', 'm_helpdesk_manage', 'm_helpdesk_assign', 'm_helpdesk_bulk', 'm_helpdesk_queue']);
+            WHERE " . $this->db->sql_in_set('auth_option', ['m_helpdesk_manage', 'm_helpdesk_assign']);
         $result = $this->db->sql_query($sql);
         $option_ids = [];
         while ($row = $this->db->sql_fetchrow($result))
