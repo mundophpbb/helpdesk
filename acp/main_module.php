@@ -3435,18 +3435,13 @@ class main_module
         $group_rows = $this->fetch_user_groups((int) $user_row['user_id']);
         $group_ids = array_column($group_rows, 'group_id');
         $group_names = array_column($group_rows, 'display_name');
-        $auth_option_ids = $this->fetch_auth_option_ids(['a_helpdesk_manage', 'a_board', 'm_helpdesk_queue', 'm_helpdesk_manage', 'm_helpdesk_assign', 'm_helpdesk_bulk', 'f_helpdesk_view', 'f_helpdesk_ticket', 'f_list', 'f_read', 'f_post']);
+        $auth_option_ids = $this->fetch_auth_option_ids(['a_helpdesk_manage', 'm_helpdesk_queue', 'm_helpdesk_manage', 'm_helpdesk_assign', 'm_helpdesk_bulk', 'f_helpdesk_view', 'f_helpdesk_ticket', 'f_list', 'f_read', 'f_post']);
 
         $probe_permissions = [
             'a_helpdesk_manage' => [
                 'label' => $this->permission_label('a_helpdesk_manage', $user),
                 'scope' => $user->lang('ACP_HELPDESK_PERMISSION_PROBE_SCOPE_GLOBAL'),
                 'note' => $user->lang('ACP_HELPDESK_PERMISSION_PROBE_NOTE_ACP'),
-            ],
-            'a_board' => [
-                'label' => $this->permission_label('a_board', $user),
-                'scope' => $user->lang('ACP_HELPDESK_PERMISSION_PROBE_SCOPE_GLOBAL'),
-                'note' => $user->lang('ACP_HELPDESK_PERMISSION_PROBE_NOTE_BOARD_ADMIN'),
             ],
             'm_helpdesk_queue' => [
                 'label' => $this->permission_label('m_helpdesk_queue', $user),
@@ -3517,7 +3512,7 @@ class main_module
         $team_manage = $this->permission_probe_allows($results, ['m_helpdesk_manage']);
         $team_assign = $this->permission_probe_allows($results, ['m_helpdesk_assign']);
         $team_bulk = $this->permission_probe_allows($results, ['m_helpdesk_bulk']);
-        $admin_manage = $this->permission_probe_allows_any($results, ['a_helpdesk_manage', 'a_board']);
+        $admin_manage = $this->permission_probe_allows_any($results, ['a_helpdesk_manage']);
         $internal_notes = ($team_queue || $team_manage);
 
         $state['summary_rows'] = [

@@ -46,8 +46,6 @@ class v210 extends \phpbb\db\migration\migration
             ['permission.add', ['m_helpdesk_assign']],
             ['permission.add', ['m_helpdesk_bulk']],
             ['permission.add', ['m_helpdesk_queue']],
-
-            ['permission.permission_set', ['ROLE_MOD_FULL', ['m_helpdesk_manage', 'm_helpdesk_assign', 'm_helpdesk_bulk', 'm_helpdesk_queue']]],
         ];
     }
 }

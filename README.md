@@ -120,6 +120,8 @@ A extensão agora trabalha com um bloco de permissões mais completo:
 
 ### 6.4. Perfis prontos
 
+A extensão passa a assumir apenas ACL específica do Help Desk para equipe e atribuição. Permissões genéricas de moderação não devem mais conceder acesso operacional ao suporte por si só.
+
 A migration cria roles dedicadas para acelerar a distribuição:
 
 - `Help Desk Administrator`
